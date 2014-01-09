@@ -1,12 +1,11 @@
 package soot.jimple.infoflow.methodSummary.data.impl;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import soot.SootField;
 import soot.SootMethod;
 import soot.jimple.infoflow.methodSummary.data.AbstractFlowSink;
-import soot.jimple.infoflow.methodSummary.data.Tuple;
 import soot.jimple.infoflow.methodSummary.xml.XMLConstants;
 
 public class DefaultFlowSink extends AbstractFlowSink {
@@ -95,28 +94,24 @@ public class DefaultFlowSink extends AbstractFlowSink {
 	
 
 	@Override
-	public List<Tuple<String, String>> xmlAttributes() {
-		List<Tuple<String, String>> res = new LinkedList<Tuple<String, String>>();
+	public Map<String, String> xmlAttributes() {
+		Map<String, String> res = new HashMap<String, String>();
 		if (isParamter()) {
-			res.add(new Tuple<String, String>(XMLConstants.ATTRIBUTE_FLOWTYPE, XMLConstants.VALUE_PARAMETER));
-			res.add(new Tuple<String, String>(XMLConstants.ATTRIBUTE_PARAMTER_INDEX, getParamterIndex() + ""));
-			res.add(new Tuple<String, String>(XMLConstants.ATTRIBUTE_PARAMTER_TYPE, getParaType()));		
+			res.put(XMLConstants.ATTRIBUTE_FLOWTYPE, XMLConstants.VALUE_PARAMETER);
+			res.put(XMLConstants.ATTRIBUTE_PARAMTER_INDEX, getParamterIndex() + "");
+			res.put(XMLConstants.ATTRIBUTE_PARAMTER_TYPE, getParaType());		
 		} else if (isField()) {
-			res.add(new Tuple<String, String>(XMLConstants.ATTRIBUTE_FLOWTYPE, XMLConstants.VALUE_FIELD));
-			res.add(new Tuple<String, String>(XMLConstants.ATTRIBUTE_FIELD, getField()));
+			res.put(XMLConstants.ATTRIBUTE_FLOWTYPE, XMLConstants.VALUE_FIELD);
+			res.put(XMLConstants.ATTRIBUTE_FIELD, getField());
 		} else {
-			res.add(new Tuple<String, String>(XMLConstants.ATTRIBUTE_FLOWTYPE, XMLConstants.VALUE_RETURN));
-			if(returnLocal == null){
-				res.add(new Tuple<String, String>(XMLConstants.ATTRIBUTE_RETURN_LOCAL, ""));
-			}else{
-				res.add(new Tuple<String, String>(XMLConstants.ATTRIBUTE_RETURN_LOCAL, returnLocal));
-			}
-						
+			res.put(XMLConstants.ATTRIBUTE_FLOWTYPE, XMLConstants.VALUE_RETURN);
+			if(returnLocal != null)
+				res.put(XMLConstants.ATTRIBUTE_RETURN_LOCAL, returnLocal);
 		}
 		if(hasAccessPath()){
-			res.add(new Tuple<String, String>(XMLConstants.ATTRIBUTE_ACCESSPATH, getAccessPath()));
+			res.put(XMLConstants.ATTRIBUTE_ACCESSPATH, getAccessPath());
 		}
-		res.add(new Tuple<String, String>(XMLConstants.ATTRIBUTE_TAINT_SUB_FIELDS, taintSubFields + ""));
+		res.put(XMLConstants.ATTRIBUTE_TAINT_SUB_FIELDS, taintSubFields + "");
 		return res;
 	}
 
@@ -131,16 +126,12 @@ public class DefaultFlowSink extends AbstractFlowSink {
 	@Override
 	public String toString(){
 		StringBuffer buf = new StringBuffer();
-		for(Tuple<String,String> t : xmlAttributes()){
-			buf.append(t._2 + " ");
+		for(String t : xmlAttributes().values()){
+			buf.append(t + " ");
 		}
 		return buf.toString();
 	}
-
 	
-
-
-
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -207,7 +198,5 @@ public class DefaultFlowSink extends AbstractFlowSink {
 	public boolean taintSubFields() {
 		return taintSubFields;
 	}
-
-
 	
 }

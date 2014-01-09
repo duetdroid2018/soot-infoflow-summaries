@@ -51,9 +51,7 @@ public class InfoflowResultProcessor {
 	private List<AbstractMethodFlow> foundFlows = new LinkedList<AbstractMethodFlow>();
 	private String method;
 	private boolean ignoreExceptions = true;
-
-	private Set<AbstractFlowSource> sources;
-
+	
 	private void process() {
 
 		logger.info("start processing infoflow abstractions");
@@ -308,7 +306,6 @@ public class InfoflowResultProcessor {
 
 	public InfoflowResultProcessor(Set<Abstraction> result2, InterproceduralCFG<Unit, SootMethod> cfg, String m,
 			boolean ignoreExceptions, SummarySourceSinkManager manager) {
-		sources = manager.getFoundSources();
 		this.result = result2;
 		this.cfg = cfg;
 		this.method = m;

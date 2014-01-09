@@ -1,6 +1,6 @@
 package soot.jimple.infoflow.methodSummary.data;
 
-import java.util.List;
+import java.util.Map;
 
 public interface IFlowSinkSource {
 	public boolean isParamter();
@@ -19,8 +19,6 @@ public interface IFlowSinkSource {
 	
 	public String getAccessPath();
 	
-	
-	
-	public List<Tuple<String, String>> xmlAttributes();
+	public Map<String, String> xmlAttributes();
 
 }

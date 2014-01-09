@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import javax.xml.stream.XMLOutputFactory;
@@ -12,7 +13,6 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import soot.jimple.infoflow.methodSummary.data.AbstractMethodFlow;
-import soot.jimple.infoflow.methodSummary.data.Tuple;
 
 public class XMLWriter implements ISummaryWriter {
 	private File fileName;
@@ -43,8 +43,8 @@ public class XMLWriter implements ISummaryWriter {
 			for (AbstractMethodFlow data : flow.get(m)) {
 				writer.writeStartElement("flow");
 				writer.writeStartElement("from");
-				for (Tuple<String, String> t : data.source().xmlAttributes()) {
-					writer.writeAttribute(t._1, t._2);
+				for (Entry<String, String> t : data.source().xmlAttributes().entrySet()) {
+					writer.writeAttribute(t.getKey(), t.getValue());
 				}
 				writer.writeEndElement(); // end from
 //				if (printPath && data.flowPath() != null) {
@@ -57,8 +57,8 @@ public class XMLWriter implements ISummaryWriter {
 //					writer.writeEndElement();
 //				}
 				writer.writeStartElement("to");
-				for (Tuple<String, String> t : data.sink().xmlAttributes()) {
-					writer.writeAttribute(t._1, t._2);
+				for (Entry<String, String> t : data.sink().xmlAttributes().entrySet()) {
+					writer.writeAttribute(t.getKey(), t.getValue());
 				}
 				// writer.writeCharacters(data.flowSink().xmlString());
 				writer.writeEndElement();

@@ -1,12 +1,11 @@
 package soot.jimple.infoflow.methodSummary.data.impl;
 
-import java.util.LinkedList;
-import java.util.List;
+import java.util.HashMap;
+import java.util.Map;
 
 import soot.SootField;
 import soot.SootMethod;
 import soot.jimple.infoflow.methodSummary.data.AbstractFlowSource;
-import soot.jimple.infoflow.methodSummary.data.Tuple;
 import soot.jimple.infoflow.methodSummary.xml.XMLConstants;
 
 public class DefaultFlowSource extends AbstractFlowSource {
@@ -27,8 +26,6 @@ public class DefaultFlowSource extends AbstractFlowSource {
 			accessPath = null;
 		else
 			accessPath = ap.toString();
-				
-		
 	}
 
 	public DefaultFlowSource(SootField f, SootField ap) {
@@ -77,20 +74,20 @@ public class DefaultFlowSource extends AbstractFlowSource {
 	}
 
 	@Override
-	public List<Tuple<String, String>> xmlAttributes() {
-		List<Tuple<String, String>> res = new LinkedList<Tuple<String, String>>();
+	public Map<String, String> xmlAttributes() {
+		Map<String, String> res = new HashMap<String, String>();
 		if (isParamter()) {
-			res.add(new Tuple<String, String>(XMLConstants.ATTRIBUTE_FLOWTYPE, XMLConstants.VALUE_PARAMETER));
-			res.add(new Tuple<String, String>(XMLConstants.ATTRIBUTE_PARAMTER_INDEX, getParamterIndex() + ""));
-			res.add(new Tuple<String, String>(XMLConstants.ATTRIBUTE_PARAMTER_TYPE, getParaType()));
-		} else {	
-			res.add(new Tuple<String, String>(XMLConstants.ATTRIBUTE_FLOWTYPE, XMLConstants.VALUE_FIELD));
-			res.add(new Tuple<String, String>(XMLConstants.ATTRIBUTE_FIELD, getField()));
+			res.put(XMLConstants.ATTRIBUTE_FLOWTYPE, XMLConstants.VALUE_PARAMETER);
+			res.put(XMLConstants.ATTRIBUTE_PARAMTER_INDEX, getParamterIndex() + "");
+			res.put(XMLConstants.ATTRIBUTE_PARAMTER_TYPE, getParaType());
+		} else {
+			res.put(XMLConstants.ATTRIBUTE_FLOWTYPE, XMLConstants.VALUE_FIELD);
+			res.put(XMLConstants.ATTRIBUTE_FIELD, getField());
 		}
 		
-		if(hasAccessPath()){
-			res.add(new Tuple<String, String>(XMLConstants.ATTRIBUTE_ACCESSPATH, getAccessPath()));
-		}
+		if(hasAccessPath())
+			res.put(XMLConstants.ATTRIBUTE_ACCESSPATH, getAccessPath());
+		
 		return res;
 	}
 
@@ -101,14 +98,12 @@ public class DefaultFlowSource extends AbstractFlowSource {
 	@Override
 	public String toString(){
 		StringBuffer buf = new StringBuffer();
-		for(Tuple<String,String> t : xmlAttributes()){
-			buf.append(t._2 + " ");
+		for(String t : xmlAttributes().values()){
+			buf.append(t + " ");
 		}
 		return buf.toString();
 	}
-
 	
-
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -162,10 +157,4 @@ public class DefaultFlowSource extends AbstractFlowSource {
 		return accessPath;
 	}
 
-	
-
-
-
-
-	
 }

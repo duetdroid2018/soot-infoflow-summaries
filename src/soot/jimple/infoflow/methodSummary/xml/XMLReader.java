@@ -6,8 +6,6 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedList;
-import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
@@ -16,7 +14,6 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
 import soot.jimple.infoflow.methodSummary.data.AbstractMethodFlow;
-import soot.jimple.infoflow.methodSummary.data.Tuple;
 import soot.jimple.infoflow.methodSummary.data.impl.DefaultMethodFlow;
 import soot.jimple.infoflow.methodSummary.data.impl.FlowSinkFromXML;
 import soot.jimple.infoflow.methodSummary.data.impl.FlowSourceFromXML;
@@ -44,8 +41,8 @@ public class XMLReader implements ISummaryReader{
 		XMLStreamReader reader = factory.createXMLStreamReader(in);
 		State state = State.init;
 		String currentMethod = "";
-		List<Tuple<String, String>> fromAttributes = new LinkedList<Tuple<String,String>>();
-		List<Tuple<String, String>> toAttributes = new LinkedList<Tuple<String,String>>();
+		Map<String, String> fromAttributes = new HashMap<String,String>();
+		Map<String, String> toAttributes = new HashMap<String,String>();
 		//List<String> path = null;
 		
 		while(reader.hasNext()){
@@ -68,14 +65,14 @@ public class XMLReader implements ISummaryReader{
 					state =  State.flow;
 				}else if(reader.getLocalName() == "from" && reader.isStartElement()){
 					for( int i = 0; i < reader.getAttributeCount(); i++){
-						fromAttributes.add(new Tuple<String, String>(reader.getAttributeLocalName(i), reader.getAttributeValue(i)));
+						fromAttributes.put(reader.getAttributeLocalName(i), reader.getAttributeValue(i));
 					}
 					state = State.from;
 				}else if(reader.getLocalName() == "from" && reader.isEndElement()){
 					state= State.flows;
 				}else if(reader.getLocalName() == "to" && reader.isStartElement()){
 					for( int i = 0; i < reader.getAttributeCount(); i++){
-						toAttributes.add(new Tuple<String, String>(reader.getAttributeLocalName(i), reader.getAttributeValue(i)));
+						toAttributes.put(reader.getAttributeLocalName(i), reader.getAttributeValue(i));
 					}
 					state =  State.to;
 				}else if(reader.getLocalName() == "to" && reader.isEndElement()){
@@ -94,10 +91,10 @@ public class XMLReader implements ISummaryReader{
 						state = State.flows;
 						
 					}
-					fromAttributes = new LinkedList<Tuple<String,String>>();
-					toAttributes = new LinkedList<Tuple<String,String>>();
+					fromAttributes = new HashMap<String,String>();
+					toAttributes = new HashMap<String,String>();
 					//path = null;
-									}
+				}
 			}else{
 				if(state == State.from && reader.isCharacters()){
 
@@ -112,12 +109,11 @@ public class XMLReader implements ISummaryReader{
 		return summary;
 	
 	}
-//	private static String cleanString(String s){
-//		return s.replace("\n", "");
-//	}
+	
 	private enum State {
 		init, methods, method, flows, flow,to,from,path;
 	}
+	
 }
 
 

@@ -1,68 +1,54 @@
 package soot.jimple.infoflow.methodSummary.data.impl;
 
-import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
 import soot.jimple.infoflow.methodSummary.data.AbstractFlowSource;
-import soot.jimple.infoflow.methodSummary.data.Tuple;
 import soot.jimple.infoflow.methodSummary.xml.XMLConstants;
 
 public class FlowSourceFromXML extends AbstractFlowSource {
-	private List<Tuple<String, String>> attribues;
+	private Map<String, String> attributes;
 
-	public FlowSourceFromXML(List<Tuple<String, String>> s) {
-		this.attribues = s;
+	public FlowSourceFromXML(Map<String, String> s) {
+		this.attributes = s;
 	}
 
 	@Override
 	public boolean isParamter() {
-		return getAttribut(XMLConstants.ATTRIBUTE_FLOWTYPE)._2.equals(XMLConstants.VALUE_PARAMETER); 
+		return attributes.get(XMLConstants.ATTRIBUTE_FLOWTYPE).equals(XMLConstants.VALUE_PARAMETER); 
 	}
-
-	private Tuple<String, String> getAttribut(String s) {
-		for (Tuple<String, String> t : attribues) {
-			if (t._1.equals(s)) {
-				return t;
-			}
-		}
-		return null;
-	}
-
+	
 	@Override
 	public int getParamterIndex() {
-		return Integer.parseInt(getAttribut(XMLConstants.ATTRIBUTE_PARAMTER_INDEX)._2);
+		return Integer.parseInt(attributes.get(XMLConstants.ATTRIBUTE_PARAMTER_INDEX));
 	}
 
 	@Override
 	public boolean isField() {
-		return getAttribut(XMLConstants.ATTRIBUTE_FLOWTYPE)._2.equals(XMLConstants.VALUE_FIELD); 
+		return attributes.get(XMLConstants.ATTRIBUTE_FLOWTYPE).equals(XMLConstants.VALUE_FIELD); 
 	}
 
 	@Override
 	public String getField() {
-		return getAttribut(XMLConstants.ATTRIBUTE_FIELD)._2;
-	}
-
-
-	@Override
-	public String getParaType() {
-		return getAttribut(XMLConstants.ATTRIBUTE_PARAMTER_TYPE)._2;
-	}
-
-
-	@Override
-	public List<Tuple<String, String>> xmlAttributes() {
-		return attribues;
+		return attributes.get(XMLConstants.ATTRIBUTE_FIELD);
 	}
 	
+	@Override
+	public String getParaType() {
+		return attributes.get(XMLConstants.ATTRIBUTE_PARAMTER_TYPE);
+	}
+
+	@Override
+	public Map<String, String> xmlAttributes() {
+		return attributes;
+	}
 	
 	@Override
 	public String toString(){
 		String res = "";
-		for(Tuple<String, String> t : attribues){
-			res = res + "(" + t._1 + ";" + t._2 +")";
-		}
-		return res;
-		
+		for(Entry<String, String> t : attributes.entrySet())
+			res = res + "(" + t.getKey() + ";" + t.getValue() +")";
+		return res;	
 	}
 
 	@Override
@@ -72,12 +58,12 @@ public class FlowSourceFromXML extends AbstractFlowSource {
 
 	@Override
 	public boolean hasAccessPath() {
-		return getAttribut(XMLConstants.ATTRIBUTE_ACCESSPATH) != null;
+		return attributes.containsKey(XMLConstants.ATTRIBUTE_ACCESSPATH);
 	}
 
 	@Override
 	public String getAccessPath() {
-		return getAttribut(XMLConstants.ATTRIBUTE_ACCESSPATH)._2;
+		return attributes.get(XMLConstants.ATTRIBUTE_ACCESSPATH);
 	}
 
 

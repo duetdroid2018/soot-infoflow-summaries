@@ -1,6 +1,7 @@
 package soot.jimple.infoflow.test.methodSummary;
 
-import soot.jimple.infoflow.methodSummary.data.Tuple;
+import heros.solver.Pair;
+
 
 public class ApiClass implements IApiClass {
 	private int primitiveVariable;
@@ -339,29 +340,29 @@ public class ApiClass implements IApiClass {
 	public Object mutipleSources() {
 		Data data = new Data();
 		data.data = nonPrimitiveVariable;
-		return new Tuple<Object, Object>(data.data, nonPrimitiveVariable.data);
+		return new Pair<Object, Object>(data.data, nonPrimitiveVariable.data);
 	}
 
 	//TODO write test for the following methods
-	public Tuple<ApiClass, Object> thisToReturn() {
-		Tuple<ApiClass, Object> t = new Tuple<ApiClass, Object>(this, new Object());
+	public Pair<ApiClass, Object> thisToReturn() {
+		Pair<ApiClass, Object> t = new Pair<ApiClass, Object>(this, new Object());
 		return t;
 	}
 	
-	public Tuple<ApiClass, Object> thisAndFieldToReturn() {
-		Tuple<ApiClass, Object> t = new Tuple<ApiClass, Object>(this, nonPrimitiveVariable);
+	public Pair<ApiClass, Object> thisAndFieldToReturn() {
+		Pair<ApiClass, Object> t = new Pair<ApiClass, Object>(this, nonPrimitiveVariable);
 		return t;
 	}
 	
-	public Tuple<Object, Tuple<Object, ApiClass>> thisAndFieldToReturn1() {
-		Tuple<Object, Tuple<Object, ApiClass>> t = new Tuple<Object, Tuple<Object, ApiClass>>(new Object(),
-				new Tuple<Object, ApiClass>(nonPrimitive2Variable.data, this));
+	public Pair<Object, Pair<Object, ApiClass>> thisAndFieldToReturn1() {
+		Pair<Object, Pair<Object, ApiClass>> t = new Pair<Object, Pair<Object, ApiClass>>(new Object(),
+				new Pair<Object, ApiClass>(nonPrimitive2Variable.data, this));
 		return t;
 	}
 
-	public Tuple<Object, Tuple<Object, ApiClass>> thisAndFieldToReturn2() {
-		Tuple<Object, Tuple<Object, ApiClass>> t = new Tuple<Object, Tuple<Object, ApiClass>>(
-				nonPrimitive2Variable.data, new Tuple<Object, ApiClass>(new Object(), this));
+	public Pair<Object, Pair<Object, ApiClass>> thisAndFieldToReturn2() {
+		Pair<Object, Pair<Object, ApiClass>> t = new Pair<Object, Pair<Object, ApiClass>>(
+				nonPrimitive2Variable.data, new Pair<Object, ApiClass>(new Object(), this));
 		return t;
 	}
 	
