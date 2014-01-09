@@ -1,13 +1,5 @@
 package soot.jimple.infoflow.test.methodSummary.junit;
 
-import static org.junit.Assert.assertTrue;
-
-import java.util.Set;
-
-import org.junit.Ignore;
-import org.junit.Test;
-
-import soot.jimple.infoflow.methodSummary.data.AbstractMethodFlow;
 
 
 public class ApiTestNotWorking extends ApiTestHelper{

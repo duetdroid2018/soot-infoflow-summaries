@@ -5,15 +5,13 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
-import java.util.Set;
 
 import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
-import soot.jimple.infoflow.methodSummary.data.AbstractMethodFlow;
+import soot.jimple.infoflow.methodSummary.data.MethodSummaries;
 import soot.jimple.infoflow.methodSummary.data.impl.DefaultMethodFlow;
 import soot.jimple.infoflow.methodSummary.data.impl.FlowSinkFromXML;
 import soot.jimple.infoflow.methodSummary.data.impl.FlowSourceFromXML;
@@ -22,7 +20,7 @@ import soot.jimple.infoflow.methodSummary.data.impl.FlowSourceFromXML;
 
 public class XMLReader implements ISummaryReader{
 
-	public Map<String, Set<AbstractMethodFlow>> processXMLFile(String fileName) throws XMLStreamException, FileNotFoundException{
+	public MethodSummaries processXMLFile(String fileName) throws XMLStreamException, FileNotFoundException{
 		return processXMLFile(new File(fileName));
 	}
 	
@@ -33,12 +31,11 @@ public class XMLReader implements ISummaryReader{
 	 * @throws XMLStreamException
 	 * @throws FileNotFoundException
 	 */
-	public Map<String, Set<AbstractMethodFlow>> processXMLFile(File fileName) throws XMLStreamException, FileNotFoundException{
-
-		Map<String, Set<AbstractMethodFlow>> summary = new HashMap<String, Set<AbstractMethodFlow>>();
+	public MethodSummaries processXMLFile(File fileName) throws XMLStreamException, FileNotFoundException{
+		MethodSummaries summary = new MethodSummaries();
+		
 		InputStream in = new FileInputStream(fileName);
-		XMLInputFactory factory = XMLInputFactory.newInstance();
-		XMLStreamReader reader = factory.createXMLStreamReader(in);
+		XMLStreamReader reader = XMLInputFactory.newInstance().createXMLStreamReader(in);
 		State state = State.init;
 		String currentMethod = "";
 		Map<String, String> fromAttributes = new HashMap<String,String>();
@@ -47,71 +44,63 @@ public class XMLReader implements ISummaryReader{
 		
 		while(reader.hasNext()){
 			reader.next();
-			if(reader.hasName()){
-				if(reader.getLocalName() == "methods"){
-					state = State.methods;
-				}else if(reader.getLocalName() == "method" && reader.isStartElement() ){
-					if(reader.getAttributeCount() == 1){
-						currentMethod = reader.getAttributeValue(0);
-						state = State.method;
-					}else{
-						throw new XMLStreamException("parser error: couldn't read method signature");
-					}
-				}else if(reader.getLocalName() == "flows"){
-					state =  State.flows;
-					continue;
-				}else if(reader.getLocalName() == "flow" && reader.isStartElement()){
-					
-					state =  State.flow;
-				}else if(reader.getLocalName() == "from" && reader.isStartElement()){
-					for( int i = 0; i < reader.getAttributeCount(); i++){
-						fromAttributes.put(reader.getAttributeLocalName(i), reader.getAttributeValue(i));
-					}
+			if(!reader.hasName())
+				continue;
+			
+			if (state == State.init && reader.getLocalName().equals("methods"))
+				state = State.methods;
+			else if (state == State.methods && reader.getLocalName().equals("method") && reader.isStartElement() ){
+				state = State.method;
+				currentMethod = getAttributeByName(reader, "id");
+			}
+			else if(state == State.method && reader.getLocalName().equals("flows") && reader.isStartElement())
+				state = State.flows;
+			else if(state == State.method && reader.getLocalName().equals("flows") && reader.isEndElement())
+				state = State.method;
+			else if(state == State.flows && reader.getLocalName().equals("flow") && reader.isStartElement()) {
+				fromAttributes.clear();
+				toAttributes.clear();
+				state =  State.flow;
+			}
+			else if(state == State.flow && reader.getLocalName() == "from" && reader.isStartElement()){
+				for (int i = 0; i < reader.getAttributeCount(); i++)
+					fromAttributes.put(reader.getAttributeLocalName(i), reader.getAttributeValue(i));
 					state = State.from;
-				}else if(reader.getLocalName() == "from" && reader.isEndElement()){
-					state= State.flows;
-				}else if(reader.getLocalName() == "to" && reader.isStartElement()){
-					for( int i = 0; i < reader.getAttributeCount(); i++){
-						toAttributes.put(reader.getAttributeLocalName(i), reader.getAttributeValue(i));
-					}
-					state =  State.to;
-				}else if(reader.getLocalName() == "to" && reader.isEndElement()){
-					state =  State.flow;
-				}else if(reader.getLocalName() == "path" && reader.isStartElement()){
-					state =  State.path;
-				}else if(reader.getLocalName() == "path" && reader.isEndElement()){
-					state = State.flow;
-				}else if(reader.getLocalName() == "flow" && reader.isEndElement()){
-					if(summary.containsKey(currentMethod)){
-						summary.get(currentMethod).add(new DefaultMethodFlow(currentMethod, new FlowSourceFromXML(fromAttributes), new FlowSinkFromXML(toAttributes)));
-					}else{
-						Set<AbstractMethodFlow> data = new HashSet<AbstractMethodFlow>();
-						data.add(new DefaultMethodFlow(currentMethod, new FlowSourceFromXML(fromAttributes), new FlowSinkFromXML(toAttributes)));
-						summary.put(currentMethod, data);
-						state = State.flows;
-						
-					}
-					fromAttributes = new HashMap<String,String>();
-					toAttributes = new HashMap<String,String>();
-					//path = null;
-				}
-			}else{
-				if(state == State.from && reader.isCharacters()){
-
-				}else if(state == State.to && reader.isCharacters()){
-
-				}else if(state == State.path){
-					//TODO add path
-				}
-				
+			}
+			else if (state == State.flow && reader.getLocalName() == "from" && reader.isEndElement())
+				state = State.flows;
+			else if(state == State.flow && reader.getLocalName() == "to" && reader.isStartElement()){
+				for (int i = 0; i < reader.getAttributeCount(); i++)
+					toAttributes.put(reader.getAttributeLocalName(i), reader.getAttributeValue(i));
+				state =  State.to;
+			}
+			else if(state == State.to && reader.getLocalName() == "to" && reader.isEndElement())
+				state =  State.flow;
+			else if(state == State.flow && reader.getLocalName() == "flow" && reader.isEndElement()){
+				summary.addFlowForMethod(currentMethod, new DefaultMethodFlow(currentMethod,
+						new FlowSourceFromXML(fromAttributes), new FlowSinkFromXML(toAttributes)));
+				state = State.flows;
 			}
 		}
 		return summary;
-	
 	}
 	
+	/**
+	 * Gets the value of the XML attribute with the specified id
+	 * @param reader The reader from which to get the XML data
+	 * @param id The attribute id for which to get the data
+	 * @return The data of the given attribute if it exists, otherwise an
+	 * empty string
+	 */
+	private String getAttributeByName(XMLStreamReader reader, String id) {
+		for (int i = 0; i < reader.getAttributeCount(); i++)
+			if (reader.getAttributeLocalName(i).equals(id))
+				return reader.getAttributeValue(i);
+		return "";
+	}
+
 	private enum State {
-		init, methods, method, flows, flow,to,from,path;
+		init, methods, method, flows, flow,to,from;
 	}
 	
 }

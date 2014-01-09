@@ -40,19 +40,29 @@ public class DefaultMethodFlow extends AbstractMethodFlow {
 		return to;
 	}
 
-
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
-		if (obj == null)
+		if (obj == null || !(obj instanceof DefaultMethodFlow))
 			return false;
-		if (!(obj instanceof AbstractMethodFlow))
+		
+		DefaultMethodFlow other = (DefaultMethodFlow) obj;
+		if (!other.methodSig.equals(this.methodSig))
 			return false;
-		AbstractMethodFlow other = (AbstractMethodFlow) obj;
-		if (other.sink().equals(this.sink()) && other.source().equals(this.source()) && other.methodSig().equals(this.methodSig()))
-			return true;
-		return false;
+		if (!other.from.equals(this.from))
+			return false;
+		if (!other.to.equals(this.to))
+			return false;
+		return true;
+	}
+	
+	@Override
+	public int hashCode() {
+		int prime = 31;
+		return prime * methodSig.hashCode()
+				+ prime * from.hashCode()
+				+ prime * to.hashCode();
 	}
 	
 	@Override

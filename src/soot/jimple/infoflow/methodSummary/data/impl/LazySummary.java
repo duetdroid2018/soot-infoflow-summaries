@@ -2,22 +2,20 @@ package soot.jimple.infoflow.methodSummary.data.impl;
 
 import java.io.File;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import soot.SootMethod;
 import soot.jimple.infoflow.methodSummary.data.AbstractMethodFlow;
-import soot.jimple.infoflow.methodSummary.util.MergeSummaries;
+import soot.jimple.infoflow.methodSummary.data.MethodSummaries;
 import soot.jimple.infoflow.methodSummary.xml.ISummaryReader;
 import soot.jimple.infoflow.methodSummary.xml.XMLReader;
 
 public class LazySummary {
 
 	private ISummaryReader reader;
-	private Map<String, Set<AbstractMethodFlow>> flows = new HashMap<String, Set<AbstractMethodFlow>>();
+	private MethodSummaries flows = new MethodSummaries();
 	private Set<String> supportedClasses = new HashSet<String>();
 	private Set<String> loadableClasses = new HashSet<String>();
 	private List<File> files;
@@ -59,19 +57,14 @@ public class LazySummary {
 		if (loadableClasses.contains(clazz)) {
 			loadClass(clazz);
 		}
-		if (flows.containsKey(method.getSignature())) {
-			return flows.get(method.getSignature());
-		}
-		return java.util.Collections.emptySet();
+		return flows.getFlowsForMethod(method.getSignature());
 	}
 
 	private void loadClass(String clazz) {
 		for (File f : files) {
 			if (fileToClass(f).equals(clazz)) {
-				Map<String, Set<AbstractMethodFlow>> newFlows;
 				try {
-					newFlows = reader.processXMLFile(f);
-					MergeSummaries.putAll(flows, newFlows);
+					flows.merge(reader.processXMLFile(f));
 					loadableClasses.remove(clazz);
 					supportedClasses.add(clazz);
 				} catch (Exception e) {

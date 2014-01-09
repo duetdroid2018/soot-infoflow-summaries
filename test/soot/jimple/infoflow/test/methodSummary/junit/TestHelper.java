@@ -2,7 +2,7 @@ package soot.jimple.infoflow.test.methodSummary.junit;
 
 import java.util.Set;
 
-import soot.jimple.infoflow.methodSummary.Summary;
+import soot.jimple.infoflow.methodSummary.SummaryGenerator;
 import soot.jimple.infoflow.methodSummary.data.AbstractMethodFlow;
 import soot.jimple.infoflow.methodSummary.data.IFlowSinkSource;
 
@@ -106,8 +106,8 @@ public class TestHelper {
 //		return java.util.Collections.emptySet();
 //	}
 
-	protected Summary getSummary() {
-		return new Summary();
+	protected SummaryGenerator getSummary() {
+		return new SummaryGenerator();
 	}
 
 	private boolean testAP(IFlowSinkSource sourceSink, String ap) {

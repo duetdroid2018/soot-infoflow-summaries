@@ -2,11 +2,9 @@ package soot.jimple.infoflow.methodSummary;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.HashMap;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import soot.SootMethod;
 import soot.Unit;
@@ -16,89 +14,62 @@ import soot.jimple.infoflow.config.IInfoflowConfig;
 import soot.jimple.infoflow.entryPointCreators.BaseEntryPointCreator;
 import soot.jimple.infoflow.entryPointCreators.DefaultEntryPointCreator;
 import soot.jimple.infoflow.handlers.ResultsAvailableHandler;
-import soot.jimple.infoflow.methodSummary.data.AbstractMethodFlow;
+import soot.jimple.infoflow.methodSummary.data.MethodSummaries;
 import soot.jimple.infoflow.methodSummary.util.InfoflowResultProcessor;
-import soot.jimple.infoflow.methodSummary.util.MergeSummaries;
 import soot.jimple.infoflow.methodSummary.util.SummaryTaintPropagationHandler;
-import soot.jimple.infoflow.source.ISourceSinkManager;
-import soot.jimple.infoflow.taintWrappers.EasyTaintWrapper;
 import soot.jimple.infoflow.taintWrappers.ITaintPropagationWrapper;
-import soot.jimple.infoflow.taintWrappers.IdentityTaintWrapper;
 import soot.jimple.toolkits.ide.icfg.BiDiInterproceduralCFG;
 
 /**
+ * Class for generating library summaries
  * 
- * @author mv
- * 
+ * @author Malte Viering
+ * @author Steven Arzt
  */
-public class Summary {
+public class SummaryGenerator {
 	
 	protected int accessPathLength = 3;
 	protected boolean enableImplicitFlows = false;
 	protected boolean enableExceptionTracking = true;
 	protected boolean enableStaticFieldTracking = true;
 	protected boolean flowSensitiveAliasing = true;
-	protected boolean ignoreExceptions = true;
-	protected boolean useTainWrapper = false;
 	protected boolean debug = false;
 	protected ITaintPropagationWrapper taintWrapper;
 	protected IInfoflowConfig config;
 	protected String path;
 	protected List<String> substitutedWith = new LinkedList<String>();
 	
-
-	protected Map<String, Set<AbstractMethodFlow>> summeries = new HashMap<String, Set<AbstractMethodFlow>>(127);
-
-	public Summary() {
-		summeries = new HashMap<String, Set<AbstractMethodFlow>>(127);
+	public SummaryGenerator() {
 		substitutedWith.add("java.util.LinkedList");
 		substitutedWith.add("java.util.HashMap");
 		//substitutedWith.add("java.util.TreeMap");
 		initDefPath();
 	}
 
-	public Map<String, Set<AbstractMethodFlow>> createMethodSummary(final String m) {
-		return createMethodSummary(m, createSourceSinkManger(m));
+	public MethodSummaries createMethodSummary(final String m) {
+		return createMethodSummary(m, new SummarySourceSinkManager(m));
 	}
-
-	public Map<String, Set<AbstractMethodFlow>> createMethodSummary(final String m, SummarySourceSinkManager manager) {
-		return createMethodSummary(m, manager, null);
-	}
-
-	public Map<String, Set<AbstractMethodFlow>> createMethodSummary(final String m, final SummarySourceSinkManager manager,
-			IdentityTaintWrapper wrapper) {
-		if (wrapper != null) {
-			useTainWrapper = true;
-			taintWrapper = wrapper;
-		}
+	
+	public MethodSummaries createMethodSummary(final String sig, final SummarySourceSinkManager manager) {
+		final MethodSummaries summaries = new MethodSummaries();
+		
 		Infoflow infoflow = initInfoflow();
-		String sig = m;
-		final SummaryTaintPropagationHandler listener = new SummaryTaintPropagationHandler(m);
+		final SummaryTaintPropagationHandler listener = new SummaryTaintPropagationHandler(sig);
 		infoflow.addTaintPropagationHandler(listener);
 		infoflow.addResultsAvailableHandler(new ResultsAvailableHandler() {
-			SummaryTaintPropagationHandler l = listener;
 
 			@Override
 			public void onResultsAvailable(BiDiInterproceduralCFG<Unit, SootMethod> cfg, InfoflowResults results) {
-				InfoflowResultProcessor processor = new InfoflowResultProcessor(l.getResult(), cfg, m,ignoreExceptions,manager);
-				Map<String, Set<AbstractMethodFlow>> tmp = new HashMap<String, Set<AbstractMethodFlow>>(
-						(int) (processor.getOutResult().size() * 1.3));
-				for (SootMethod m : processor.getOutResult().keySet()) {
-					tmp.put(m.getSignature(), processor.getOutResult().get(m));
-				}
-				//??
-				//summeries.putAll(tmp);
-				summeries = MergeSummaries.putAll(summeries, tmp);
-				
-				
-				processor = null;
+				InfoflowResultProcessor processor = new InfoflowResultProcessor
+						(listener.getResult(), cfg, sig, manager);
+				summaries.merge(processor.process());
 			}
+			
 		});
-		BaseEntryPointCreator dEntryPointCreater =createEntryPoint();
-		ISourceSinkManager sourceSinkManger = manager;
-		infoflow.computeInfoflow(path, dEntryPointCreater, java.util.Collections.singletonList(sig), sourceSinkManger);
-		return summeries;
+		infoflow.computeInfoflow(path, createEntryPoint(), Collections.singletonList(sig), manager);
+		return summaries;
 	}
+	
 	private BaseEntryPointCreator createEntryPoint(){
 		DefaultEntryPointCreator dEntryPointCreater = new DefaultEntryPointCreator();
 		dEntryPointCreater.setSubstituteClasses(substitutedWith);
@@ -113,17 +84,8 @@ public class Summary {
 		iFlow.setEnableExceptionTracking(enableExceptionTracking);
 		iFlow.setEnableStaticFieldTracking(enableStaticFieldTracking);
 		iFlow.setFlowSensitiveAliasing(flowSensitiveAliasing);
-		if (useTainWrapper) {
-			if (taintWrapper == null) {
-				try {
-					iFlow.setTaintWrapper(new EasyTaintWrapper(new File("EasyTaintWrapperSourceWithoutX.txt")));
-				} catch (IOException e) {
-					e.printStackTrace();
-				}
-			} else {
-				iFlow.setTaintWrapper(taintWrapper);
-			}
-		}
+		iFlow.setTaintWrapper(taintWrapper);
+
 		if (config == null) {
 			iFlow.setSootConfig(new DefaultSummaryConfig());
 		} else {
@@ -131,7 +93,6 @@ public class Summary {
 		}
 		iFlow.setStopAfterFirstFlow(false);
 		return iFlow;
-
 	}
 
 	public void setPath(String p) {
@@ -149,11 +110,7 @@ public class Summary {
 			path = System.getProperty("java.home") + File.separator + "lib" + File.separator + "rt.jar";
 		}
 	}
-
-	public void setUseTainWrapper(boolean useTainWrapper) {
-		this.useTainWrapper = useTainWrapper;
-	}
-
+	
 	public void setTaintWrapper(ITaintPropagationWrapper taintWrapper) {
 		this.taintWrapper = taintWrapper;
 	}
@@ -161,17 +118,7 @@ public class Summary {
 	public void setConfig(IInfoflowConfig config) {
 		this.config = config;
 	}
-
 	
-
-	private SummarySourceSinkManager createSourceSinkManger(String m) {
-		return new SummarySourceSinkManager(m);
-	}
-
-	public Map<String, Set<AbstractMethodFlow>> getSummary() {
-		return summeries;
-	}
-
 	public List<String> getSubstitutedWith() {
 		return substitutedWith;
 	}
@@ -218,14 +165,6 @@ public class Summary {
 
 	public void setFlowSensitiveAliasing(boolean flowSensitiveAliasing) {
 		this.flowSensitiveAliasing = flowSensitiveAliasing;
-	}
-
-	public boolean isIgnoreExceptions() {
-		return ignoreExceptions;
-	}
-
-	public void setIgnoreExceptions(boolean ignoreExceptions) {
-		this.ignoreExceptions = ignoreExceptions;
 	}
 	
 }

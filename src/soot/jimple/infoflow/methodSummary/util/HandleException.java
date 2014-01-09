@@ -3,23 +3,21 @@ package soot.jimple.infoflow.methodSummary.util;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
-import java.util.Map;
-import java.util.Set;
 
 import javax.xml.stream.XMLStreamException;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import soot.jimple.infoflow.methodSummary.Summary;
-import soot.jimple.infoflow.methodSummary.data.AbstractMethodFlow;
+import soot.jimple.infoflow.methodSummary.SummaryGenerator;
+import soot.jimple.infoflow.methodSummary.data.MethodSummaries;
 import soot.jimple.infoflow.methodSummary.xml.ISummaryWriter;
 import soot.jimple.infoflow.methodSummary.xml.WriterFactory;
 
 public class HandleException {
-	private static final Logger logger = LoggerFactory.getLogger(Summary.class);
+	private static final Logger logger = LoggerFactory.getLogger(SummaryGenerator.class);
 
-	public static void handleException(Map<String, Set<AbstractMethodFlow>> flows, String file, String folder,
+	public static void handleException(MethodSummaries flows, String file, String folder,
 			Exception e, String msg) {
 		System.err.println("########## Start handle exception #############");
 
@@ -62,7 +60,7 @@ public class HandleException {
 		System.err.println("########## end handle exception #############");
 	}
 
-	private static void write(Map<String, Set<AbstractMethodFlow>> flows, String fileName, String folder) {
+	private static void write(MethodSummaries flows, String fileName, String folder) {
 		ISummaryWriter writer = WriterFactory.createXMLWriter(fileName, folder);
 		try {
 			writer.write(flows);

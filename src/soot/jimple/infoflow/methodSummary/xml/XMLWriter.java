@@ -4,7 +4,6 @@ import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
@@ -13,6 +12,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import soot.jimple.infoflow.methodSummary.data.AbstractMethodFlow;
+import soot.jimple.infoflow.methodSummary.data.MethodSummaries;
 
 public class XMLWriter implements ISummaryWriter {
 	private File fileName;
@@ -32,30 +32,21 @@ public class XMLWriter implements ISummaryWriter {
 	boolean wroteMethodsTag = false;
 
 	@Override
-	public void write(Map<String,Set<AbstractMethodFlow>> flow) throws XMLStreamException {
+	public void write(MethodSummaries flow) throws XMLStreamException {
 		writer.writeStartDocument();
 		writer.writeStartElement("methods");
 
-		for (String m : flow.keySet()) {
+		for (Entry<String, Set<AbstractMethodFlow>> m : flow.getFlows().entrySet()) {
 			writer.writeStartElement("method");
-			writer.writeAttribute("id", flow.get(m).iterator().next().methodSig());
+			writer.writeAttribute("id", m.getKey());
 			writer.writeStartElement("flows");
-			for (AbstractMethodFlow data : flow.get(m)) {
+			for (AbstractMethodFlow data : m.getValue()) {
 				writer.writeStartElement("flow");
 				writer.writeStartElement("from");
 				for (Entry<String, String> t : data.source().xmlAttributes().entrySet()) {
 					writer.writeAttribute(t.getKey(), t.getValue());
 				}
 				writer.writeEndElement(); // end from
-//				if (printPath && data.flowPath() != null) {
-//					writer.writeStartElement("path");
-//					for (String p : data.flowPath()) {
-//						writer.writeStartElement("pathStep");
-//						writer.writeCharacters(p);
-//						writer.writeEndElement();
-//					}
-//					writer.writeEndElement();
-//				}
 				writer.writeStartElement("to");
 				for (Entry<String, String> t : data.sink().xmlAttributes().entrySet()) {
 					writer.writeAttribute(t.getKey(), t.getValue());

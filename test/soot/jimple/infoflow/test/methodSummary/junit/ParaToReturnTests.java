@@ -7,7 +7,7 @@ import java.util.Set;
 
 import org.junit.Test;
 
-import soot.jimple.infoflow.methodSummary.Summary;
+import soot.jimple.infoflow.methodSummary.SummaryGenerator;
 import soot.jimple.infoflow.methodSummary.data.AbstractMethodFlow;
 
 public class ParaToReturnTests extends TestHelper{
@@ -19,9 +19,9 @@ public class ParaToReturnTests extends TestHelper{
 	
 	@Test(timeout = 100000)
 	public void primitiv() {
-		Summary s = new Summary();
+		SummaryGenerator s = new SummaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToReturn: int return1(int)>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).get(mSig);
+		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 
 		assertTrue(containsParaToReturn(flow,0,INT,NO_ACCESS_PATH,NO_ACCESS_PATH));
 		assertTrue(flow.size() == 1);
@@ -29,9 +29,9 @@ public class ParaToReturnTests extends TestHelper{
 
 	@Test(timeout = 100000)
 	public void primitivRec() {
-		Summary s = new Summary();
+		SummaryGenerator s = new SummaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToReturn: int returnRec(int,int)>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).get(mSig);
+		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 
 		assertTrue(containsParaToReturn(flow,0,INT,NO_ACCESS_PATH,NO_ACCESS_PATH));
 		//assertTrue(flow.size() == 1);
@@ -40,9 +40,9 @@ public class ParaToReturnTests extends TestHelper{
 	@Test(timeout = 100000)
 	public void object() {
 		
-		Summary s = new Summary();
+		SummaryGenerator s = new SummaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToReturn: java.lang.Object return2(java.lang.Object)>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).get(mSig);
+		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 
 		assertTrue(containsParaToReturn(flow,0,OBJECT,NO_ACCESS_PATH,NO_ACCESS_PATH));
 		assertTrue(flow.size() == 1);
@@ -51,9 +51,9 @@ public class ParaToReturnTests extends TestHelper{
 	@Test(timeout = 100000)
 	public void list() {
 		
-		Summary s = new Summary();
+		SummaryGenerator s = new SummaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToReturn: java.util.List return3(java.util.List)>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).get(mSig);
+		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 
 		assertTrue(containsParaToReturn(flow,0,LIST,NO_ACCESS_PATH,NO_ACCESS_PATH));
 		assertTrue(flow.size() == 1);
@@ -61,9 +61,9 @@ public class ParaToReturnTests extends TestHelper{
 
 	@Test(timeout = 100000)
 	public void list2() {
-		Summary s = new Summary();
+		SummaryGenerator s = new SummaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToReturn: java.lang.Object return31(java.util.List)>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).get(mSig);
+		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 
 		assertTrue(containsParaToReturn(flow,0,LIST,LINKEDLIST_FIRST,NO_ACCESS_PATH));
 		//assertTrue(flow.size() == 1);
@@ -71,9 +71,9 @@ public class ParaToReturnTests extends TestHelper{
 
 	@Test(timeout = 100000)
 	public void array1() {
-		Summary s = new Summary();
+		SummaryGenerator s = new SummaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToReturn: java.lang.Object return4(java.lang.Object[])>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).get(mSig);
+		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 
 		assertTrue(containsParaToReturn(flow,0,OBJECT_ARRAY,NO_ACCESS_PATH,NO_ACCESS_PATH));
 		assertTrue(flow.size() == 1);
@@ -81,9 +81,9 @@ public class ParaToReturnTests extends TestHelper{
 
 	@Test(timeout = 100000)
 	public void array2() {
-		Summary s = new Summary();
+		SummaryGenerator s = new SummaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToReturn: java.lang.Object[] return5(java.lang.Object[])>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).get(mSig);
+		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 
 		assertTrue(containsParaToReturn(flow,0,OBJECT_ARRAY,NO_ACCESS_PATH,NO_ACCESS_PATH));
 		assertTrue(flow.size() == 1);
@@ -91,9 +91,9 @@ public class ParaToReturnTests extends TestHelper{
 
 	@Test(timeout = 100000)
 	public void data1() {
-		Summary s = new Summary();
+		SummaryGenerator s = new SummaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToReturn: java.lang.Object return6(soot.jimple.infoflow.test.methodSummary.Data)>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).get(mSig);
+		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 
 		assertTrue(containsParaToReturn(flow,0,DATA,DATACLASS_OBJECT_FIELD,NO_ACCESS_PATH));
 		//assertTrue(flow.size() == 1);
@@ -101,9 +101,9 @@ public class ParaToReturnTests extends TestHelper{
 
 	@Test(timeout = 100000)
 	public void data2() {
-		Summary s = new Summary();
+		SummaryGenerator s = new SummaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToReturn: java.lang.Object return7(soot.jimple.infoflow.test.methodSummary.Data)>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).get(mSig);
+		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 
 		assertTrue(containsParaToReturn(flow,0,DATA,DATACLASS_OBJECT_FIELD,NO_ACCESS_PATH));
 		//assertTrue(flow.size() == 1);
