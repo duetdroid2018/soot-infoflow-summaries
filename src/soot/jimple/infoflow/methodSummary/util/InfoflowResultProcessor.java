@@ -46,7 +46,7 @@ public class InfoflowResultProcessor {
 		logger.info("start processing infoflow abstractions");
 		final SootMethod m = Scene.v().getMethod(method);
 		final PointsToAnalysis pTa = Scene.v().getPointsToAnalysis();
-
+		
 		for (Abstraction a : result) {
 			logger.debug("abstraction: " + a.toString());
 			for (SourceContextAndPath scp : a.getSources()) {

@@ -21,7 +21,7 @@ import soot.SootField;
 import soot.SootMethod;
 import soot.Unit;
 import soot.Value;
-import soot.jimple.AssignStmt;
+import soot.jimple.DefinitionStmt;
 import soot.jimple.InstanceFieldRef;
 import soot.jimple.ParameterRef;
 import soot.jimple.ReturnStmt;
@@ -84,8 +84,8 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 		if (m.toString().equals("<dummyMainClass: void dummyMainMethod()>"))
 			return null;
 		
-		if (sCallSite instanceof AssignStmt) {
-			AssignStmt jstmt = (AssignStmt) sCallSite;
+		if (sCallSite instanceof DefinitionStmt) {
+			DefinitionStmt jstmt = (DefinitionStmt) sCallSite;
 			Value rightOp = jstmt.getRightOp();
 			
 			// Check for field reads
@@ -122,6 +122,7 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 					}
 				}
 			}
+			
 			
 			SootMethod currentMethod = cfg.getMethodOf(sCallSite);
 
