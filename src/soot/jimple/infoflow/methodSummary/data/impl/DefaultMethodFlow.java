@@ -1,7 +1,5 @@
 package soot.jimple.infoflow.methodSummary.data.impl;
 
-import java.util.List;
-
 import soot.jimple.infoflow.methodSummary.data.AbstractFlowSink;
 import soot.jimple.infoflow.methodSummary.data.AbstractFlowSource;
 import soot.jimple.infoflow.methodSummary.data.AbstractMethodFlow;
@@ -14,22 +12,13 @@ public class DefaultMethodFlow extends AbstractMethodFlow {
 	private final String methodSig;
 	private final AbstractFlowSource from;
 	private final AbstractFlowSink to;
-//	private final List<String> path;
 
 	public DefaultMethodFlow(String methodSig, AbstractFlowSource from, AbstractFlowSink to) {
 		this.methodSig = methodSig;
 		this.from = from;
 		this.to = to;
-	//	this.path = null;
 	}
-
-	public DefaultMethodFlow(String methodSig, AbstractFlowSource from, AbstractFlowSink to, List<String> path) {
-		this.methodSig = methodSig;
-		this.from = from;
-		this.to = to;
-		//this.path = path;
-	}
-
+	
 	@Override
 	public AbstractFlowSource source() {
 		return from;
