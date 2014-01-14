@@ -66,7 +66,7 @@ public class SummaryGenerator {
 			}
 			
 		});
-		infoflow.computeInfoflow(path, createEntryPoint(), Collections.singletonList(sig), manager);
+		infoflow.computeInfoflow(null, path, createEntryPoint(), Collections.singletonList(sig), manager);
 		return summaries;
 	}
 	

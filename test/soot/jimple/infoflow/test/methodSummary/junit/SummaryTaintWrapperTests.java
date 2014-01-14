@@ -12,6 +12,7 @@ import java.util.Arrays;
 import javax.xml.stream.XMLStreamException;
 
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 
 import soot.jimple.infoflow.Infoflow;
@@ -22,6 +23,8 @@ import soot.jimple.infoflow.methodSummary.taintWrappers.TaintWrapperFactory;
 import soot.jimple.infoflow.taintWrappers.ITaintPropagationWrapper;
 
 public class SummaryTaintWrapperTests {
+	private static String appPath, libPath;
+
 	private String[] source = new String[] {
 			"<soot.jimple.infoflow.test.methodSummary.ApiClassClient: java.lang.Object source()>",
 			"<soot.jimple.infoflow.test.methodSummary.ApiClassClient: int intSource()>",
@@ -114,7 +117,7 @@ public class SummaryTaintWrapperTests {
 		try {
 			iFlow = initInfoflow();
 			iFlow.setAccessPathLength(3);
-			iFlow.computeInfoflow(getPath(), new DefaultEntryPointCreator(), java.util.Collections.singletonList(m),
+			iFlow.computeInfoflow(appPath, libPath, new DefaultEntryPointCreator(), java.util.Collections.singletonList(m),
 					Arrays.asList(source), java.util.Collections.singletonList(sink));
 		} catch (Exception e) {
 			fail("failed to calc path for test" + e.toString());
@@ -127,7 +130,7 @@ public class SummaryTaintWrapperTests {
 		
 		try {
 			iFlow = initInfoflow();
-			iFlow.computeInfoflow(getPath(), new DefaultEntryPointCreator(), java.util.Collections.singletonList(m),
+			iFlow.computeInfoflow(appPath, libPath, new DefaultEntryPointCreator(), java.util.Collections.singletonList(m),
 					Arrays.asList(source), java.util.Collections.singletonList(sink));
 		} catch (Exception e) {
 			fail("failed to calc path for test" + e.toString());
@@ -164,21 +167,21 @@ public class SummaryTaintWrapperTests {
 		result.setTaintWrapper(summaryWrapper);
 		return result;
 	}
+	
+	@BeforeClass
+    public static void setUp() throws IOException
+    {
+        final String sep = System.getProperty("path.separator");
+    	File f = new File(".");
+        File testSrc1 = new File(f,"bin");
+        File testSrc2 = new File(f,"build" + File.separator + "classes");
 
-	private String getPath() throws IOException {
-		final String sep = System.getProperty("path.separator");
-		File f = new File(".");
-		File testSrc1 = new File(f, "bin");
-		File testSrc2 = new File(f, "build" + File.separator + "classes");
+        if (! (testSrc1.exists() || testSrc2.exists())){
+            fail("Test aborted - none of the test sources are available");
+        }
 
-		if (!(testSrc1.exists() || testSrc2.exists())) {
-			fail("Test aborted - none of the test sources are available");
-		}
-
-		String path = System.getProperty("java.home") + File.separator + "lib" + File.separator + "rt.jar" + sep
-				+ testSrc1.getCanonicalPath() + sep + testSrc2.getCanonicalPath();
-
-		return path;
-	}
+    	libPath = System.getProperty("java.home") + File.separator + "lib" + File.separator + "rt.jar";
+    	appPath = testSrc1.getCanonicalPath() + sep + testSrc2.getCanonicalPath();
+    }
 
 }
