@@ -109,6 +109,13 @@ public class cmdSummary {
 			System.out.println("create methods summaries for: " + clz + " output to: " + folder);
 			SummaryGenerator s = new SummaryGenerator();
 			MethodSummaries flows = new MethodSummaries();
+			
+			// Do not overwrite existing summaries
+			String xmlFile = classToFile(clz);
+			File f = new File(folder + File.separator + xmlFile);
+			if (f.exists())
+				continue;
+			
 			for (String m : mSigs) {
 				if (getClassNameFromMethodSig(m).equals(clz)) {
 					if (filterInclude(m, filter)) {
@@ -127,7 +134,7 @@ public class cmdSummary {
 					}
 				}
 			}
-			write(flows, classToFile(clz), folder);
+			write(flows, xmlFile, folder);
 		}
 	}
 	

@@ -11,7 +11,7 @@ public class WriterFactory {
 			if(folder == null || folder == "")
 				return new XMLWriter(new File(file));
 			else
-				return new XMLWriter(new File(folder + "/" + file));	
+				return new XMLWriter(new File(folder + File.separator + file));	
 		} catch (FileNotFoundException e) {
 			e.printStackTrace();
 			return null;

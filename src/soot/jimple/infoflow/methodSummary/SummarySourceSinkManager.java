@@ -112,7 +112,7 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 					}
 					
 					// Check for parameter field reads
-					for (int i = 0 ; i < method.getParameterCount(); i++){					
+					for (int i = 0 ; i < method.getParameterCount(); i++){
 						Local para = method.getActiveBody().getParameterLocal(i);
 						PointsToSet pTsPara = Scene.v().getPointsToAnalysis().reachingObjects(para);
 						if (fieldBasePT.hasNonEmptyIntersection(pTsPara)) {
@@ -143,7 +143,6 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 	
 	@Override
 	public boolean isSink(Stmt sCallSite, InterproceduralCFG<Unit, SootMethod> cfg) {
-
 		SootMethod m = cfg.getMethodOf(sCallSite);
 		if (m.getSignature().contains("dummyMainClass: void dummyMainMethod()"))
 			return false;
