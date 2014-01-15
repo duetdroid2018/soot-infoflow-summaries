@@ -24,14 +24,14 @@ public class FlowSinkAndSourceFactory {
 		return new DefaultFlowSink(m, paraIdx, ap, taintSubF);
 	}
 
-	public static AbstractFlowSink createFlowReturnSink(SootField ap,boolean taintSubF) {
+	public static AbstractFlowSink createFlowReturnSink(SootField ap, boolean taintSubF) {
 		return new DefaultFlowSink(ap,taintSubF);
 	}
 	public static AbstractFlowSink createFlowReturnSink(boolean taintSubF) {
 		return new DefaultFlowSink(null,taintSubF);
 	}
 
-	public static AbstractFlowSink createFlowFieldSink(SootField field, SootField ap,boolean taintSubF) {
+	public static AbstractFlowSink createFlowFieldSink(SootField ap, SootField field, boolean taintSubF) {
 		return new DefaultFlowSink(field,ap,taintSubF);
 	}
 
