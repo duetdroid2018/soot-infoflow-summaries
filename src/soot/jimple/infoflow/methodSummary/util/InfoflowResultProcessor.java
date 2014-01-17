@@ -109,9 +109,6 @@ public class InfoflowResultProcessor {
 						addFlow(source, sink, flows);
 			}
 		}
-		//TODO kill flows
-		//Iterate over all souces check if we have a flow for them
-		//if we dont have a flow they got killed. -> add them as a kill flow.
 		
 		logger.info("Result processing finished");
 		return flows;
