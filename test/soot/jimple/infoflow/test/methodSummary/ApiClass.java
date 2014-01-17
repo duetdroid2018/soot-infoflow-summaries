@@ -280,9 +280,9 @@ public class ApiClass implements IApiClass {
 	}
 
 	public void swap2() {
-		// ApiDataClass t = nonPrimitive2Variable;
+		Data t = nonPrimitive2Variable;
 		nonPrimitive2Variable.data = nonPrimitiveVariable.data;
-		nonPrimitiveVariable.value = nonPrimitive2Variable.value;
+		nonPrimitiveVariable.value = t.value;
 	}
 
 	public void data1ToDate2() {

@@ -31,7 +31,7 @@ public class FlowSinkAndSourceFactory {
 		return new DefaultFlowSink(null,taintSubF);
 	}
 
-	public static AbstractFlowSink createFlowFieldSink(SootField ap, SootField field, boolean taintSubF) {
+	public static AbstractFlowSink createFlowFieldSink(SootField field, SootField ap, boolean taintSubF) {
 		return new DefaultFlowSink(field,ap,taintSubF);
 	}
 
