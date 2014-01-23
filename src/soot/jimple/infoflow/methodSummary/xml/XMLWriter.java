@@ -7,6 +7,8 @@ import java.io.OutputStream;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import javanet.staxutils.IndentingXMLStreamWriter;
+
 import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
@@ -23,7 +25,7 @@ public class XMLWriter implements ISummaryWriter {
 		fileName = file;
 		out = new FileOutputStream(fileName);
 		XMLOutputFactory factory = XMLOutputFactory.newInstance();
-		writer = factory.createXMLStreamWriter(out);
+		writer = new IndentingXMLStreamWriter(factory.createXMLStreamWriter(out));
 		//factory.setProperty(XMLOutputFactory.INDENTATION, "/t");
 		//writer = factory.createXMLStreamWriter(out);
 		

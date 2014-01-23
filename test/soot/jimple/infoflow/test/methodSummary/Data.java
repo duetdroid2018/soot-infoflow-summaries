@@ -3,7 +3,7 @@ package soot.jimple.infoflow.test.methodSummary;
 public class Data {
 	Object data = new Integer(3);
 	Object data2 = new Integer(5);
-	Data d = new Data();
+	Data d = null;
 	int value;
 	public String i;
 	public Data() {

@@ -6,10 +6,10 @@ import java.util.List;
 public class ParaToField {
 	int intField = 1;
 	Object obField;
-	List<Object> listField;
+	List<Object> listField = new LinkedList<Object>();
 	Object[] arrayField = new Object[100];
 	int[] intArray = new int[100];
-	Data dataField;
+	public Data dataField = new Data();
 
 	public ParaToField() {
 		dataField = new Data();
@@ -30,8 +30,9 @@ public class ParaToField {
 			intField = i;
 			dataField.value = i;
 			intArray[3] = i;
-		} else
+		} else {
 			intParaRec(i, count - 1);
+		}
 	}
 
 	void objPara(Object o) {
@@ -70,7 +71,17 @@ public class ParaToField {
 		arrayField[3] = d.data;
 		listField.add(list.get(3));
 	}
+	
+	void setIntArray(Data d, List<Object> list) {
+		intArray[5] = d.value;
+	}
+	int intArrayRet(){
+		return intArray[5];
+	}
 	void data(Data d) {
 		intField = d.getValue();
+	}
+	public void intParaToData(int i) {
+		dataField.value = i;
 	}
 }
