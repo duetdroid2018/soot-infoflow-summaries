@@ -1,6 +1,5 @@
 package soot.jimple.infoflow.methodSummary.util;
 
-import java.util.HashSet;
 import java.util.Set;
 
 import soot.Scene;
@@ -10,12 +9,13 @@ import soot.Value;
 import soot.jimple.ReturnStmt;
 import soot.jimple.infoflow.data.Abstraction;
 import soot.jimple.infoflow.handlers.TaintPropagationHandler;
+import soot.jimple.infoflow.util.ConcurrentHashSet;
 import soot.jimple.toolkits.ide.icfg.BiDiInterproceduralCFG;
 
 public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 	private String methodSig;
 	private SootMethod method = null;
-	private Set<Abstraction> result = new HashSet<Abstraction>();
+	private Set<Abstraction> result = new ConcurrentHashSet<Abstraction>();
 
 	public SummaryTaintPropagationHandler(String m) {
 		methodSig = m;
