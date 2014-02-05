@@ -61,10 +61,6 @@ public class XMLReader implements ISummaryReader{
 					toAttributes.put(reader.getAttributeLocalName(i), reader.getAttributeValue(i));
 			}
 			else if(reader.getLocalName().equals("flow") && reader.isEndElement()){
-				if(currentMethod.contains("standardFlow(")){
-					System.out.println();
-				}
-					
 				summary.addFlowForMethod(currentMethod, new DefaultMethodFlow(currentMethod,
 						new FlowSourceFromXML(fromAttributes), new FlowSinkFromXML(toAttributes)));
 			}

@@ -232,11 +232,17 @@ public class ApiClass implements IApiClass {
 
 	// mix tests
 	public Data mixedFlow1(int i, Data data) {
+		
 		if (data.value > 43) {
 			primitiveVariable = data.value;
 		} else {
 			staticPrimitiveVariable = 3;
 		}
+		data.value = i;
+		return data;
+	}
+
+	public Data mixedFlow1small(int i, Data data) {
 		data.value = i;
 		return data;
 	}

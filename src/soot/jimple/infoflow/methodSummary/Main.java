@@ -27,7 +27,10 @@ import java.util.concurrent.DelayQueue;
 import javax.xml.stream.XMLStreamException;
 
 import soot.jimple.infoflow.methodSummary.util.ClassFileInformation;
+import soot.jimple.infoflow.test.methodSummary.ApiClass;
 import soot.jimple.infoflow.test.methodSummary.ParaToField;
+import soot.jimple.infoflow.test.methodSummary.ParaToParaFlows;
+import soot.jimple.infoflow.test.methodSummary.ParaToReturn;
 
 @SuppressWarnings("unused")
 class Main {
@@ -47,8 +50,8 @@ class Main {
 				ArrayBlockingQueue.class, ArrayDeque.class, ConcurrentSkipListMap.class, DelayQueue.class,
 				TreeMap.class };
 
-		Class<?>[] clazzes = {ParaToField.class};
-		String[] methodFilter = {"intParaToData"};;
+		Class<?>[] clazzes = {ApiClass.class};
+		String[] methodFilter = {"standardFlow("};
 
 		int runOption = 0;
 		boolean useOutPutFolder = false;

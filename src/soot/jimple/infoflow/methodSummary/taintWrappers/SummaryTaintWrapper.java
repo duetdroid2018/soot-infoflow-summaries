@@ -52,6 +52,7 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 			final AbstractFlowSource flowSource = mFlow.source();
 			final AbstractFlowSink flowSink = mFlow.sink();
 
+			
 			if (flowSource.isParamter()) {
 				int paraIdx = flowSource.getParamterIndex();
 				if (stmt.getInvokeExpr().getArg(paraIdx).equals(taintedPath.getPlainLocal())) {
