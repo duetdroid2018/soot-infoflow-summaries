@@ -31,6 +31,7 @@ import soot.jimple.infoflow.test.methodSummary.ApiClass;
 import soot.jimple.infoflow.test.methodSummary.ParaToField;
 import soot.jimple.infoflow.test.methodSummary.ParaToParaFlows;
 import soot.jimple.infoflow.test.methodSummary.ParaToReturn;
+import soot.jimple.infoflow.test.methodSummary.SimpleList;
 
 @SuppressWarnings("unused")
 class Main {
@@ -50,7 +51,7 @@ class Main {
 				ArrayBlockingQueue.class, ArrayDeque.class, ConcurrentSkipListMap.class, DelayQueue.class,
 				TreeMap.class };
 
-		Class<?>[] clazzes = {LinkedList.class};
+		Class<?>[] clazzes = {SimpleList.class};
 		String[] methodFilter = {"get("};
 
 		int runOption = 0;
