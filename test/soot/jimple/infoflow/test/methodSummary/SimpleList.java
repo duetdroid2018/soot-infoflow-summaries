@@ -1,23 +1,18 @@
 package soot.jimple.infoflow.test.methodSummary;
 
 public class SimpleList<E> {
-	transient int size = 0;
-	transient Node<E> first;
-	transient Node<E> last;
+	transient Node<E> first ;//= new Node();
 
 	private static class Node<E> {
-		E item;
-		Node<E> next;
-		Node<E> prev;
+		E item ;
 	}
 
-	public E get(int index) {
-		return node(index).item;
+	public E get() {
+		return node().item;
 	}
 
 
-	Node<E> node(int index) {
-			Node<E> x = first;
-			return x;
+	Node<E> node() {
+			return first;
 	}
 }
