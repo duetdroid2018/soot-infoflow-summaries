@@ -89,17 +89,17 @@ public class SummaryTaintWrapperTests {
 
 	@Test
 	public void paraReturnFlowInterface() {
-		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void paraReturnFlowOverInterface(soot.jimple.infoflow.test.methodSummary.IApiClass)>");
+		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void paraReturnFlowOverInterface()>");
 	}
 
 	@Test
 	public void paraFieldSwapFieldReturnFlowInterface() {
-		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void paraFieldSwapFieldReturnFlowOverInterface(soot.jimple.infoflow.test.methodSummary.IApiClass)>");
+		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void paraFieldSwapFieldReturnFlowOverInterface()>");
 	}
 
 	@Test
 	public void paraFieldFieldReturnFlowInterface() {
-		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void paraFieldFieldReturnFlowOverInterface(soot.jimple.infoflow.test.methodSummary.IApiClass)>");
+		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void paraFieldFieldReturnFlowOverInterface()>");
 	}
 
 	@Test

@@ -50,8 +50,8 @@ class Main {
 				ArrayBlockingQueue.class, ArrayDeque.class, ConcurrentSkipListMap.class, DelayQueue.class,
 				TreeMap.class };
 
-		Class<?>[] clazzes = {ApiClass.class};
-		String[] methodFilter = {"standardFlow("};
+		Class<?>[] clazzes = {LinkedList.class};
+		String[] methodFilter = {"get("};
 
 		int runOption = 0;
 		boolean useOutPutFolder = false;

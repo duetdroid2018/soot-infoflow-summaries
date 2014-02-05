@@ -57,7 +57,7 @@ public class LazySummary {
 		if (loadableClasses.contains(clazz)) {
 			loadClass(clazz);
 		}
-		return flows.getFlowsForMethod(method.getSignature());
+		return flows.getFlowsForMethod(method.getSignature()); 
 	}
 
 	private void loadClass(String clazz) {
