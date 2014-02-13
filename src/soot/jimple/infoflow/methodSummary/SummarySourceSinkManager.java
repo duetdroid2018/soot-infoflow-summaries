@@ -7,12 +7,8 @@ import heros.InterproceduralCFG;
 import heros.solver.IDESolver;
 
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -32,7 +28,6 @@ import soot.jimple.ReturnStmt;
 import soot.jimple.ReturnVoidStmt;
 import soot.jimple.Stmt;
 import soot.jimple.ThisRef;
-import soot.jimple.infoflow.methodSummary.data.AbstractFlowSource;
 import soot.jimple.infoflow.methodSummary.data.MethodSummaries;
 import soot.jimple.infoflow.source.ISourceSinkManager;
 import soot.jimple.infoflow.source.SourceInfo;
@@ -74,14 +69,7 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 	public SummarySourceSinkManager(String method, MethodSummaries flows) {
 		this.methodSig = method;
 	}
-	//Point to analysis has a problem if the field is null
-	//current work around also add a local point to local analysis
-	//as an over approximation
-	//so if we have $l0 = this.F
-	//when ever we have a x = $l.F' and $l point to $l0 we add $l as source for this.F.F'
-	//TODO check if it is necessary to run once over the the whole cfg before the normal
-	//flow analysis
-	private Map<Local,SourceInfo> directFieldSources = new HashMap<Local,SourceInfo> ();
+
 	
 	@Override
 	public SourceInfo getSourceInfo(Stmt sCallSite, InterproceduralCFG<Unit, SootMethod> cfg) {
@@ -122,17 +110,9 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 					if (fieldBasePT.hasNonEmptyIntersection(ptsThis)) {
 						System.out.println("source: (this)." + fieldRef.getField() + "  #  " + sCallSite);
 						SourceInfo si =new SourceInfo(false, createFlowFieldSource(fieldRef.getField(), null));
-						directFieldSources.put((Local) jstmt.getLeftOp(),si);
 						return si;
 					}
-					
-					for(Local l : directFieldSources.keySet()){
-						PointsToSet lPt = Scene.v().getPointsToAnalysis().reachingObjects(l);
-						if(l.equals(fieldBase) || lPt.hasNonEmptyIntersection(fieldBasePT)){
-							String field = ((AbstractFlowSource) directFieldSources.get(l).getUserData()).getField();
-							return new SourceInfo(true, createFlowFieldSource(Scene.v().getField(field), fieldRef.getField()));
-						}
-					}
+
 					
 					
 				}
