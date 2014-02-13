@@ -51,8 +51,8 @@ class Main {
 				ArrayBlockingQueue.class, ArrayDeque.class, ConcurrentSkipListMap.class, DelayQueue.class,
 				TreeMap.class };
 
-		Class<?>[] clazzes = {SimpleList.class};
-		String[] methodFilter = {"get("};
+		Class<?>[] clazzes = {LinkedList.class, ArrayList.class,Stack.class};
+		String[] methodFilter = {""};
 
 		int runOption = 0;
 		boolean useOutPutFolder = false;

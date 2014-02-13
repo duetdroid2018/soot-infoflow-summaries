@@ -19,6 +19,7 @@ import soot.jimple.infoflow.Infoflow;
 import soot.jimple.infoflow.InfoflowResults;
 import soot.jimple.infoflow.config.ConfigForTest;
 import soot.jimple.infoflow.entryPointCreators.DefaultEntryPointCreator;
+import soot.jimple.infoflow.methodSummary.taintWrappers.SummaryTaintWrapper;
 import soot.jimple.infoflow.methodSummary.taintWrappers.TaintWrapperFactory;
 import soot.jimple.infoflow.taintWrappers.ITaintPropagationWrapper;
 
@@ -30,7 +31,7 @@ public class SummaryTaintWrapperTests {
 			"<soot.jimple.infoflow.test.methodSummary.ApiClassClient: int intSource()>",
 			"<soot.jimple.infoflow.test.methodSummary.ApiClassClient: java.lang.String stringSource()>" };
 	private String sink = "<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void sink(java.lang.Object)>";
-	private ITaintPropagationWrapper summaryWrapper;
+	private SummaryTaintWrapper summaryWrapper;
 
 	//
 //	@BeforeClass
@@ -164,7 +165,8 @@ public class SummaryTaintWrapperTests {
 		ConfigForTest testConfig = new ConfigForTest();
 		result.setSootConfig(testConfig);
 
-		summaryWrapper = TaintWrapperFactory.createTaintWrapper("./TestSummaries/soot.jimple.infoflow.test.methodSummary.ApiClass.xml");
+		summaryWrapper = (SummaryTaintWrapper) TaintWrapperFactory.createTaintWrapper("./TestSummaries/soot.jimple.infoflow.test.methodSummary.ApiClass.xml");
+		summaryWrapper.setEnableKillTaints(true);
 
 		result.setTaintWrapper(summaryWrapper);
 		return result;
