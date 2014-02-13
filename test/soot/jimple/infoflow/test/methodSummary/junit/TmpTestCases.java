@@ -11,7 +11,7 @@ import soot.jimple.infoflow.methodSummary.data.AbstractMethodFlow;
 
 public class TmpTestCases extends TestHelper {
 	
-	@Test(timeout = 100000)
+	@Test
 	public void listGet() {
 		SummaryGenerator s = new SummaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.SimpleList: java.lang.Object get()>";
