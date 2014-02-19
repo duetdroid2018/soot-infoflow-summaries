@@ -18,6 +18,8 @@ import soot.Scene;
 import soot.SootMethod;
 import soot.Unit;
 import soot.ValueBox;
+import soot.jimple.Jimple;
+import soot.jimple.NullConstant;
 import soot.jimple.infoflow.InfoflowResults.SourceInfo;
 import soot.jimple.infoflow.data.Abstraction;
 import soot.jimple.infoflow.data.AbstractionAtSink;
@@ -37,7 +39,7 @@ public class InfoflowResultProcessor {
 	private Set<Abstraction> result;
 	private boolean DEBUG = true;
 	private String method;
-	
+
 	public InfoflowResultProcessor(Set<Abstraction> result2, InterproceduralCFG<Unit, SootMethod> cfg, String m,
 			SummarySourceSinkManager manager) {
 		this.result = result2;
@@ -51,26 +53,26 @@ public class InfoflowResultProcessor {
 		final SootMethod m = Scene.v().getMethod(method);
 		final PointsToAnalysis pTa = Scene.v().getPointsToAnalysis();
 		
-		DefaultPathBuilderFactory pathBuilderFactory = new DefaultPathBuilderFactory();
-		IAbstractionPathBuilder pathBuilder = pathBuilderFactory.createPathBuilder
-				(Runtime.getRuntime().availableProcessors()); 
+		IAbstractionPathBuilder pathBuilder = new DefaultPathBuilderFactory().createPathBuilder
+				(Runtime.getRuntime().availableProcessors());
 		
 		for (Abstraction a : result) {
 			logger.debug("abstraction: " + a.toString());
-			pathBuilder.computeTaintSources(Collections.singleton(new AbstractionAtSink(a, null, null)));
-			for (Set<SourceInfo> infos : pathBuilder.getResults().getResults().values())
-				for (SourceInfo si : infos) {
+			pathBuilder.computeTaintSources(Collections.singleton(new AbstractionAtSink
+					(a, NullConstant.v(), Jimple.v().newNopStmt())));
+			for (Set<SourceInfo> sourceInfos : pathBuilder.getResults().getResults().values())
+				for (SourceInfo si : sourceInfos) {
 					if (si.getContext() == null || si.getSource() == null)
 						continue;
-					
+	
 					// Get the source
-					AbstractFlowSource source = (AbstractFlowSource) si.getUserData();				
+					AbstractFlowSource source = (AbstractFlowSource) si.getUserData();
 					if (source == null)
 						throw new RuntimeException("Link to source missing");
-					
+	
 					// Get the sink
 					AbstractFlowSink sink = null;
-					
+	
 					PointsToSet basePT = pTa.reachingObjects(a.getAccessPath().getPlainLocal());
 					// The sink may be a parameter
 					for (int i = 0; i < m.getParameterCount(); i++) {
@@ -80,25 +82,34 @@ public class InfoflowResultProcessor {
 							if (a.getAccessPath().isLocal())
 								sink = createFlowParamterSink(m, i, null, a.getAccessPath().getTaintSubFields());
 							else if (a.getAccessPath().getFieldCount() == 1)
-								sink = createFlowParamterSink(m, i, a.getAccessPath().getFirstField(),
-										a.getAccessPath().getTaintSubFields());
+								sink = createFlowParamterSink(m, i, a.getAccessPath().getFirstField(), a.getAccessPath()
+										.getTaintSubFields());
 							else
 								sink = createFlowParamterSink(m, i, a.getAccessPath().getFirstField(), true);
 						}
+						if (source != null && sink != null){
+							addFlow(source, sink, flows);
+							sink = null;
+						}
+	                        
 					}
 	
 					// check field sink
-					if (a.getAccessPath().isInstanceFieldRef()
-							&& !m.isStatic()
+					if (a.getAccessPath().isInstanceFieldRef() && !m.isStatic()
 							&& a.getAccessPath().getPlainLocal() == m.getActiveBody().getThisLocal()) {
 						if (a.getAccessPath().getFieldCount() == 1)
-							sink = createFlowFieldSink(a.getAccessPath().getFirstField(), null,
-									a.getAccessPath().getTaintSubFields());
+							sink = createFlowFieldSink(a.getAccessPath().getFirstField(), null, a.getAccessPath()
+									.getTaintSubFields());
 						else if (a.getAccessPath().getFieldCount() == 2)
 							sink = createFlowFieldSink(a.getAccessPath().getFirstField(), a.getAccessPath().getFields()[1],
 									a.getAccessPath().getTaintSubFields());
 						else
-							sink = createFlowFieldSink(a.getAccessPath().getFirstField(), a.getAccessPath().getFields()[1], true);
+							sink = createFlowFieldSink(a.getAccessPath().getFirstField(), a.getAccessPath().getFields()[1],
+									true);
+						if (source != null && sink != null){
+							addFlow(source, sink, flows);
+							sink = null;
+						}
 					}
 	
 					// check return sink
@@ -110,36 +121,34 @@ public class InfoflowResultProcessor {
 										if (a.getAccessPath().isLocal())
 											sink = createFlowReturnSink(a.getAccessPath().getTaintSubFields());
 										else if (a.getAccessPath().getFieldCount() == 1)
-											sink = createFlowReturnSink(a.getAccessPath().getFirstField(),
-													a.getAccessPath().getTaintSubFields());
+											sink = createFlowReturnSink(a.getAccessPath().getFirstField(), a
+													.getAccessPath().getTaintSubFields());
 										else
 											sink = createFlowReturnSink(a.getAccessPath().getFirstField(), true);
-						}
-						if (source != null && sink != null)
+						if (source != null && sink != null){
 							addFlow(source, sink, flows);
+							sink = null;
+						}
+					}
+	
 				}
 		}
-		
+
 		logger.info("Result processing finished");
 		return flows;
 	}
-	
-	private void addFlow(AbstractFlowSource source, AbstractFlowSink sink,
-			MethodSummaries summaries) {
+
+	private void addFlow(AbstractFlowSource source, AbstractFlowSink sink, MethodSummaries summaries) {
 		// Do not record flows of the form a->a
 		if (!sink.taintSubFields()) {
-			if (source.isField()
-					&& sink.isField()
-					&& source.getField() == sink.getField()
+			if (source.isField() && sink.isField() && source.getField() == sink.getField()
 					&& safeEquals(source.getAccessPath(), sink.getAccessPath()))
 				return;
-			if (source.isParamter()
-					&& sink.isParamter()
-					&& source.getParamterIndex() == sink.getParamterIndex()
+			if (source.isParamter() && sink.isParamter() && source.getParamterIndex() == sink.getParamterIndex()
 					&& safeEquals(source.getAccessPath(), sink.getAccessPath()))
 				return;
 		}
-		
+
 		AbstractMethodFlow mFlow = new DefaultMethodFlow(method, source, sink);
 		summaries.addFlowForMethod(method, mFlow);
 		debugMSG(source, sink);
@@ -157,9 +166,9 @@ public class InfoflowResultProcessor {
 		if (DEBUG) {
 			System.out.println("\nmethod: " + method);
 			System.out.println("source: " + source.toString());
-			System.out.println("sink:   " + sink.toString());
+			System.out.println("sink: " + sink.toString());
 			System.out.println("------------------------------------");
 		}
 	}
-	
+
 }

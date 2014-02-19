@@ -61,17 +61,17 @@ public class ApiTests extends ApiTestHelper {
 	@Test//(timeout = 100000)
 	public void standardFlow3() {
 		SummaryGenerator s = getSummary();
-		String mSig = "<" + className + ": int standardFlow3(" + NON_PRIMITIVE_TYP + ")>";
+		String mSig = "<" + className + ": int standardFlow3(" + DATA_TYPE + ")>";
 		Set<AbstractMethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
-		assertTrue(containsParaToReturn(res, 0, NON_PRIMITIVE_TYP, NO_ACCESS_PATH, NO_ACCESS_PATH));
-		assertTrue(containsParaToReturn(res, 0, NON_PRIMITIVE_TYP, DATACLASS_INT_FIELD, NO_ACCESS_PATH));
+		assertTrue(containsParaToReturn(res, 0, DATA_TYPE, NO_ACCESS_PATH, NO_ACCESS_PATH));
+		assertTrue(containsParaToReturn(res, 0, DATA_TYPE, DATACLASS_INT_FIELD, NO_ACCESS_PATH));
 		// assertTrue(res.size() == 1);
 	}
 
 	@Test(timeout = 100000)
 	public void standardFlow31() {
 		SummaryGenerator s = getSummary();
-		String mSig = "<" + className + ": int standardFlow3(" + NON_PRIMITIVE_TYP + ")>";
+		String mSig = "<" + className + ": int standardFlow3(" + DATA_TYPE + ")>";
 		Set<AbstractMethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(res.size() == 1);
 	}
@@ -79,7 +79,7 @@ public class ApiTests extends ApiTestHelper {
 	@Test//(timeout = 100000)
 	public void standardFlow4() {
 		SummaryGenerator s = getSummary();
-		String mSig = "<" + className + ": " + NON_PRIMITIVE_TYP + " standardFlow4(int,java.lang.Object)>";
+		String mSig = "<" + className + ": " + DATA_TYPE + " standardFlow4(int,java.lang.Object)>";
 		Set<AbstractMethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsParaToReturn(res, 0, INT_TYPE, NO_ACCESS_PATH, DATACLASS_INT_FIELD));
 		assertTrue(containsParaToReturn(res, 1, OBJECT_TYPE, NO_ACCESS_PATH, DATACLASS_OBJECT_FIELD));
@@ -97,7 +97,7 @@ public class ApiTests extends ApiTestHelper {
 	@Test(timeout = 100000)
 	public void standardFlow6() {
 		SummaryGenerator s = getSummary();
-		String mSig = "<" + className + ": " + NON_PRIMITIVE_TYP + " standardFlow6(java.lang.Object)>";
+		String mSig = "<" + className + ": " + DATA_TYPE + " standardFlow6(java.lang.Object)>";
 		Set<AbstractMethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsParaToReturn(res, 0, OBJECT_TYPE, NO_ACCESS_PATH, DATACLASS_OBJECT_FIELD));
 		// assertTrue(res.size() == 2);
@@ -136,7 +136,7 @@ public class ApiTests extends ApiTestHelper {
 	@Test(timeout = 100000)
 	public void staticStandardFlow2() {
 		SummaryGenerator s = getSummary();
-		String mSig = "<" + className + ": " + NON_PRIMITIVE_TYP + " staticStandardFlow2(int,java.lang.Object)>";
+		String mSig = "<" + className + ": " + DATA_TYPE + " staticStandardFlow2(int,java.lang.Object)>";
 		Set<AbstractMethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsParaToReturn(res, 0, INT_TYPE, NO_ACCESS_PATH, DATACLASS_INT_FIELD));
 		assertTrue(containsParaToReturn(res, 1, OBJECT_TYPE, NO_ACCESS_PATH, DATACLASS_OBJECT_FIELD));
@@ -146,7 +146,7 @@ public class ApiTests extends ApiTestHelper {
 	@Test(timeout = 100000)
 	public void staticStandardFlow21() {
 		SummaryGenerator s = getSummary();
-		String mSig = "<" + className + ": " + NON_PRIMITIVE_TYP + " staticStandardFlow2(int,java.lang.Object)>";
+		String mSig = "<" + className + ": " + DATA_TYPE + " staticStandardFlow2(int,java.lang.Object)>";
 		Set<AbstractMethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsParaToReturn(res, 0, INT_TYPE, NO_ACCESS_PATH, DATACLASS_INT_FIELD));
 		assertTrue(containsParaToReturn(res, 1, OBJECT_TYPE, NO_ACCESS_PATH, DATACLASS_OBJECT_FIELD));
@@ -173,7 +173,7 @@ public class ApiTests extends ApiTestHelper {
 	@Test(timeout = 100000)
 	public void noFlow3() {
 		SummaryGenerator s = getSummary();
-		String mSig = "<" + className + ": " + NON_PRIMITIVE_TYP + " noFlow3(" + NON_PRIMITIVE_TYP + ")>";
+		String mSig = "<" + className + ": " + DATA_TYPE + " noFlow3(" + DATA_TYPE + ")>";
 		Set<AbstractMethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(res == null || res.size() == 0);
 	}
@@ -181,7 +181,7 @@ public class ApiTests extends ApiTestHelper {
 	@Test(timeout = 100000)
 	public void noFlow4() {
 		SummaryGenerator s = getSummary();
-		String mSig = "<" + className + ": " + NON_PRIMITIVE_TYP + " noFlow4(int, java.lang.Object)>";
+		String mSig = "<" + className + ": " + DATA_TYPE + " noFlow4(int,java.lang.Object)>";
 		Set<AbstractMethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(res == null || res.size() == 0);
 	}
@@ -208,7 +208,7 @@ public class ApiTests extends ApiTestHelper {
 	@Test//(timeout = 100000)
 	public void paraToVar2() {
 		SummaryGenerator s = getSummary();
-		String mSig = "<" + className + ": " + NON_PRIMITIVE_TYP + " paraToVar2(int,java.lang.Object)>";
+		String mSig = "<" + className + ": " + DATA_TYPE + " paraToVar2(int,java.lang.Object)>";
 		Set<AbstractMethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsParaToFieldFlow(res, 0, INT_TYPE, NO_ACCESS_PATH,NON_PRIMITIVE_VAR1, DATACLASS_INT_FIELD));
 		assertTrue(containsParaToFieldFlow(res, 1, OBJECT_TYPE, NO_ACCESS_PATH,NON_PRIMITIVE_VAR1,
@@ -219,7 +219,7 @@ public class ApiTests extends ApiTestHelper {
 	@Test(timeout = 100000)
 	public void paraToVar21() {
 		SummaryGenerator s = getSummary();
-		String mSig = "<" + className + ": " + NON_PRIMITIVE_TYP + " paraToVar2(int,java.lang.Object)>";
+		String mSig = "<" + className + ": " + DATA_TYPE + " paraToVar2(int,java.lang.Object)>";
 		Set<AbstractMethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsParaToFieldFlow(res, 0, INT_TYPE, NO_ACCESS_PATH,NON_PRIMITIVE_VAR1 , DATACLASS_INT_FIELD));
 		assertTrue(containsParaToFieldFlow(res, 1, OBJECT_TYPE,NO_ACCESS_PATH, NON_PRIMITIVE_VAR1, 
@@ -232,19 +232,19 @@ public class ApiTests extends ApiTestHelper {
 	@Test(timeout = 100000)
 	public void paraToparaFlow1WrongSinkSigAccepted() {
 		SummaryGenerator s = getSummary();
-		String mSig = "<" + className + ": void paraToparaFlow1(int," + NON_PRIMITIVE_TYP + ")>";
+		String mSig = "<" + className + ": void paraToparaFlow1(int," + DATA_TYPE + ")>";
 		Set<AbstractMethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
-		assertTrue(containsParaToParaFlow(res, 0, INT_TYPE, NO_ACCESS_PATH, 1, NON_PRIMITIVE_TYP, DATACLASS_INT_FIELD));
+		assertTrue(containsParaToParaFlow(res, 0, INT_TYPE, NO_ACCESS_PATH, 1, DATA_TYPE, DATACLASS_INT_FIELD));
 		assertTrue(res.size() == 1);
 	}
 
 	@Test(timeout = 100000)
 	public void paraToparaFlow2() {
 		SummaryGenerator s = getSummary();
-		String mSig = "<" + className + ": void paraToparaFlow2(int,java.lang.Object," + NON_PRIMITIVE_TYP + ")>";
+		String mSig = "<" + className + ": void paraToparaFlow2(int,java.lang.Object," + DATA_TYPE + ")>";
 		Set<AbstractMethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
-		assertTrue(containsParaToParaFlow(res, 0, INT_TYPE, NO_ACCESS_PATH, 2, NON_PRIMITIVE_TYP, DATACLASS_INT_FIELD));
-		assertTrue(containsParaToParaFlow(res, 1, OBJECT_TYPE, NO_ACCESS_PATH, 2, NON_PRIMITIVE_TYP,
+		assertTrue(containsParaToParaFlow(res, 0, INT_TYPE, NO_ACCESS_PATH, 2, DATA_TYPE, DATACLASS_INT_FIELD));
+		assertTrue(containsParaToParaFlow(res, 1, OBJECT_TYPE, NO_ACCESS_PATH, 2, DATA_TYPE,
 				DATACLASS_OBJECT_FIELD));
 		assertTrue(res.size() == 2);
 
@@ -253,32 +253,32 @@ public class ApiTests extends ApiTestHelper {
 	@Test(timeout = 100000)
 	public void paraToparaFlow3WrongSinkSigAccepted() {
 		SummaryGenerator s = getSummary();
-		String mSig = "<" + className + ": void paraToparaFlow3(int,java.lang.Object," + NON_PRIMITIVE_TYP + ","
-				+ NON_PRIMITIVE_TYP + ")>";
+		String mSig = "<" + className + ": void paraToparaFlow3(int,java.lang.Object," + DATA_TYPE + ","
+				+ DATA_TYPE + ")>";
 		Set<AbstractMethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
-		assertTrue(containsParaToParaFlow(res, 0, INT_TYPE, NO_ACCESS_PATH, 2, NON_PRIMITIVE_TYP, DATACLASS_INT_FIELD));
-		assertTrue(containsParaToParaFlow(res, 1, OBJECT_TYPE, NO_ACCESS_PATH, 2, NON_PRIMITIVE_TYP,
+		assertTrue(containsParaToParaFlow(res, 0, INT_TYPE, NO_ACCESS_PATH, 2, DATA_TYPE, DATACLASS_INT_FIELD));
+		assertTrue(containsParaToParaFlow(res, 1, OBJECT_TYPE, NO_ACCESS_PATH, 2, DATA_TYPE,
 				DATACLASS_OBJECT_FIELD));
-		assertTrue(containsParaToParaFlow(res, 1, OBJECT_TYPE, NO_ACCESS_PATH, 3, NON_PRIMITIVE_TYP,
+		assertTrue(containsParaToParaFlow(res, 1, OBJECT_TYPE, NO_ACCESS_PATH, 3, DATA_TYPE,
 				DATACLASS_OBJECT_FIELD));
 	}
 
 	@Test(timeout = 100000)
 	public void staticParaToParaFlow1WrongSinkSigAccepted() {
 		SummaryGenerator s = getSummary();
-		String mSig = "<" + className + ": void staticParaToparaFlow1(int," + NON_PRIMITIVE_TYP + ")>";
+		String mSig = "<" + className + ": void staticParaToparaFlow1(int," + DATA_TYPE + ")>";
 		Set<AbstractMethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
-		assertTrue(containsParaToParaFlow(res, 0, INT_TYPE, NO_ACCESS_PATH, 1, NON_PRIMITIVE_TYP, DATACLASS_INT_FIELD));
+		assertTrue(containsParaToParaFlow(res, 0, INT_TYPE, NO_ACCESS_PATH, 1, DATA_TYPE, DATACLASS_INT_FIELD));
 		assertTrue(res.size() == 1);
 	}
 
 	@Test(timeout = 100000)
 	public void staticParaToParaFlow2WrongSinkSigAccepted() {
 		SummaryGenerator s = getSummary();
-		String mSig = "<" + className + ": void staticParaToparaFlow2(int,java.lang.Object," + NON_PRIMITIVE_TYP + ")>";
+		String mSig = "<" + className + ": void staticParaToparaFlow2(int,java.lang.Object," + DATA_TYPE + ")>";
 		Set<AbstractMethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
-		assertTrue(containsParaToParaFlow(res, 0, INT_TYPE, NO_ACCESS_PATH, 2, NON_PRIMITIVE_TYP, DATACLASS_INT_FIELD));
-		assertTrue(containsParaToParaFlow(res, 1, OBJECT_TYPE, NO_ACCESS_PATH, 2, NON_PRIMITIVE_TYP,
+		assertTrue(containsParaToParaFlow(res, 0, INT_TYPE, NO_ACCESS_PATH, 2, DATA_TYPE, DATACLASS_INT_FIELD));
+		assertTrue(containsParaToParaFlow(res, 1, OBJECT_TYPE, NO_ACCESS_PATH, 2, DATA_TYPE,
 				DATACLASS_OBJECT_FIELD));
 		assertTrue(res.size() == 2);
 	}
@@ -286,22 +286,22 @@ public class ApiTests extends ApiTestHelper {
 	@Test(timeout = 100000)
 	public void staticParaToParaFlow3WrongSinkSigAccepted() {
 		SummaryGenerator s = getSummary();
-		String mSig = "<" + className + ": void staticParaToparaFlow3(int,java.lang.Object," + NON_PRIMITIVE_TYP + ","
-				+ NON_PRIMITIVE_TYP + ")>";
+		String mSig = "<" + className + ": void staticParaToparaFlow3(int,java.lang.Object," + DATA_TYPE + ","
+				+ DATA_TYPE + ")>";
 		Set<AbstractMethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
-		assertTrue(containsParaToParaFlow(res, 0, INT_TYPE,NO_ACCESS_PATH, 2, NON_PRIMITIVE_TYP,DATACLASS_INT_FIELD));
-		assertTrue(containsParaToParaFlow(res, 1, OBJECT_TYPE,NO_ACCESS_PATH, 2, NON_PRIMITIVE_TYP,DATACLASS_OBJECT_FIELD));
+		assertTrue(containsParaToParaFlow(res, 0, INT_TYPE,NO_ACCESS_PATH, 2, DATA_TYPE,DATACLASS_INT_FIELD));
+		assertTrue(containsParaToParaFlow(res, 1, OBJECT_TYPE,NO_ACCESS_PATH, 2, DATA_TYPE,DATACLASS_OBJECT_FIELD));
 	}
 
 	@Test(timeout = 100000)
 	public void mixedFlow1() {
 		SummaryGenerator s = getSummary();
-		String mSig = "<" + className + ": " + NON_PRIMITIVE_TYP + " mixedFlow1(int," + NON_PRIMITIVE_TYP + ")>";
+		String mSig = "<" + className + ": " + DATA_TYPE + " mixedFlow1(int," + DATA_TYPE + ")>";
 		Set<AbstractMethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
-		assertTrue(containsParaToReturn(res, 1, NON_PRIMITIVE_TYP,NO_ACCESS_PATH,NO_ACCESS_PATH));
+		assertTrue(containsParaToReturn(res, 1, DATA_TYPE,NO_ACCESS_PATH,NO_ACCESS_PATH));
 		// assertTrue(containsParaToReturn(res, 0, INT_TYPE));
-		assertTrue(containsParaToParaFlow(res, 0, INT_TYPE,NO_ACCESS_PATH, 1, NON_PRIMITIVE_TYP,DATACLASS_INT_FIELD));
-		assertTrue(containsParaToFieldFlow(res, 1, NON_PRIMITIVE_TYP,DATACLASS_INT_FIELD, PRIMITIVE_VAR,NO_ACCESS_PATH));
+		assertTrue(containsParaToParaFlow(res, 0, INT_TYPE,NO_ACCESS_PATH, 1, DATA_TYPE,DATACLASS_INT_FIELD));
+		assertTrue(containsParaToFieldFlow(res, 1, DATA_TYPE,DATACLASS_INT_FIELD, PRIMITIVE_VAR,NO_ACCESS_PATH));
 
 		// assertTrue(res.size() == 2);
 	}
@@ -309,54 +309,54 @@ public class ApiTests extends ApiTestHelper {
 	@Test(timeout = 100000)
 	public void paraToparaFlow1() {
 		SummaryGenerator s = getSummary();
-		String mSig = "<" + className + ": void paraToparaFlow1(int," + NON_PRIMITIVE_TYP + ")>";
+		String mSig = "<" + className + ": void paraToparaFlow1(int," + DATA_TYPE + ")>";
 		Set<AbstractMethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
-		assertTrue(containsParaToParaFlow(res, 0, INT_TYPE,NO_ACCESS_PATH, 1, NON_PRIMITIVE_TYP,NO_ACCESS_PATH));
+		assertTrue(containsParaToParaFlow(res, 0, INT_TYPE,NO_ACCESS_PATH, 1, DATA_TYPE,NO_ACCESS_PATH));
 		assertTrue(res.size() == 1);
 	}
 
 	@Test(timeout = 100000)
 	public void paraToparaFlow3() {
 		SummaryGenerator s = getSummary();
-		String mSig = "<" + className + ": void paraToparaFlow3(int,java.lang.Object," + NON_PRIMITIVE_TYP + ","
-				+ NON_PRIMITIVE_TYP + ")>";
+		String mSig = "<" + className + ": void paraToparaFlow3(int,java.lang.Object," + DATA_TYPE + ","
+				+ DATA_TYPE + ")>";
 		Set<AbstractMethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
-		assertTrue(containsParaToParaFlow(res, 0, INT_TYPE,NO_ACCESS_PATH, 2, NON_PRIMITIVE_TYP,DATACLASS_INT_FIELD));
-		assertTrue(containsParaToParaFlow(res, 1, OBJECT_TYPE,NO_ACCESS_PATH, 2, NON_PRIMITIVE_TYP,DATACLASS_OBJECT_FIELD));
-		assertTrue(containsParaToParaFlow(res, 1, OBJECT_TYPE,NO_ACCESS_PATH, 3, NON_PRIMITIVE_TYP,NO_ACCESS_PATH));
+		assertTrue(containsParaToParaFlow(res, 0, INT_TYPE,NO_ACCESS_PATH, 2, DATA_TYPE,DATACLASS_INT_FIELD));
+		assertTrue(containsParaToParaFlow(res, 1, OBJECT_TYPE,NO_ACCESS_PATH, 2, DATA_TYPE,DATACLASS_OBJECT_FIELD));
+		assertTrue(containsParaToParaFlow(res, 1, OBJECT_TYPE,NO_ACCESS_PATH, 3, DATA_TYPE,NO_ACCESS_PATH));
 		// assertTrue(res.size() == 2);
 	}
 
 	@Test(timeout = 100000)
 	public void staticParaToParaFlow1() {
 		SummaryGenerator s = getSummary();
-		String mSig = "<" + className + ": void staticParaToparaFlow1(int," + NON_PRIMITIVE_TYP + ")>";
+		String mSig = "<" + className + ": void staticParaToparaFlow1(int," + DATA_TYPE + ")>";
 		Set<AbstractMethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
-		assertTrue(containsParaToParaFlow(res, 0, INT_TYPE,NO_ACCESS_PATH, 1, NON_PRIMITIVE_TYP,DATACLASS_INT_FIELD));
+		assertTrue(containsParaToParaFlow(res, 0, INT_TYPE,NO_ACCESS_PATH, 1, DATA_TYPE,DATACLASS_INT_FIELD));
 		assertTrue(res.size() == 1);
 	}
 
 	@Test(timeout = 100000)
 	public void staticParaToParaFlow2() {
 		SummaryGenerator s = getSummary();
-		String mSig = "<" + className + ": void staticParaToparaFlow2(int,java.lang.Object," + NON_PRIMITIVE_TYP + ")>";
+		String mSig = "<" + className + ": void staticParaToparaFlow2(int,java.lang.Object," + DATA_TYPE + ")>";
 		Set<AbstractMethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 
-		assertTrue(containsParaToParaFlow(res, 0, INT_TYPE,NO_ACCESS_PATH, 2, NON_PRIMITIVE_TYP,DATACLASS_INT_FIELD));
-		assertTrue(containsParaToParaFlow(res, 1, OBJECT_TYPE,NO_ACCESS_PATH, 2, NON_PRIMITIVE_TYP,DATACLASS_OBJECT_FIELD));
+		assertTrue(containsParaToParaFlow(res, 0, INT_TYPE,NO_ACCESS_PATH, 2, DATA_TYPE,DATACLASS_INT_FIELD));
+		assertTrue(containsParaToParaFlow(res, 1, OBJECT_TYPE,NO_ACCESS_PATH, 2, DATA_TYPE,DATACLASS_OBJECT_FIELD));
 		assertTrue(res.size() == 2);
 	}
 
 	@Test(timeout = 100000)
 	public void staticParaToParaFlow3() {
 		SummaryGenerator s = getSummary();
-		String mSig = "<" + className + ": void staticParaToparaFlow3(int,java.lang.Object," + NON_PRIMITIVE_TYP + ","
-				+ NON_PRIMITIVE_TYP + ")>";
+		String mSig = "<" + className + ": void staticParaToparaFlow3(int,java.lang.Object," + DATA_TYPE + ","
+				+ DATA_TYPE + ")>";
 		Set<AbstractMethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 
-		assertTrue(containsParaToParaFlow(res, 0, INT_TYPE,NO_ACCESS_PATH, 2, NON_PRIMITIVE_TYP,DATACLASS_INT_FIELD));
-		assertTrue(containsParaToParaFlow(res, 1, OBJECT_TYPE,NO_ACCESS_PATH, 2, NON_PRIMITIVE_TYP,DATACLASS_OBJECT_FIELD));
-		assertTrue(containsParaToParaFlow(res, 1, OBJECT_TYPE,NO_ACCESS_PATH, 3, NON_PRIMITIVE_TYP,DATACLASS_OBJECT_FIELD));
+		assertTrue(containsParaToParaFlow(res, 0, INT_TYPE,NO_ACCESS_PATH, 2, DATA_TYPE,DATACLASS_INT_FIELD));
+		assertTrue(containsParaToParaFlow(res, 1, OBJECT_TYPE,NO_ACCESS_PATH, 2, DATA_TYPE,DATACLASS_OBJECT_FIELD));
+		assertTrue(containsParaToParaFlow(res, 1, OBJECT_TYPE,NO_ACCESS_PATH, 3, DATA_TYPE,DATACLASS_OBJECT_FIELD));
 		// assertTrue(res.size() == 2);
 	}
 
@@ -407,7 +407,7 @@ public class ApiTests extends ApiTestHelper {
 	@Test(timeout = 100000)
 	public void nonPrimitivVarToReturn4() {
 		SummaryGenerator s = getSummary();
-		String mSig = "<" + className + ": " + NON_PRIMITIVE_TYP + " dataFieldToReturn()>";
+		String mSig = "<" + className + ": " + DATA_TYPE + " dataFieldToReturn()>";
 		Set<AbstractMethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsFieldToReturn(res, NON_PRIMITIVE_VAR1,NO_ACCESS_PATH,NO_ACCESS_PATH));
 	}
@@ -415,7 +415,7 @@ public class ApiTests extends ApiTestHelper {
 	@Test(timeout = 200000)
 	public void nonPrimitivVarToReturn5() {
 		SummaryGenerator s = getSummary();
-		String mSig = "<" + className + ": " + NON_PRIMITIVE_TYP + " dataFieldToReturn2()>";
+		String mSig = "<" + className + ": " + DATA_TYPE + " dataFieldToReturn2()>";
 		Set<AbstractMethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsFieldToReturn(res, "<soot.jimple.infoflow.test.methodSummary.ApiClass: soot.jimple.infoflow.test.methodSummary.Data nonPrimitiveVariable>",NO_ACCESS_PATH,NO_ACCESS_PATH));
 	}
@@ -449,9 +449,9 @@ public class ApiTests extends ApiTestHelper {
 	@Test(timeout = 150000)
 	public void fieldToPara1() {
 		SummaryGenerator s = getSummary();
-		String mSig = "<" + className + ": void fieldToPara(" + NON_PRIMITIVE_TYP + ")>";
+		String mSig = "<" + className + ": void fieldToPara(" + DATA_TYPE + ")>";
 		Set<AbstractMethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
-		assertTrue(containsFieldToParaFlow(res, NON_PRIMITIVE_VAR1,DATACLASS_INT_FIELD, 0,NON_PRIMITIVE_TYP,DATACLASS_INT_FIELD));
+		assertTrue(containsFieldToParaFlow(res, NON_PRIMITIVE_VAR1,DATACLASS_INT_FIELD, 0,DATA_TYPE,DATACLASS_INT_FIELD));
 	}
 
 }

@@ -30,9 +30,9 @@ public class SummaryGenerator {
 	
 	protected int accessPathLength = 3;
 	protected boolean enableImplicitFlows = false;
-	protected boolean enableExceptionTracking = true;
-	protected boolean enableStaticFieldTracking = true;
-	protected boolean flowSensitiveAliasing = true;
+	protected boolean enableExceptionTracking = false;
+	protected boolean enableStaticFieldTracking = false;
+	protected boolean flowSensitiveAliasing = false;
 	protected boolean debug = false;
 	protected ITaintPropagationWrapper taintWrapper;
 	protected IInfoflowConfig config;

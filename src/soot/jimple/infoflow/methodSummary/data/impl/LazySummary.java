@@ -57,7 +57,7 @@ public class LazySummary {
 		if (loadableClasses.contains(clazz)) {
 			loadClass(clazz);
 		}
-		return flows.getFlowsForMethod(method.getSignature());
+		return flows.getFlowsForMethod(method.getSignature()); 
 	}
 
 	private void loadClass(String clazz) {
@@ -67,6 +67,7 @@ public class LazySummary {
 					flows.merge(reader.processXMLFile(f));
 					loadableClasses.remove(clazz);
 					supportedClasses.add(clazz);
+					System.out.println();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}

@@ -70,6 +70,7 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 		this.methodSig = method;
 	}
 
+	
 	@Override
 	public SourceInfo getSourceInfo(Stmt sCallSite, InterproceduralCFG<Unit, SootMethod> cfg) {
 		if (method == null) {
@@ -98,27 +99,31 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 				for (SootField f : getClassFields()) {
 					if (!f.isStatic()) {
 						PointsToSet pointsToField = Scene.v().getPointsToAnalysis().reachingObjects
-								(method.getActiveBody().getThisLocal(), f);
+								(m.getActiveBody().getThisLocal(), f);
 						if (fieldBasePT.hasNonEmptyIntersection(pointsToField)) {
 							System.out.println("source: (this)." + f  +"." + fieldRef.getField() + "  #  " + sCallSite);
+							
 							return new SourceInfo(true, createFlowFieldSource(f, fieldRef.getField()));
 						}
 					}
-					
 					// Field source apl = 1
 					if (fieldBasePT.hasNonEmptyIntersection(ptsThis)) {
 						System.out.println("source: (this)." + fieldRef.getField() + "  #  " + sCallSite);
-						return new SourceInfo(false, createFlowFieldSource(fieldRef.getField(), null));
+						SourceInfo si =new SourceInfo(false, createFlowFieldSource(fieldRef.getField(), null));
+						return si;
 					}
+
 					
-					// Check for parameter field reads
-					for (int i = 0 ; i < method.getParameterCount(); i++){
-						Local para = method.getActiveBody().getParameterLocal(i);
-						PointsToSet pTsPara = Scene.v().getPointsToAnalysis().reachingObjects(para);
-						if (fieldBasePT.hasNonEmptyIntersection(pTsPara)) {
-							System.out.println("source: " + fieldBase +"(Paramter)." +fieldRef.getField() + "  #  " + sCallSite);
-							return new SourceInfo(true, createFlowParamterSource(method, i, fieldRef.getField()));
-						}
+					
+				}
+				//Scene.v().getPointsToAnalysis().reachingObjects(m.getActiveBody().getThisLocal()).hasNonEmptyIntersection(pTsPara)
+				// Check for parameter field reads
+				for (int i = 0 ; i < method.getParameterCount(); i++){
+					Local para = method.getActiveBody().getParameterLocal(i);
+					PointsToSet pTsPara = Scene.v().getPointsToAnalysis().reachingObjects(para);
+					if (fieldBasePT.hasNonEmptyIntersection(pTsPara)) {
+						System.out.println("source: " + fieldBase +"(Paramter)." +fieldRef.getField() + "  #  " + sCallSite);
+						return new SourceInfo(true, createFlowParamterSource(method, i, fieldRef.getField()));
 					}
 				}
 			}

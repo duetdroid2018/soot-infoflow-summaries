@@ -10,13 +10,12 @@ import soot.jimple.infoflow.methodSummary.SummaryGenerator;
 import soot.jimple.infoflow.methodSummary.data.AbstractMethodFlow;
 
 public class TmpTestCases extends TestHelper {
-	@Test(timeout = 100000)
-	public void intParameterRec() {
+	
+	@Test
+	public void listGet() {
 		SummaryGenerator s = new SummaryGenerator();
-		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToField: void intParaToData(int)>";
+		String mSig = "<soot.jimple.infoflow.test.methodSummary.SimpleList: java.lang.Object get()>";
 		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
-		assertTrue(containsParaToFieldFlow(flow, 0, INT_TYPE, NO_ACCESS_PATH,
-				"<soot.jimple.infoflow.test.methodSummary.ParaToField: soot.jimple.infoflow.test.methodSummary.Data dataField>", DATACLASS_INT_FIELD));
 		assertTrue(flow.size() == 1);
 	}
 }

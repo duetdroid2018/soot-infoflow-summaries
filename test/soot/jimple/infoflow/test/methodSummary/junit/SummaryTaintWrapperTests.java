@@ -19,6 +19,7 @@ import soot.jimple.infoflow.Infoflow;
 import soot.jimple.infoflow.InfoflowResults;
 import soot.jimple.infoflow.config.ConfigForTest;
 import soot.jimple.infoflow.entryPointCreators.DefaultEntryPointCreator;
+import soot.jimple.infoflow.methodSummary.taintWrappers.SummaryTaintWrapper;
 import soot.jimple.infoflow.methodSummary.taintWrappers.TaintWrapperFactory;
 import soot.jimple.infoflow.taintWrappers.ITaintPropagationWrapper;
 
@@ -30,20 +31,20 @@ public class SummaryTaintWrapperTests {
 			"<soot.jimple.infoflow.test.methodSummary.ApiClassClient: int intSource()>",
 			"<soot.jimple.infoflow.test.methodSummary.ApiClassClient: java.lang.String stringSource()>" };
 	private String sink = "<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void sink(java.lang.Object)>";
-	private ITaintPropagationWrapper summaryWrapper;
-//
-//	 @BeforeClass
-//	 public static void init() throws FileNotFoundException,
-//	 XMLStreamException {
-//	 String mSig = "";
-//	 for (Method m : ApiClass.class.getDeclaredMethods()) {
-//	 mSig = mSig + ClassFileInformation.getMethodSig(m) + ";";
-//	 }
-//	 mSig = mSig.substring(0, mSig.length() - 1).trim();
-//	 ArrayList<String> runArgs = new ArrayList<String>();
-//	 runArgs.add("-m " + mSig);
-//	 cmdSummary.main(runArgs.toArray(new String[runArgs.size()]));
-//	 }
+	private SummaryTaintWrapper summaryWrapper;
+
+	//
+//	@BeforeClass
+//	public static void init() throws FileNotFoundException, XMLStreamException {
+//		String mSig = "";
+//		for (Method m : ApiClass.class.getDeclaredMethods()) {
+//			mSig = mSig + ClassFileInformation.getMethodSig(m) + ";";
+//		}
+//		mSig = mSig.substring(0, mSig.length() - 1).trim();
+//		ArrayList<String> runArgs = new ArrayList<String>();
+//		runArgs.add("-m " + mSig);
+//		cmdSummary.main(runArgs.toArray(new String[runArgs.size()]));
+//	}
 
 	@Before
 	public void resetSootAndStream() throws IOException {
@@ -89,17 +90,17 @@ public class SummaryTaintWrapperTests {
 
 	@Test
 	public void paraReturnFlowInterface() {
-		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void paraReturnFlowOverInterface(soot.jimple.infoflow.test.methodSummary.IApiClass)>");
+		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void paraReturnFlowOverInterface()>");
 	}
 
 	@Test
 	public void paraFieldSwapFieldReturnFlowInterface() {
-		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void paraFieldSwapFieldReturnFlowOverInterface(soot.jimple.infoflow.test.methodSummary.IApiClass)>");
+		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void paraFieldSwapFieldReturnFlowOverInterface()>");
 	}
 
 	@Test
 	public void paraFieldFieldReturnFlowInterface() {
-		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void paraFieldFieldReturnFlowOverInterface(soot.jimple.infoflow.test.methodSummary.IApiClass)>");
+		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void paraFieldFieldReturnFlowOverInterface()>");
 	}
 
 	@Test
@@ -112,13 +113,14 @@ public class SummaryTaintWrapperTests {
 		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void fieldToParaFlow()>");
 	}
 
-	private void testFlowForMethod(String m)  {
+	private void testFlowForMethod(String m) {
 		Infoflow iFlow = null;
 		try {
 			iFlow = initInfoflow();
 			iFlow.setAccessPathLength(3);
-			iFlow.computeInfoflow(appPath, libPath, new DefaultEntryPointCreator(), java.util.Collections.singletonList(m),
-					Arrays.asList(source), java.util.Collections.singletonList(sink));
+			iFlow.computeInfoflow(appPath, libPath, new DefaultEntryPointCreator(),
+					java.util.Collections.singletonList(m), Arrays.asList(source),
+					java.util.Collections.singletonList(sink));
 		} catch (Exception e) {
 			fail("failed to calc path for test" + e.toString());
 		}
@@ -127,11 +129,12 @@ public class SummaryTaintWrapperTests {
 
 	private void testNoFlowForMethod(String m) {
 		Infoflow iFlow = null;
-		
+
 		try {
 			iFlow = initInfoflow();
-			iFlow.computeInfoflow(appPath, libPath, new DefaultEntryPointCreator(), java.util.Collections.singletonList(m),
-					Arrays.asList(source), java.util.Collections.singletonList(sink));
+			iFlow.computeInfoflow(appPath, libPath, new DefaultEntryPointCreator(),
+					java.util.Collections.singletonList(m), Arrays.asList(source),
+					java.util.Collections.singletonList(sink));
 		} catch (Exception e) {
 			fail("failed to calc path for test" + e.toString());
 		}
@@ -162,26 +165,26 @@ public class SummaryTaintWrapperTests {
 		ConfigForTest testConfig = new ConfigForTest();
 		result.setSootConfig(testConfig);
 
-		summaryWrapper = TaintWrapperFactory.createTaintWrapper("soot.jimple.infoflow.test.methodSummary.ApiClass.xml");
-		
+		summaryWrapper = (SummaryTaintWrapper) TaintWrapperFactory.createTaintWrapper("./TestSummaries/soot.jimple.infoflow.test.methodSummary.ApiClass.xml");
+		summaryWrapper.setEnableKillTaints(true);
+
 		result.setTaintWrapper(summaryWrapper);
 		return result;
 	}
-	
+
 	@BeforeClass
-    public static void setUp() throws IOException
-    {
-        final String sep = System.getProperty("path.separator");
-    	File f = new File(".");
-        File testSrc1 = new File(f,"bin");
-        File testSrc2 = new File(f,"build" + File.separator + "classes");
+	public static void setUp() throws IOException {
+		final String sep = System.getProperty("path.separator");
+		File f = new File(".");
+		File testSrc1 = new File(f, "bin");
+		File testSrc2 = new File(f, "build" + File.separator + "classes");
 
-        if (! (testSrc1.exists() || testSrc2.exists())){
-            fail("Test aborted - none of the test sources are available");
-        }
+		if (!(testSrc1.exists() || testSrc2.exists())) {
+			fail("Test aborted - none of the test sources are available");
+		}
 
-    	libPath = System.getProperty("java.home") + File.separator + "lib" + File.separator + "rt.jar";
-    	appPath = testSrc1.getCanonicalPath() + sep + testSrc2.getCanonicalPath();
-    }
+		libPath = System.getProperty("java.home") + File.separator + "lib" + File.separator + "rt.jar";
+		appPath = testSrc1.getCanonicalPath() + sep + testSrc2.getCanonicalPath();
+	}
 
 }
