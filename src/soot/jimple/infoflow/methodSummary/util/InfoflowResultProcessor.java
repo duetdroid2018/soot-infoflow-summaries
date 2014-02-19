@@ -5,6 +5,7 @@ import static soot.jimple.infoflow.methodSummary.data.impl.FlowSinkAndSourceFact
 import static soot.jimple.infoflow.methodSummary.data.impl.FlowSinkAndSourceFactory.createFlowReturnSink;
 import heros.InterproceduralCFG;
 
+import java.util.Collections;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -17,8 +18,11 @@ import soot.Scene;
 import soot.SootMethod;
 import soot.Unit;
 import soot.ValueBox;
+import soot.jimple.infoflow.InfoflowResults.SourceInfo;
 import soot.jimple.infoflow.data.Abstraction;
-import soot.jimple.infoflow.data.SourceContextAndPath;
+import soot.jimple.infoflow.data.AbstractionAtSink;
+import soot.jimple.infoflow.data.pathBuilders.DefaultPathBuilderFactory;
+import soot.jimple.infoflow.data.pathBuilders.IAbstractionPathBuilder;
 import soot.jimple.infoflow.methodSummary.SummarySourceSinkManager;
 import soot.jimple.infoflow.methodSummary.data.AbstractFlowSink;
 import soot.jimple.infoflow.methodSummary.data.AbstractFlowSource;
@@ -47,67 +51,73 @@ public class InfoflowResultProcessor {
 		final SootMethod m = Scene.v().getMethod(method);
 		final PointsToAnalysis pTa = Scene.v().getPointsToAnalysis();
 		
+		DefaultPathBuilderFactory pathBuilderFactory = new DefaultPathBuilderFactory();
+		IAbstractionPathBuilder pathBuilder = pathBuilderFactory.createPathBuilder
+				(Runtime.getRuntime().availableProcessors()); 
+		
 		for (Abstraction a : result) {
 			logger.debug("abstraction: " + a.toString());
-			for (SourceContextAndPath scp : a.getSources()) {
-				if (scp.getStmt() == null || scp.getValue() == null)
-					continue;
-				
-				// Get the source
-				AbstractFlowSource source = (AbstractFlowSource) scp.getUserData();				
-				if (source == null)
-					throw new RuntimeException("Link to source missing");
-				
-				// Get the sink
-				AbstractFlowSink sink = null;
-				
-				PointsToSet basePT = pTa.reachingObjects(a.getAccessPath().getPlainLocal());
-				// The sink may be a parameter
-				for (int i = 0; i < m.getParameterCount(); i++) {
-					Local p = m.getActiveBody().getParameterLocal(i);
-					PointsToSet pPT = pTa.reachingObjects(p);
-					if (pPT.hasNonEmptyIntersection(basePT)) {
-						if (a.getAccessPath().isLocal())
-							sink = createFlowParamterSink(m, i, null, a.getAccessPath().getTaintSubFields());
-						else if (a.getAccessPath().getFieldCount() == 1)
-							sink = createFlowParamterSink(m, i, a.getAccessPath().getFirstField(),
+			pathBuilder.computeTaintSources(Collections.singleton(new AbstractionAtSink(a, null, null)));
+			for (Set<SourceInfo> infos : pathBuilder.getResults().getResults().values())
+				for (SourceInfo si : infos) {
+					if (si.getContext() == null || si.getSource() == null)
+						continue;
+					
+					// Get the source
+					AbstractFlowSource source = (AbstractFlowSource) si.getUserData();				
+					if (source == null)
+						throw new RuntimeException("Link to source missing");
+					
+					// Get the sink
+					AbstractFlowSink sink = null;
+					
+					PointsToSet basePT = pTa.reachingObjects(a.getAccessPath().getPlainLocal());
+					// The sink may be a parameter
+					for (int i = 0; i < m.getParameterCount(); i++) {
+						Local p = m.getActiveBody().getParameterLocal(i);
+						PointsToSet pPT = pTa.reachingObjects(p);
+						if (pPT.hasNonEmptyIntersection(basePT)) {
+							if (a.getAccessPath().isLocal())
+								sink = createFlowParamterSink(m, i, null, a.getAccessPath().getTaintSubFields());
+							else if (a.getAccessPath().getFieldCount() == 1)
+								sink = createFlowParamterSink(m, i, a.getAccessPath().getFirstField(),
+										a.getAccessPath().getTaintSubFields());
+							else
+								sink = createFlowParamterSink(m, i, a.getAccessPath().getFirstField(), true);
+						}
+					}
+	
+					// check field sink
+					if (a.getAccessPath().isInstanceFieldRef()
+							&& !m.isStatic()
+							&& a.getAccessPath().getPlainLocal() == m.getActiveBody().getThisLocal()) {
+						if (a.getAccessPath().getFieldCount() == 1)
+							sink = createFlowFieldSink(a.getAccessPath().getFirstField(), null,
+									a.getAccessPath().getTaintSubFields());
+						else if (a.getAccessPath().getFieldCount() == 2)
+							sink = createFlowFieldSink(a.getAccessPath().getFirstField(), a.getAccessPath().getFields()[1],
 									a.getAccessPath().getTaintSubFields());
 						else
-							sink = createFlowParamterSink(m, i, a.getAccessPath().getFirstField(), true);
+							sink = createFlowFieldSink(a.getAccessPath().getFirstField(), a.getAccessPath().getFields()[1], true);
 					}
+	
+					// check return sink
+					if (a.getAccessPath().getPlainLocal() instanceof Local) {
+						for (Unit u : m.getActiveBody().getUnits())
+							if (cfg.isExitStmt(u))
+								for (ValueBox vb : u.getUseBoxes())
+									if (vb.getValue() == a.getAccessPath().getPlainValue())
+										if (a.getAccessPath().isLocal())
+											sink = createFlowReturnSink(a.getAccessPath().getTaintSubFields());
+										else if (a.getAccessPath().getFieldCount() == 1)
+											sink = createFlowReturnSink(a.getAccessPath().getFirstField(),
+													a.getAccessPath().getTaintSubFields());
+										else
+											sink = createFlowReturnSink(a.getAccessPath().getFirstField(), true);
+						}
+						if (source != null && sink != null)
+							addFlow(source, sink, flows);
 				}
-
-				// check field sink
-				if (a.getAccessPath().isInstanceFieldRef()
-						&& !m.isStatic()
-						&& a.getAccessPath().getPlainLocal() == m.getActiveBody().getThisLocal()) {
-					if (a.getAccessPath().getFieldCount() == 1)
-						sink = createFlowFieldSink(a.getAccessPath().getFirstField(), null,
-								a.getAccessPath().getTaintSubFields());
-					else if (a.getAccessPath().getFieldCount() == 2)
-						sink = createFlowFieldSink(a.getAccessPath().getFirstField(), a.getAccessPath().getFields()[1],
-								a.getAccessPath().getTaintSubFields());
-					else
-						sink = createFlowFieldSink(a.getAccessPath().getFirstField(), a.getAccessPath().getFields()[1], true);
-				}
-
-				// check return sink
-				if (a.getAccessPath().getPlainLocal() instanceof Local) {
-					for (Unit u : m.getActiveBody().getUnits())
-						if (cfg.isExitStmt(u))
-							for (ValueBox vb : u.getUseBoxes())
-								if (vb.getValue() == a.getAccessPath().getPlainValue())
-									if (a.getAccessPath().isLocal())
-										sink = createFlowReturnSink(a.getAccessPath().getTaintSubFields());
-									else if (a.getAccessPath().getFieldCount() == 1)
-										sink = createFlowReturnSink(a.getAccessPath().getFirstField(),
-												a.getAccessPath().getTaintSubFields());
-									else
-										sink = createFlowReturnSink(a.getAccessPath().getFirstField(), true);
-					}
-					if (source != null && sink != null)
-						addFlow(source, sink, flows);
-			}
 		}
 		
 		logger.info("Result processing finished");

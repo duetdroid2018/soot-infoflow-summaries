@@ -105,6 +105,7 @@ public class cmdSummary {
 	private static void createSummary(String[] mSigs, String folder, List<String> filter, boolean run_unsafe2)
 			throws FileNotFoundException, XMLStreamException {
 		for (String clz : getAllClasses(mSigs)) {
+			long beforeSummary = System.nanoTime();
 			String file = classToFile(clz);
 			System.out.println("create methods summaries for: " + clz + " output to: " + folder);
 			SummaryGenerator s = new SummaryGenerator();
@@ -135,6 +136,8 @@ public class cmdSummary {
 				}
 			}
 			write(flows, xmlFile, folder);
+			System.out.println("Methods summaries for: " + clz + " created in "
+					+ (System.nanoTime() - beforeSummary) / 1E9 + " seconds");
 		}
 	}
 	

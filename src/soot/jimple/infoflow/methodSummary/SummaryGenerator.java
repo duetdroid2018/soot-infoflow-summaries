@@ -79,7 +79,7 @@ public class SummaryGenerator {
 
 	protected Infoflow initInfoflow() {
 		Infoflow iFlow = new Infoflow();
-		iFlow.setAccessPathLength(accessPathLength);
+		Infoflow.setAccessPathLength(accessPathLength);
 		iFlow.setEnableImplicitFlows(enableImplicitFlows);
 		iFlow.setEnableExceptionTracking(enableExceptionTracking);
 		iFlow.setEnableStaticFieldTracking(enableStaticFieldTracking);
