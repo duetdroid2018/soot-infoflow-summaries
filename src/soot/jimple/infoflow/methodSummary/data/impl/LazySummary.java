@@ -3,6 +3,7 @@ package soot.jimple.infoflow.methodSummary.data.impl;
 import java.io.File;
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -30,7 +31,15 @@ public class LazySummary {
 	}
 
 	public LazySummary(List<File> files) {
-		this.files = files;
+		this.files = new LinkedList<File>();
+		for(File f : files){
+			if(f.isFile()){
+				this.files.add(f);
+			}else{
+				this.files.addAll(Arrays.asList(f.listFiles()));
+			}
+		}
+		//this.files = files;
 		init();
 	}
 

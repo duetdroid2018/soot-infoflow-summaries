@@ -42,7 +42,7 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 		Set<AccessPath> res = new HashSet<AccessPath>();
 
 		res.add(taintedPath);
-		System.out.println();
+		//System.out.println();
 		Collection<AbstractMethodFlow> methodFlows = getAllFlows(icfg.getCalleesOfCallAt(stmt));
 		SootMethod calledMethod = stmt.getInvokeExpr().getMethod();
 		// kill some flows
@@ -222,7 +222,8 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 	protected boolean isExclusiveInternal(Stmt stmt, AccessPath taintedPath, IInfoflowCFG icfg) {
 		for (SootMethod m2 : icfg.getCalleesOfCallAt(stmt))
 			if (!m2.isStatic() && flows.supportsClass(m2.getDeclaringClass().getName())) {
-				logger.debug("exclusive for: " + stmt);
+				logger.debug("exclusive for: " + stmt); 
+				System.out.println("exclusive for: " + stmt);
 				return true;
 			}
 		return false;
