@@ -99,7 +99,7 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 				for (SootField f : getClassFields()) {
 					if (!f.isStatic()) {
 						PointsToSet pointsToField = Scene.v().getPointsToAnalysis().reachingObjects
-								(m.getActiveBody().getThisLocal(), f);
+								(method.getActiveBody().getThisLocal(), f);
 						if (fieldBasePT.hasNonEmptyIntersection(pointsToField)) {
 							System.out.println("source: (this)." + f  +"." + fieldRef.getField() + "  #  " + sCallSite);
 							
@@ -112,9 +112,6 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 						SourceInfo si =new SourceInfo(false, createFlowFieldSource(fieldRef.getField(), null));
 						return si;
 					}
-
-					
-					
 				}
 				//Scene.v().getPointsToAnalysis().reachingObjects(m.getActiveBody().getThisLocal()).hasNonEmptyIntersection(pTsPara)
 				// Check for parameter field reads

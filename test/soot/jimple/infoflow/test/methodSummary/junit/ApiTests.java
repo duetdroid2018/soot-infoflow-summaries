@@ -4,6 +4,8 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.Set;
 
+import junit.framework.Assert;
+
 import org.junit.Test;
 
 import soot.jimple.infoflow.methodSummary.SummaryGenerator;
@@ -73,7 +75,7 @@ public class ApiTests extends ApiTestHelper {
 		SummaryGenerator s = getSummary();
 		String mSig = "<" + className + ": int standardFlow3(" + DATA_TYPE + ")>";
 		Set<AbstractMethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
-		assertTrue(res.size() == 1);
+		Assert.assertEquals(1, res.size());
 	}
 
 	@Test//(timeout = 100000)

@@ -58,6 +58,7 @@ public class InfoflowResultProcessor {
 		
 		for (Abstraction a : result) {
 			logger.debug("abstraction: " + a.toString());
+			pathBuilder.getResults().clear();
 			pathBuilder.computeTaintSources(Collections.singleton(new AbstractionAtSink
 					(a, NullConstant.v(), Jimple.v().newNopStmt())));
 			for (Set<SourceInfo> sourceInfos : pathBuilder.getResults().getResults().values())
@@ -69,7 +70,7 @@ public class InfoflowResultProcessor {
 					AbstractFlowSource source = (AbstractFlowSource) si.getUserData();
 					if (source == null)
 						throw new RuntimeException("Link to source missing");
-	
+					
 					// Get the sink
 					AbstractFlowSink sink = null;
 	
@@ -87,6 +88,7 @@ public class InfoflowResultProcessor {
 							else
 								sink = createFlowParamterSink(m, i, a.getAccessPath().getFirstField(), true);
 						}
+						
 						if (source != null && sink != null){
 							addFlow(source, sink, flows);
 							sink = null;
@@ -138,17 +140,35 @@ public class InfoflowResultProcessor {
 		return flows;
 	}
 
+	private boolean isIdentityFlow(AbstractFlowSource source, AbstractFlowSink sink) {
+		if (source.hasAccessPath() != sink.hasAccessPath())
+			return false;
+		if (!safeEquals(source.getAccessPath(), sink.getAccessPath()))
+			return false;
+		
+		if (source.isParamter() != sink.isParamter())
+			return false;
+		if (source.getParamterIndex() != sink.getParamterIndex())
+			return false;
+		if (!safeEquals(source.getParaType(), sink.getParaType()))
+			return false;
+		
+		if (source.isField() != sink.isField())
+			return false;
+		if (!safeEquals(source.getField(), sink.getField()))
+			return false;
+		
+		if (source.isThis() != sink.isThis())
+			return false;
+		
+		return true;
+	}
+	
 	private void addFlow(AbstractFlowSource source, AbstractFlowSink sink, MethodSummaries summaries) {
-		// Do not record flows of the form a->a
-		if (!sink.taintSubFields()) {
-			if (source.isField() && sink.isField() && source.getField() == sink.getField()
-					&& safeEquals(source.getAccessPath(), sink.getAccessPath()))
-				return;
-			if (source.isParamter() && sink.isParamter() && source.getParamterIndex() == sink.getParamterIndex()
-					&& safeEquals(source.getAccessPath(), sink.getAccessPath()))
-				return;
-		}
-
+		// Ignore identity flows
+		if (isIdentityFlow(source, sink))
+			return;
+		
 		AbstractMethodFlow mFlow = new DefaultMethodFlow(method, source, sink);
 		summaries.addFlowForMethod(method, mFlow);
 		debugMSG(source, sink);
