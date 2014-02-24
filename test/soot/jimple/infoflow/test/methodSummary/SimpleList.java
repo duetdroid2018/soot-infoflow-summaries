@@ -1,8 +1,12 @@
 package soot.jimple.infoflow.test.methodSummary;
 
+import java.util.HashSet;
+import java.util.Set;
+
+
 public class SimpleList<E> {
 	Data first ;//= new Node();
-
+	Object keySet;
 	private static class Node<E> {
 		E item ;
 	}
@@ -15,4 +19,9 @@ public class SimpleList<E> {
 	Data node() {
 			return first;
 	}
+    public Object keySet() {
+    	Object ks = keySet;
+        return (ks != null ? ks : (keySet = new Object()));
+    }
+
 }

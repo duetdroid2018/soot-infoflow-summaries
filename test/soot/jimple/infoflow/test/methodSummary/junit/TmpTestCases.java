@@ -18,4 +18,12 @@ public class TmpTestCases extends TestHelper {
 		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(flow.size() == 1);
 	}
+	
+	@Test
+	public void keySet() {
+		SummaryGenerator s = new SummaryGenerator();
+		String mSig = "<soot.jimple.infoflow.test.methodSummary.SimpleList: java.lang.Object keySet()>";
+		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		assertTrue(flow.size() == 3);
+	}
 }

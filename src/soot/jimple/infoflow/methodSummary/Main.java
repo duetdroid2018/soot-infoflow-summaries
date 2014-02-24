@@ -46,13 +46,13 @@ class Main {
 		 * HttpURLConnection.class, URL.class, ArrayList.class,
 		 * InvocationTargetException.class, Method.class };
 		 */
-		Class<?>[] javaCollection = {/* HashMap.class, TreeSet.class, ArrayList.class, Stack.class, Vector.class,
-				LinkedList.class, LinkedHashMap.class, ConcurrentLinkedQueue.class, PriorityQueue.class,*/
+		Class<?>[] javaCollection = { HashMap.class, TreeSet.class, ArrayList.class, Stack.class, Vector.class,
+				LinkedList.class, LinkedHashMap.class, ConcurrentLinkedQueue.class, PriorityQueue.class,
 				ArrayBlockingQueue.class, ArrayDeque.class, ConcurrentSkipListMap.class, DelayQueue.class,
 				TreeMap.class };
 
-		Class<?>[] clazzes = {LinkedList.class, ArrayList.class,Stack.class};
-		String[] methodFilter = {""};
+		Class<?>[] clazzes = {SimpleList.class};
+		String[] methodFilter = {"keySet("};
 
 		int runOption = 0;
 		boolean useOutPutFolder = false;
