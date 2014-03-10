@@ -36,7 +36,6 @@ public class ClassFileInformation {
 	}
 
 	public static String getMethodSig(Method m, Class<?> c) {
-
 		String className = c.getName(); // clazz.getCanonicalName();
 
 		String para = "";
@@ -50,6 +49,27 @@ public class ClassFileInformation {
 		}
 		
 		String method = getType(m.getReturnType()) + " " + m.getName() + "(" + para + ")";
+		return "<" + className + ": " + method + ">";
+	}
+
+	public static String getMethodSig(Constructor<?> cons) {
+		return getMethodSig(cons, cons.getDeclaringClass());
+	}
+
+	public static String getMethodSig(Constructor<?> cons, Class<?> c) {
+		String className = c.getName(); // clazz.getCanonicalName();
+
+		String para = "";
+		for (int i = 0; i < cons.getParameterTypes().length; i++) {
+			if (i < cons.getParameterTypes().length - 1) {
+					para = para + getType(cons.getParameterTypes()[i]) + ",";
+				
+			} else {
+				para = para + getType(cons.getParameterTypes()[i]);
+			}
+		}
+		
+		String method = "void <init>(" + para + ")";
 		return "<" + className + ": " + method + ">";
 	}
 

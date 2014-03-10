@@ -79,10 +79,8 @@ public class SummaryGenerator {
 
 	protected Infoflow initInfoflow() {
 		Infoflow iFlow = new Infoflow();
-//		Infoflow.setAccessPathLength(accessPathLength);
-		
-Infoflow.setUseRecursiveAccessPaths(false);
-		
+		Infoflow.setAccessPathLength(accessPathLength);
+				
 		iFlow.setEnableImplicitFlows(enableImplicitFlows);
 		iFlow.setEnableExceptionTracking(enableExceptionTracking);
 		iFlow.setEnableStaticFieldTracking(enableStaticFieldTracking);
@@ -105,7 +103,8 @@ Infoflow.setUseRecursiveAccessPaths(false);
 	protected void initDefPath() {
 		File f = new File(".");
 		try {
-			path = System.getProperty("java.home") + File.separator + "lib" + File.separator + "rt.jar"
+//			path = System.getProperty("java.home") + File.separator + "lib" + File.separator + "rt.jar"
+			path = "D:\\Temp\\odex-phone\\android-phone.jar"
 					+ System.getProperty("path.separator") + f.getCanonicalPath() + File.separator + "bin"
 					+ System.getProperty("path.separator") + f.getCanonicalPath() + File.separator + "lib";
 		} catch (IOException e) {

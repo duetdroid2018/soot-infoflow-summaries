@@ -21,7 +21,6 @@ import soot.jimple.infoflow.config.ConfigForTest;
 import soot.jimple.infoflow.entryPointCreators.DefaultEntryPointCreator;
 import soot.jimple.infoflow.methodSummary.taintWrappers.SummaryTaintWrapper;
 import soot.jimple.infoflow.methodSummary.taintWrappers.TaintWrapperFactory;
-import soot.jimple.infoflow.taintWrappers.ITaintPropagationWrapper;
 
 public class SummaryTaintWrapperTests {
 	private static String appPath, libPath;
@@ -117,7 +116,7 @@ public class SummaryTaintWrapperTests {
 		Infoflow iFlow = null;
 		try {
 			iFlow = initInfoflow();
-			iFlow.setAccessPathLength(3);
+			Infoflow.setAccessPathLength(3);
 			iFlow.computeInfoflow(appPath, libPath, new DefaultEntryPointCreator(),
 					java.util.Collections.singletonList(m), Arrays.asList(source),
 					java.util.Collections.singletonList(sink));
@@ -165,9 +164,8 @@ public class SummaryTaintWrapperTests {
 		ConfigForTest testConfig = new ConfigForTest();
 		result.setSootConfig(testConfig);
 
-		summaryWrapper = (SummaryTaintWrapper) TaintWrapperFactory.createTaintWrapper("./TestSummaries/soot.jimple.infoflow.test.methodSummary.ApiClass.xml");
-		summaryWrapper.setEnableKillTaints(true);
-
+		summaryWrapper = (SummaryTaintWrapper) TaintWrapperFactory.createTaintWrapper
+				("./TestSummaries/soot.jimple.infoflow.test.methodSummary.ApiClass.xml");
 		result.setTaintWrapper(summaryWrapper);
 		return result;
 	}
