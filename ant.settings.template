@@ -5,7 +5,6 @@ soot.jar=
 
 #Location of FlowDroid infoflow jar
 infoflow.jar=
-infoflow-android.jar=
 
 # Target JAR file
 infoflow-summaries.jar=
