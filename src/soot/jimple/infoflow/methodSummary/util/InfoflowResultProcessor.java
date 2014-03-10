@@ -26,9 +26,9 @@ import soot.jimple.infoflow.data.AbstractionAtSink;
 import soot.jimple.infoflow.data.pathBuilders.DefaultPathBuilderFactory;
 import soot.jimple.infoflow.data.pathBuilders.IAbstractionPathBuilder;
 import soot.jimple.infoflow.methodSummary.SummarySourceSinkManager;
-import soot.jimple.infoflow.methodSummary.data.AbstractFlowSink;
-import soot.jimple.infoflow.methodSummary.data.AbstractFlowSource;
 import soot.jimple.infoflow.methodSummary.data.AbstractMethodFlow;
+import soot.jimple.infoflow.methodSummary.data.IFlowSink;
+import soot.jimple.infoflow.methodSummary.data.IFlowSource;
 import soot.jimple.infoflow.methodSummary.data.MethodSummaries;
 import soot.jimple.infoflow.methodSummary.data.impl.DefaultMethodFlow;
 
@@ -67,12 +67,12 @@ public class InfoflowResultProcessor {
 						continue;
 	
 					// Get the source
-					AbstractFlowSource source = (AbstractFlowSource) si.getUserData();
+					IFlowSource source = (IFlowSource) si.getUserData();
 					if (source == null)
 						throw new RuntimeException("Link to source missing");
 					
 					// Get the sink
-					AbstractFlowSink sink = null;
+					IFlowSink sink = null;
 	
 					PointsToSet basePT = pTa.reachingObjects(a.getAccessPath().getPlainLocal());
 					// The sink may be a parameter
@@ -140,7 +140,7 @@ public class InfoflowResultProcessor {
 		return flows;
 	}
 
-	private boolean isIdentityFlow(AbstractFlowSource source, AbstractFlowSink sink) {
+	private boolean isIdentityFlow(IFlowSource source, IFlowSink sink) {
 		if (source.hasAccessPath() != sink.hasAccessPath())
 			return false;
 		if (!safeEquals(source.getAccessPath(), sink.getAccessPath()))
@@ -164,7 +164,7 @@ public class InfoflowResultProcessor {
 		return true;
 	}
 	
-	private void addFlow(AbstractFlowSource source, AbstractFlowSink sink, MethodSummaries summaries) {
+	private void addFlow(IFlowSource source, IFlowSink sink, MethodSummaries summaries) {
 		// Ignore identity flows
 		if (isIdentityFlow(source, sink))
 			return;
@@ -182,7 +182,7 @@ public class InfoflowResultProcessor {
 		return accessPath.equals(accessPath2);
 	}
 
-	private void debugMSG(AbstractFlowSource source, AbstractFlowSink sink) {
+	private void debugMSG(IFlowSource source, IFlowSink sink) {
 		if (DEBUG) {
 			System.out.println("\nmethod: " + method);
 			System.out.println("source: " + source.toString());

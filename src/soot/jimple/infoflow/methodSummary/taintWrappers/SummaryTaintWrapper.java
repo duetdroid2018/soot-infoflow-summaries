@@ -15,9 +15,9 @@ import soot.jimple.InstanceInvokeExpr;
 import soot.jimple.InvokeExpr;
 import soot.jimple.Stmt;
 import soot.jimple.infoflow.data.AccessPath;
-import soot.jimple.infoflow.methodSummary.data.AbstractFlowSink;
-import soot.jimple.infoflow.methodSummary.data.AbstractFlowSource;
 import soot.jimple.infoflow.methodSummary.data.AbstractMethodFlow;
+import soot.jimple.infoflow.methodSummary.data.IFlowSink;
+import soot.jimple.infoflow.methodSummary.data.IFlowSource;
 import soot.jimple.infoflow.methodSummary.data.impl.LazySummary;
 import soot.jimple.infoflow.solver.IInfoflowCFG;
 import soot.jimple.infoflow.taintWrappers.AbstractTaintWrapper;
@@ -43,8 +43,8 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 		
 		// calc taints
 		for (AbstractMethodFlow mFlow : methodFlows) {
-			final AbstractFlowSource flowSource = mFlow.source();
-			final AbstractFlowSink flowSink = mFlow.sink();
+			final IFlowSource flowSource = mFlow.source();
+			final IFlowSink flowSink = mFlow.sink();
 
 			if (flowSource.isParamter()) {
 				int paraIdx = flowSource.getParamterIndex();
@@ -65,7 +65,7 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 		return res;
 	}
 	
-	private boolean compareFields(AccessPath taintedPath, AbstractFlowSource flowSource) {
+	private boolean compareFields(AccessPath taintedPath, IFlowSource flowSource) {
 		// If a is tainted, the summary must match a. If a.* is tainted, the
 		// summary can also be a.b.
 		if (taintedPath.getFieldCount() == 0)
@@ -99,7 +99,7 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 		return null;
 	}
 
-	private void addSinkTaint(Set<AccessPath> res, AbstractFlowSource flowSource, AbstractFlowSink flowSink,
+	private void addSinkTaint(Set<AccessPath> res, IFlowSource flowSource, IFlowSink flowSink,
 			Stmt stmt, AccessPath taintedPath) {
 		boolean taintSubFields = flowSink.taintSubFields();
 		
@@ -144,7 +144,7 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 		}
 		// We dont't know what this is
 		else
-			throw new RuntimeException("Unknown summary sink type");
+			throw new RuntimeException("Unknown summary sink type: " + flowSink);
 	}
 
 	/**

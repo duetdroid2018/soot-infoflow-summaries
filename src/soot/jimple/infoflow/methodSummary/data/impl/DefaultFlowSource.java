@@ -5,10 +5,10 @@ import java.util.Map;
 
 import soot.SootField;
 import soot.SootMethod;
-import soot.jimple.infoflow.methodSummary.data.AbstractFlowSource;
+import soot.jimple.infoflow.methodSummary.data.IFlowSource;
 import soot.jimple.infoflow.methodSummary.xml.XMLConstants;
 
-public class DefaultFlowSource extends AbstractFlowSource {
+public class DefaultFlowSource implements IFlowSource {
 
 	private final int parameterIdx;
 	private final String field;

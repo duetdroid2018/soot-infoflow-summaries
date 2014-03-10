@@ -2,9 +2,9 @@ package soot.jimple.infoflow.methodSummary.data;
 
 public abstract class AbstractMethodFlow {
 
-	abstract public AbstractFlowSource source();
+	abstract public IFlowSource source();
 
-	abstract public AbstractFlowSink sink();
+	abstract public IFlowSink sink();
 
 	abstract public String methodSig();
 

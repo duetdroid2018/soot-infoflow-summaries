@@ -3,10 +3,10 @@ package soot.jimple.infoflow.methodSummary.data.impl;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import soot.jimple.infoflow.methodSummary.data.AbstractFlowSink;
+import soot.jimple.infoflow.methodSummary.data.IFlowSink;
 import soot.jimple.infoflow.methodSummary.xml.XMLConstants;
 
-public class FlowSinkFromXML extends AbstractFlowSink {
+public class FlowSinkFromXML implements IFlowSink {
 	private Map<String, String> attributes;
 
 	public FlowSinkFromXML(Map<String, String> s) {

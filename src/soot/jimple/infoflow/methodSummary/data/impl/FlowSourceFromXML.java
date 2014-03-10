@@ -3,10 +3,11 @@ package soot.jimple.infoflow.methodSummary.data.impl;
 import java.util.Map;
 import java.util.Map.Entry;
 
-import soot.jimple.infoflow.methodSummary.data.AbstractFlowSource;
+import soot.jimple.infoflow.methodSummary.data.IFlowSource;
 import soot.jimple.infoflow.methodSummary.xml.XMLConstants;
 
-public class FlowSourceFromXML extends AbstractFlowSource {
+public class FlowSourceFromXML implements IFlowSource {
+	
 	private Map<String, String> attributes;
 
 	public FlowSourceFromXML(Map<String, String> s) {
@@ -65,6 +66,5 @@ public class FlowSourceFromXML extends AbstractFlowSource {
 	public String getAccessPath() {
 		return attributes.get(XMLConstants.ATTRIBUTE_ACCESSPATH);
 	}
-
-
+	
 }
