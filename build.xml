@@ -1,0 +1,75 @@
+<project default="compile" name="Fetch or Build FlowDroid">
+	  <property file="ant.settings"/>
+	    <target name="settings">
+	        <fail
+	            message="Please copy ant.settings.template to ant.settings, and set the variables in it."
+	        	 unless="soot.jar"
+	        />
+	    </target>
+	
+	<target name="clean">
+		<delete quiet="true" dir="build" />
+	</target>
+	
+	<target name="compile" depends="settings">
+		<mkdir dir="build/classes" />
+		<javac srcdir="src" includeantruntime="true" source="1.6" target="1.6" destdir="build/classes">
+			<classpath>
+				<pathelement location="${soot.jar}" />
+				<pathelement location="${heros.jar}" />
+				<pathelement location="${infoflow.jar}" />
+				<!--
+					<pathelement location="${infoflow-android.jar}" />
+				-->
+				<fileset dir="lib">
+					<include name="*.jar" />
+				</fileset>
+			</classpath>
+		</javac>
+	</target>
+
+	<target name="jar" depends="compile">
+		<mkdir dir="build/jar" />
+		<jar destfile="${infoflow-summaries.jar}" basedir="build/classes">
+			<manifest>
+				<attribute name="Main-Class" value="soot.jimple.infoflow.methodSummary.Main" />
+				<!-- <attribute name="Main-Class" value="?"/>-->
+			</manifest>
+		</jar>
+	</target>
+
+	<target name="compiletests" depends="settings,compile">
+		<mkdir dir="build/classes" />
+		<javac srcdir="src:test" includeantruntime="true" source="1.6" target="1.6" destdir="build/classes" debug="true">
+			<classpath>
+				<pathelement location="${soot.jar}" />
+				<pathelement location="${heros.jar}" />
+				<pathelement location="${infoflow.jar}" />
+				<!--
+					<pathelement location="${infoflow-android.jar}" />
+				-->
+				<pathelement location="build/classes" />
+				<fileset dir="lib">
+					<include name="*.jar" />
+				</fileset>
+			</classpath>
+		</javac>
+	</target>
+	
+    <target name="generateJDKSummaries" depends="compile">
+        <java
+            classname="soot.jimple.infoflow.methodSummary.Main"
+            maxmemory="4g"
+            fork="true"
+            classpath="classes:${soot.jar}:${soot-infoflow.jar}"
+        >
+            <arg value="-w"/>
+            <arg value="-f"/>
+            <arg value="none"/>
+            <arg value="-process-dir"/>
+            <arg value="classes"/>
+            <arg value="soot.Main"/>
+        </java>
+    </target>
+
+</project>
