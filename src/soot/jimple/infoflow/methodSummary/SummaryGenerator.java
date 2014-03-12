@@ -103,10 +103,14 @@ public class SummaryGenerator {
 	protected void initDefPath() {
 		File f = new File(".");
 		try {
-//			path = System.getProperty("java.home") + File.separator + "lib" + File.separator + "rt.jar"
+			path = System.getProperty("java.home") + File.separator + "lib" + File.separator + "rt.jar"
+					+ System.getProperty("path.separator") + f.getCanonicalPath() + File.separator + "bin"
+					+ System.getProperty("path.separator") + f.getCanonicalPath() + File.separator + "lib";
+			/*
 			path = "D:\\Temp\\odex-phone\\android-phone.jar"
 					+ System.getProperty("path.separator") + f.getCanonicalPath() + File.separator + "bin"
 					+ System.getProperty("path.separator") + f.getCanonicalPath() + File.separator + "lib";
+			*/
 		} catch (IOException e) {
 			e.printStackTrace();
 			path = System.getProperty("java.home") + File.separator + "lib" + File.separator + "rt.jar";
