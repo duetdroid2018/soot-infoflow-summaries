@@ -11,6 +11,7 @@ import java.util.Set;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import soot.ArrayType;
 import soot.Local;
 import soot.PointsToAnalysis;
 import soot.PointsToSet;
@@ -78,10 +79,14 @@ public class InfoflowResultProcessor {
 					// The sink may be a parameter
 					for (int i = 0; i < m.getParameterCount(); i++) {
 						Local p = m.getActiveBody().getParameterLocal(i);
+						//boolean isPrimitiveType = m.getParameterType(i) instanceof PrimType ;
+						boolean isArrayType = m.getParameterType(i) instanceof ArrayType;
 						PointsToSet pPT = pTa.reachingObjects(p);
 						if (pPT.hasNonEmptyIntersection(basePT)) {
-							if (a.getAccessPath().isLocal())
-								sink = createFlowParamterSink(m, i, null, a.getAccessPath().getTaintSubFields());
+							if (a.getAccessPath().isLocal()){
+								if(isArrayType)
+									sink = createFlowParamterSink(m, i, null, a.getAccessPath().getTaintSubFields());
+							}
 							else if (a.getAccessPath().getFieldCount() == 1)
 								sink = createFlowParamterSink(m, i, a.getAccessPath().getFirstField(), a.getAccessPath()
 										.getTaintSubFields());
