@@ -34,13 +34,13 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 		// We always retain the incoming taint
 		Set<AccessPath> res = new HashSet<AccessPath>();
 		res.add(taintedPath);
-		
+
 		Set<SootMethod> callees = new HashSet<SootMethod>();
 		callees.addAll(icfg.getCalleesOfCallAt(stmt));
 		callees.add(stmt.getInvokeExpr().getMethod());
-		
+
 		Collection<AbstractMethodFlow> methodFlows = getAllFlows(callees);
-		
+
 		// calc taints
 		for (AbstractMethodFlow mFlow : methodFlows) {
 			final IFlowSource flowSource = mFlow.source();
@@ -55,40 +55,47 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 			}
 
 			// There may be a flow from a field to e.g. a return value
-			if (flowSource.isField()
-					&& (taintedPath.isLocal() || taintedPath.isInstanceFieldRef())
+			if (flowSource.isField() && (taintedPath.isLocal() || taintedPath.isInstanceFieldRef())
 					&& taintedPath.getPlainLocal().equals(getMethodBase(stmt))) {
 				if (compareFields(taintedPath, flowSource))
 					addSinkTaint(res, flowSource, flowSink, stmt, taintedPath);
 			}
+			if(flowSource.isThis() && (taintedPath.isLocal() || taintedPath.isInstanceFieldRef())
+					&& taintedPath.getPlainLocal().equals(getMethodBase(stmt))){
+				addSinkTaint(res, flowSource, flowSink, stmt, taintedPath);
+			}
 		}
-		return res;
+		return res; 
 	}
-	
+
 	private boolean compareFields(AccessPath taintedPath, IFlowSource flowSource) {
 		// If a is tainted, the summary must match a. If a.* is tainted, the
 		// summary can also be a.b.
 		if (taintedPath.getFieldCount() == 0)
 			return !flowSource.isField() || taintedPath.getTaintSubFields();
-		
+
 		// If we have at least one field, the first field must always match
-		if (!flowSource.isField() && flowSource.getField().equals(taintedPath.getFirstField().toString()))
+		if (!flowSource.isField() || !flowSource.getField().equals(taintedPath.getFirstField().toString()))
 			return false;
 		// If we have only one field, that's it
 		if (taintedPath.getFieldCount() == 1)
 			return true;
-		
+
 		// If we have more fields, they must match as well
 		if (taintedPath.getTaintSubFields())
 			return true;
-		return taintedPath.getFieldCount() > 1
-				&& flowSource.getAccessPath().equals(taintedPath.getFields()[1].toString());
+		// If we have source f and taint f.f2
+		if(!flowSource.hasAccessPath())
+			return true;
+		return taintedPath.getFieldCount() > 1 && flowSource.hasAccessPath() && flowSource.getAccessPath().equals(taintedPath.getFields()[1].toString());
 	}
-	
+
 	/**
 	 * Gets the field with the specified signature if it exists, otherwise
 	 * returns null
-	 * @param fieldSig The signature of the field to retrieve
+	 * 
+	 * @param fieldSig
+	 *            The signature of the field to retrieve
 	 * @return The field with the given signature if it exists, otherwise false
 	 */
 	private SootField safeGetField(String fieldSig) {
@@ -99,26 +106,33 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 		return null;
 	}
 
-	private void addSinkTaint(Set<AccessPath> res, IFlowSource flowSource, IFlowSink flowSink,
-			Stmt stmt, AccessPath taintedPath) {
-		boolean taintSubFields = flowSink.taintSubFields();
-		
+	private void addSinkTaint(Set<AccessPath> res, IFlowSource flowSource, IFlowSink flowSink, Stmt stmt, AccessPath taintedPath) {
+		boolean taintSubFields = flowSink.taintSubFields() || taintedPath.getTaintSubFields();
+
 		// Do we need to taint the return value?
-		if (flowSink.isReturn() && stmt instanceof DefinitionStmt) {
-			DefinitionStmt defStmt = (DefinitionStmt) stmt;
-			if (flowSink.hasAccessPath()) {
-				SootField field = safeGetField(flowSink.getAccessPath());
-				if (field == null)
-					taintSubFields = true;
-				res.add(new AccessPath(defStmt.getLeftOp(), field, taintSubFields));
+		if (flowSink.isReturn()) {
+			if (stmt instanceof DefinitionStmt) {
+				DefinitionStmt defStmt = (DefinitionStmt) stmt;
+				if(flowSource.isThis()){
+					res.add(new AccessPath(defStmt.getLeftOp(), true));
+				}
+				if (flowSink.hasAccessPath()) {
+					SootField field = safeGetField(flowSink.getAccessPath());
+					if (field == null)
+						taintSubFields = true;
+					res.add(new AccessPath(defStmt.getLeftOp(), field, taintSubFields));
+				} else{
+					if (taintedPath.getFieldCount() > 1){
+						res.add(new AccessPath(defStmt.getLeftOp(), taintedPath.getFields()[1], taintSubFields));
+					}else{
+						res.add(new AccessPath(defStmt.getLeftOp(), taintSubFields));
+					}
+					
+				}
 			}
-			else
-				res.add(new AccessPath(defStmt.getLeftOp(), taintSubFields));
 		}
 		// Do we need to taint a field of the base object?
-		else if (flowSink.isField()
-				&& stmt.containsInvokeExpr()
-				&& stmt.getInvokeExpr() instanceof InstanceInvokeExpr) {
+		else if (flowSink.isField() && stmt.containsInvokeExpr() && stmt.getInvokeExpr() instanceof InstanceInvokeExpr) {
 			InstanceInvokeExpr iinv = (InstanceInvokeExpr) stmt.getInvokeExpr();
 			List<SootField> fields = new LinkedList<SootField>();
 			SootField field0 = safeGetField(flowSink.getField());
@@ -131,11 +145,12 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 					else
 						taintSubFields = true;
 				}
-			}
-			else
+				else if (taintedPath.getFieldCount() > 1){
+					fields.add(taintedPath.getFields()[1]);
+				}
+			} else
 				taintSubFields = true;
-			res.add(new AccessPath(iinv.getBase(), fields.toArray(new SootField[fields.size()]),
-					taintSubFields));
+			res.add(new AccessPath(iinv.getBase(), fields.toArray(new SootField[fields.size()]), taintSubFields));
 		}
 		// Do we need to taint a field of the parameter?
 		else if (flowSink.isParamter() && flowSink.hasAccessPath()) {
@@ -184,5 +199,5 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 				return true;
 		return false;
 	}
-	
+
 }
