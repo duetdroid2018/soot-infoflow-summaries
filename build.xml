@@ -50,6 +50,47 @@
 		</javac>
 	</target>
 	
+	<target name="runtests" depends="compiletests">
+		<mkdir dir="reports" />
+		<junit printsummary="yes" fork="true" maxmemory="4G">
+			<classpath>
+				<pathelement location="${soot.jar}" />
+				<pathelement location="${heros.jar}" />
+				<pathelement location="${infoflow.jar}" />
+				<pathelement location="build/classes" />
+				<fileset dir="lib">
+					<include name="*.jar" />
+				</fileset>
+			</classpath>
+			
+			<jvmarg value="-ea" />
+			
+			<!-- Make stuff debuggable -->
+			<!--
+			<jvmarg value="-Xdebug" />
+			<jvmarg value="-Xrunjdwp:transport=dt_socket,server=y,suspend=n,address=5432" />
+			-->
+
+			<formatter type="xml" usefile="true" />
+			<batchtest todir="reports">
+				<!--
+					We only run our own tests. SecuriBench Micro relies on too much stuff
+					we exclude.
+				-->
+				<fileset dir="build/classes" includes="soot/jimple/infoflow/test/methodSummary/junit/AllTests.class" />
+			</batchtest>
+		</junit>
+	</target>
+
+	<target name="reporttests" depends="runtests">
+		<junitreport tofile="TESTS-TestSuites.xml" todir="reports">
+			<fileset dir="reports">
+				<include name="TEST-*.xml" />
+			</fileset>
+			<report format="frames" todir="reports" />
+		</junitreport>
+	</target>
+
     <target name="generateJDKSummaries" depends="compile">
         <java
             classname="soot.jimple.infoflow.methodSummary.Main"
