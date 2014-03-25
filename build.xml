@@ -42,6 +42,7 @@
 				<pathelement location="${soot.jar}" />
 				<pathelement location="${heros.jar}" />
 				<pathelement location="${infoflow.jar}" />
+				<pathelement location="${infoflow-tests.jar}" />
 				<pathelement location="build/classes" />
 				<fileset dir="lib">
 					<include name="*.jar" />
@@ -57,6 +58,7 @@
 				<pathelement location="${soot.jar}" />
 				<pathelement location="${heros.jar}" />
 				<pathelement location="${infoflow.jar}" />
+				<pathelement location="${infoflow-tests.jar}" />
 				<pathelement location="build/classes" />
 				<fileset dir="lib">
 					<include name="*.jar" />
