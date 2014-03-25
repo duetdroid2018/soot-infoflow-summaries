@@ -1,7 +1,5 @@
 package soot.jimple.infoflow.test.methodSummary;
 
-import java.util.HashSet;
-import java.util.Set;
 
 
 public class SimpleList<E> {

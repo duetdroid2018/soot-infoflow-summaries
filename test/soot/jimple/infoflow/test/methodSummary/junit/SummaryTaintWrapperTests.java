@@ -7,20 +7,27 @@ import static org.junit.Assert.fail;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 import javax.xml.stream.XMLStreamException;
 
 import org.junit.Before;
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import soot.jimple.infoflow.Infoflow;
 import soot.jimple.infoflow.InfoflowResults;
 import soot.jimple.infoflow.config.ConfigForTest;
 import soot.jimple.infoflow.entryPointCreators.DefaultEntryPointCreator;
+import soot.jimple.infoflow.methodSummary.cmdSummary;
 import soot.jimple.infoflow.methodSummary.taintWrappers.SummaryTaintWrapper;
 import soot.jimple.infoflow.methodSummary.taintWrappers.TaintWrapperFactory;
+import soot.jimple.infoflow.methodSummary.util.ClassFileInformation;
+import soot.jimple.infoflow.test.methodSummary.ApiClass;
 
 public class SummaryTaintWrapperTests {
 	private static String appPath, libPath;
@@ -32,18 +39,17 @@ public class SummaryTaintWrapperTests {
 	private String sink = "<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void sink(java.lang.Object)>";
 	private SummaryTaintWrapper summaryWrapper;
 
-	//
-//	@BeforeClass
-//	public static void init() throws FileNotFoundException, XMLStreamException {
-//		String mSig = "";
-//		for (Method m : ApiClass.class.getDeclaredMethods()) {
-//			mSig = mSig + ClassFileInformation.getMethodSig(m) + ";";
-//		}
-//		mSig = mSig.substring(0, mSig.length() - 1).trim();
-//		ArrayList<String> runArgs = new ArrayList<String>();
-//		runArgs.add("-m " + mSig);
-//		cmdSummary.main(runArgs.toArray(new String[runArgs.size()]));
-//	}
+	@BeforeClass
+	public static void init() throws FileNotFoundException, XMLStreamException {
+		String mSig = "";
+		for (Method m : ApiClass.class.getDeclaredMethods()) {
+			mSig = mSig + ClassFileInformation.getMethodSig(m) + ";";
+		}
+		mSig = mSig.substring(0, mSig.length() - 1).trim();
+		List<String> runArgs = new ArrayList<String>();
+		runArgs.add("-m " + mSig);
+		cmdSummary.main(runArgs.toArray(new String[runArgs.size()]));
+	}
 
 	@Before
 	public void resetSootAndStream() throws IOException {
@@ -52,11 +58,13 @@ public class SummaryTaintWrapperTests {
 
 	}
 
+	@Ignore("kill flow")
 	@Test
 	public void noFlow1() {
 		testNoFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void noFlow1()>");
 	}
 
+	@Ignore("kill flow")
 	@Test
 	public void noFlow2() {
 		testNoFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void noFlow2()>");
