@@ -68,7 +68,6 @@ public class SummaryGenerator {
 			
 		});
 		
-		infoflow.setCallgraphAlgorithm(CallgraphAlgorithm.VTA);
 		infoflow.computeInfoflow(null, path, createEntryPoint(), Collections.singletonList(sig), manager);
 		return summaries;
 	}
