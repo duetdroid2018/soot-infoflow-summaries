@@ -80,8 +80,10 @@
 					We only run our own tests. SecuriBench Micro relies on too much stuff
 					we exclude.
 				-->
-				<fileset dir="build/testclasses" includes="soot/jimple/infoflow/test/methodSummary/junit/**/*Tests.class"
-					excludes="soot/jimple/infoflow/test/methodSummary/junit/AllTests.class" />
+				<fileset dir="build/testclasses" includes="soot/jimple/infoflow/test/methodSummary/junit/**/*Tests.class">
+					<exclude name="soot/jimple/infoflow/test/methodSummary/junit/AllTests.class" />
+					<exclude name="soot/jimple/infoflow/test/methodSummary/junit/ApiTestNotWorking.class" />
+				</fileset>
 			</batchtest>
 		</junit>
 	</target>

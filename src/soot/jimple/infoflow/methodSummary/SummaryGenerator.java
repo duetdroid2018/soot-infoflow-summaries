@@ -8,6 +8,7 @@ import java.util.List;
 
 import soot.SootMethod;
 import soot.Unit;
+import soot.jimple.infoflow.IInfoflow.CallgraphAlgorithm;
 import soot.jimple.infoflow.Infoflow;
 import soot.jimple.infoflow.InfoflowResults;
 import soot.jimple.infoflow.config.IInfoflowConfig;
@@ -66,6 +67,8 @@ public class SummaryGenerator {
 			}
 			
 		});
+		
+		infoflow.setCallgraphAlgorithm(CallgraphAlgorithm.VTA);
 		infoflow.computeInfoflow(null, path, createEntryPoint(), Collections.singletonList(sig), manager);
 		return summaries;
 	}
@@ -103,9 +106,11 @@ public class SummaryGenerator {
 	protected void initDefPath() {
 		File f = new File(".");
 		try {
+			final String pathSep = System.getProperty("path.separator");
 			path = System.getProperty("java.home") + File.separator + "lib" + File.separator + "rt.jar"
-					+ System.getProperty("path.separator") + f.getCanonicalPath() + File.separator + "bin"
-					+ System.getProperty("path.separator") + f.getCanonicalPath() + File.separator + "lib";
+					+ pathSep + f.getCanonicalPath() + File.separator + "bin"
+					+ pathSep + f.getCanonicalPath() + File.separator + "build" + File.separator + "testclasses"
+					+ pathSep + f.getCanonicalPath() + File.separator + "lib";
 			/*
 			path = "D:\\Temp\\odex-phone\\android-phone.jar"
 					+ System.getProperty("path.separator") + f.getCanonicalPath() + File.separator + "bin"
