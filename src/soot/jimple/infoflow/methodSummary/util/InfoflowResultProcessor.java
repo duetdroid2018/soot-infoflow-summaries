@@ -144,24 +144,24 @@ public class InfoflowResultProcessor {
 	}
 
 	private boolean isIdentityFlow(IFlowSource source, IFlowSink sink) {
-		if (source.hasAccessPath() != sink.hasAccessPath())
-			return false;
-		if (!safeEquals(source.getAccessPath(), sink.getAccessPath()))
-			return false;
-		
 		if (source.isParamter() != sink.isParamter())
 			return false;
+		if (source.isField() != sink.isField())
+			return false;
+		if (source.isThis() != sink.isThis())
+			return false;
+		
 		if (source.getParamterIndex() != sink.getParamterIndex())
 			return false;
 		if (!safeEquals(source.getParaType(), sink.getParaType()))
 			return false;
 		
-		if (source.isField() != sink.isField())
-			return false;
 		if (!safeEquals(source.getField(), sink.getField()))
 			return false;
 		
-		if (source.isThis() != sink.isThis())
+		if (source.hasAccessPath() != sink.hasAccessPath())
+			return false;
+		if (!safeEquals(source.getAccessPath(), sink.getAccessPath()))
 			return false;
 		
 		return true;
@@ -173,8 +173,8 @@ public class InfoflowResultProcessor {
 			return;
 		
 		AbstractMethodFlow mFlow = new DefaultMethodFlow(method, source, sink);
-		summaries.addFlowForMethod(method, mFlow);
-		debugMSG(source, sink);
+		if(summaries.addFlowForMethod(method, mFlow))
+			debugMSG(source, sink);
 	}
 
 	private boolean safeEquals(String accessPath, String accessPath2) {
@@ -189,7 +189,7 @@ public class InfoflowResultProcessor {
 		if (DEBUG) {
 			System.out.println("\nmethod: " + method);
 			System.out.println("source: " + source.toString());
-			System.out.println("sink: " + sink.toString());
+			System.out.println("sink  : " + sink.toString());
 			System.out.println("------------------------------------");
 		}
 	}
