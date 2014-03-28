@@ -97,11 +97,15 @@ public class DefaultFlowSource implements IFlowSource {
 	}
 	@Override
 	public String toString(){
-		StringBuffer buf = new StringBuffer();
-		for(String t : xmlAttributes().values()){
-			buf.append(t + " ");
+		if(isParamter()){
+			return "Parameter: " + getParamterIndex() + " " + getParaType() +((getAccessPath()!=null) ? getAccessPath() : "");
+		}else if(isField()){
+			return "Field " +getField() +((getAccessPath()!=null) ? getAccessPath() : ""); 
+		}else if(isThis()){
+			return "THIS source";
+		}else{
+			return "invalid source";
 		}
-		return buf.toString();
 	}
 	
 	@Override

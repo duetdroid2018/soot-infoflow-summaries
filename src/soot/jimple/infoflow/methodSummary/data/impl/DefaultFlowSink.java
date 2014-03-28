@@ -120,11 +120,15 @@ public class DefaultFlowSink implements IFlowSink {
 	
 	@Override
 	public String toString(){
-		StringBuffer buf = new StringBuffer();
-		for(String t : xmlAttributes().values()){
-			buf.append(t + " ");
+		if(isParamter()){
+			return "Parameter: " + getParamterIndex() + " " + getParaType() +((getAccessPath()!=null) ? getAccessPath() : "") + " " +taintSubFields();
+		}else if(isField()){
+			return "Field " +getField() + ((getAccessPath()!=null) ? getAccessPath() : "") + " " +taintSubFields();
+		}else if(isReturn){
+			return "Return " + taintSubFields();
+		}else{
+			return "invalid sink";
 		}
-		return buf.toString();
 	}
 	
 	@Override
