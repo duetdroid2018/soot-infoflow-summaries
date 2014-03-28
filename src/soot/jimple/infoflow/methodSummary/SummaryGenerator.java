@@ -8,7 +8,6 @@ import java.util.List;
 
 import soot.SootMethod;
 import soot.Unit;
-import soot.jimple.infoflow.IInfoflow.CallgraphAlgorithm;
 import soot.jimple.infoflow.Infoflow;
 import soot.jimple.infoflow.InfoflowResults;
 import soot.jimple.infoflow.config.IInfoflowConfig;
