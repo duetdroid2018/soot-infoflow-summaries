@@ -73,8 +73,6 @@ public class DefaultFlowSink implements IFlowSink {
 
 	@Override
 	public String getParaType() {
-		if (getParamterIndex() == -1)
-			return "failed";
 		return paraTyp;
 	}
 

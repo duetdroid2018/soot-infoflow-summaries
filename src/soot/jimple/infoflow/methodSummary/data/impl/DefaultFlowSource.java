@@ -64,8 +64,6 @@ public class DefaultFlowSource implements IFlowSource {
 
 	@Override
 	public String getParaType() {
-		if (getParamterIndex() == -1)
-			return "failed2";
 		return paraTyp;
 	}
 	@Override
