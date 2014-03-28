@@ -14,15 +14,12 @@ public class DefaultFlowSink implements IFlowSink {
 	private final String paraTyp;
 	private final String field;
 	private final String returnLocal;
-	private final String accessPath;
+	private final AccessPath accessPath;
 	private final boolean taintSubFields;
 	
 	public DefaultFlowSink(SootField ap, boolean taintSubFields) {
 		this.field = null;
-		if(ap == null)
-			accessPath = null;
-		else
-			accessPath = ap.toString();
+		accessPath = new AccessPath(ap);
 		isReturn = true;
 		paraIdx = -1;
 		paraTyp = null;
@@ -32,10 +29,7 @@ public class DefaultFlowSink implements IFlowSink {
 
 	public DefaultFlowSink(SootField field2, SootField ap, boolean taintSubFields) {
 		this.field = field2.toString();
-		if(ap == null)
-			accessPath = null;
-		else
-			accessPath = ap.toString();
+		accessPath = new AccessPath(ap);
 		isReturn = false;
 		paraIdx = -1;
 		paraTyp = null;
@@ -45,10 +39,7 @@ public class DefaultFlowSink implements IFlowSink {
 
 	public DefaultFlowSink(SootMethod m, int paraIdx2, SootField ap, boolean taintSubFields) {
 		this.field = null;
-		if(ap == null)
-			accessPath = null;
-		else
-			accessPath = ap.toString();
+		accessPath = new AccessPath(ap);
 		isReturn = false;
 		paraIdx = paraIdx2;
 		paraTyp = m.getParameterType(getParamterIndex()).toString();
@@ -104,7 +95,7 @@ public class DefaultFlowSink implements IFlowSink {
 				res.put(XMLConstants.ATTRIBUTE_RETURN_LOCAL, returnLocal);
 		}
 		if(hasAccessPath()){
-			res.put(XMLConstants.ATTRIBUTE_ACCESSPATH, getAccessPath());
+			res.put(XMLConstants.ATTRIBUTE_ACCESSPATH, getAccessPath().toString());
 		}
 		res.put(XMLConstants.ATTRIBUTE_TAINT_SUB_FIELDS, taintSubFields + "");
 		return res;
@@ -181,11 +172,11 @@ public class DefaultFlowSink implements IFlowSink {
 
 	@Override
 	public boolean hasAccessPath() {
-		return accessPath != null && accessPath.length() >0; 
+		return accessPath != null && accessPath.hasAP(); 
 	}
 
 	@Override
-	public String getAccessPath() {
+	public AccessPath getAccessPath() {
 		return accessPath;
 	}
 

@@ -67,8 +67,8 @@ public class FlowSinkFromXML implements IFlowSink {
 	}
 
 	@Override
-	public String getAccessPath() {
-		return attributes.get(XMLConstants.ATTRIBUTE_ACCESSPATH);
+	public AccessPath getAccessPath() {
+		return new AccessPath(attributes.get(XMLConstants.ATTRIBUTE_ACCESSPATH));
 	}
 
 	@Override

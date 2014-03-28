@@ -1,6 +1,8 @@
 package soot.jimple.infoflow.methodSummary.data.impl;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import soot.SootField;
@@ -14,7 +16,7 @@ public class DefaultFlowSource implements IFlowSource {
 	private final String field;
 	private final String paraTyp;
 	private final boolean thisFlow;
-	private final String accessPath;
+	private final AccessPath accessPath;
 
 
 	public DefaultFlowSource(SootMethod m, int parameterIdx2, SootField ap) {
@@ -22,10 +24,9 @@ public class DefaultFlowSource implements IFlowSource {
 		field = null;
 		paraTyp = m.getParameterTypes().get(getParamterIndex()).toString();
 		thisFlow = false;
-		if(ap == null)
-			accessPath = null;
-		else
-			accessPath = ap.toString();
+		accessPath = new AccessPath(ap);
+
+
 	}
 
 	public DefaultFlowSource(SootField f, SootField ap) {
@@ -33,10 +34,7 @@ public class DefaultFlowSource implements IFlowSource {
 		field = f.toString();
 		paraTyp = null;
 		thisFlow = false;
-		if(ap == null)
-			accessPath = null;
-		else
-			accessPath = ap.toString();
+		accessPath = new AccessPath(ap);
 	}
 	
 	public DefaultFlowSource() {
@@ -46,7 +44,9 @@ public class DefaultFlowSource implements IFlowSource {
 		thisFlow = true;
 		accessPath = null;
 	}
+	
 
+	
 	@Override
 	public boolean isParamter() {
 		return parameterIdx >= 0;
@@ -86,7 +86,7 @@ public class DefaultFlowSource implements IFlowSource {
 		}
 		
 		if(hasAccessPath())
-			res.put(XMLConstants.ATTRIBUTE_ACCESSPATH, getAccessPath());
+			res.put(XMLConstants.ATTRIBUTE_ACCESSPATH, getAccessPath().toString());
 		
 		return res;
 	}
@@ -98,8 +98,14 @@ public class DefaultFlowSource implements IFlowSource {
 	@Override
 	public String toString(){
 		StringBuffer buf = new StringBuffer();
-		for(String t : xmlAttributes().values()){
-			buf.append(t + " ");
+		if(isParamter()){
+			buf.append("Paramter " + getParamterIndex() + " " + getParaType());
+		}
+		if(isField()){
+			buf.append("Field " + getField());
+		}
+		if(hasAccessPath()){
+			buf.append(" " + getAccessPath().toString());
 		}
 		return buf.toString();
 	}
@@ -149,11 +155,11 @@ public class DefaultFlowSource implements IFlowSource {
 
 	@Override
 	public boolean hasAccessPath() {
-		return accessPath != null;
+		return accessPath != null && accessPath.hasAP();
 	}
 
 	@Override
-	public String getAccessPath() {
+	public AccessPath getAccessPath() {
 		return accessPath;
 	}
 

@@ -6,14 +6,22 @@ import static soot.jimple.infoflow.methodSummary.data.impl.FlowSinkAndSourceFact
 import heros.InterproceduralCFG;
 import heros.solver.IDESolver;
 
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import soot.Local;
+import soot.MethodOrMethodContext;
+import soot.PatchingChain;
 import soot.PointsToSet;
 import soot.Scene;
 import soot.SootClass;
@@ -29,8 +37,10 @@ import soot.jimple.ReturnVoidStmt;
 import soot.jimple.Stmt;
 import soot.jimple.ThisRef;
 import soot.jimple.infoflow.methodSummary.data.MethodSummaries;
+import soot.jimple.infoflow.methodSummary.data.impl.Source;
 import soot.jimple.infoflow.source.ISourceSinkManager;
 import soot.jimple.infoflow.source.SourceInfo;
+import soot.jimple.toolkits.callgraph.ReachableMethods;
 
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -60,15 +70,18 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 	
 	private SootMethod method = null;
 	private PointsToSet ptsThis = null;
-	
+	private final int summaryAccessPathLength;
+	private Set<Source>[] sources ;
 	public SummarySourceSinkManager(String mSig) {
 		this.methodSig = mSig;
-
+		summaryAccessPathLength = 1;
 	}
 
 	public SummarySourceSinkManager(String method, MethodSummaries flows) {
 		this.methodSig = method;
+		summaryAccessPathLength = 1;
 	}
+
 
 	
 	@Override

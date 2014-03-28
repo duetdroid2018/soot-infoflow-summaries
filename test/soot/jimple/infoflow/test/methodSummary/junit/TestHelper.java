@@ -113,7 +113,7 @@ public class TestHelper {
 	private boolean testAP(IFlowSinkSource sourceSink, String ap) {
 		if (ap == null || ap.length() == 0)
 			return true;
-		if (sourceSink.hasAccessPath() && sourceSink.getAccessPath().equals(ap))
+		if (sourceSink.hasAccessPath() && sourceSink.getAccessPath().toString().equals(ap))
 			return true;
 		return false;
 	}

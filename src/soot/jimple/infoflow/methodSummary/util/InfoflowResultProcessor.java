@@ -148,7 +148,7 @@ public class InfoflowResultProcessor {
 	private boolean isIdentityFlow(IFlowSource source, IFlowSink sink) {
 		if (source.hasAccessPath() != sink.hasAccessPath())
 			return false;
-		if (!safeEquals(source.getAccessPath(), sink.getAccessPath()))
+		if (!safeEquals(source.getAccessPath().fieldIdx(0), sink.getAccessPath().fieldIdx(0)))
 			return false;
 		
 		if (source.isParamter() != sink.isParamter())

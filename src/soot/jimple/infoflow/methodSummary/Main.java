@@ -42,14 +42,14 @@ class Main {
 		 * HttpURLConnection.class, URL.class, ArrayList.class,
 		 * InvocationTargetException.class, Method.class };
 		 */
-		Class<?>[] javaCollection = { HashMap.class, TreeSet.class, ArrayList.class, Stack.class, Vector.class,
+		Class<?>[] javaCollection2 = { HashMap.class, TreeSet.class, ArrayList.class, Stack.class, Vector.class,
 				LinkedList.class, LinkedHashMap.class, ConcurrentLinkedQueue.class, PriorityQueue.class,
 				ArrayBlockingQueue.class, ArrayDeque.class, ConcurrentSkipListMap.class, DelayQueue.class,
 				TreeMap.class, ConcurrentHashMap.class, /*String.class,*/ StringBuilder.class,
 				RuntimeException.class };
-		
+		Class<?>[] javaCollection = {String.class};
 		int runOption = 0;
-		boolean useOutPutFolder = true;
+		boolean useOutPutFolder = false;
 		String outFolder = "jdkSummaries";
 		
 		String mSig = "" ;//"<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>"; //<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>";
@@ -64,7 +64,7 @@ class Main {
 			}
 			
 			mSig = mSig.substring(0, mSig.length() - 1).trim();
-		}
+		} 
 		String filter = "";
 		if(filter != "")
 			filter = filter.substring(0, filter.length() - 1);
