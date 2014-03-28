@@ -48,7 +48,7 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 
 			if (flowSource.isParamter()) {
 				int paraIdx = flowSource.getParamterIndex();
-				if (stmt.getInvokeExpr().getArg(paraIdx).equals(taintedPath.getPlainLocal())) {
+				if (stmt.getInvokeExpr().getArg(paraIdx).equals(taintedPath.getPlainValue())) {
 					if (compareFields(taintedPath, flowSource))
 						addSinkTaint(res, flowSource, flowSink, stmt, taintedPath);
 				}
@@ -56,12 +56,12 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 
 			// There may be a flow from a field to e.g. a return value
 			if (flowSource.isField() && (taintedPath.isLocal() || taintedPath.isInstanceFieldRef())
-					&& taintedPath.getPlainLocal().equals(getMethodBase(stmt))) {
+					&& taintedPath.getPlainValue().equals(getMethodBase(stmt))) {
 				if (compareFields(taintedPath, flowSource))
 					addSinkTaint(res, flowSource, flowSink, stmt, taintedPath);
 			}
 			if(flowSource.isThis() && (taintedPath.isLocal() || taintedPath.isInstanceFieldRef())
-					&& taintedPath.getPlainLocal().equals(getMethodBase(stmt))){
+					&& taintedPath.getPlainValue().equals(getMethodBase(stmt))){
 				addSinkTaint(res, flowSource, flowSink, stmt, taintedPath);
 			}
 		}
