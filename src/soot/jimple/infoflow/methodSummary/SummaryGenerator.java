@@ -10,6 +10,7 @@ import java.util.List;
 import soot.Scene;
 import soot.SootMethod;
 import soot.Unit;
+import soot.jimple.infoflow.IInfoflow.CallgraphAlgorithm;
 import soot.jimple.infoflow.Infoflow;
 import soot.jimple.infoflow.InfoflowResults;
 import soot.jimple.infoflow.config.IInfoflowConfig;
@@ -35,6 +36,7 @@ public class SummaryGenerator {
 	protected boolean enableExceptionTracking = false;
 	protected boolean enableStaticFieldTracking = false;
 	protected boolean flowSensitiveAliasing = false;
+	protected CallgraphAlgorithm cfgAlgo = CallgraphAlgorithm.CHA;
 	protected boolean debug = false;
 	protected ITaintPropagationWrapper taintWrapper;
 	protected IInfoflowConfig config;
@@ -71,17 +73,7 @@ public class SummaryGenerator {
 			}
 			
 		});
-		//<soot.jimple.infoflow.test.methodSummary.SimpleList: void set(java.lang.Object)>
-		List<String> ms = new LinkedList<String>();
-		if(mDependencies != null){
-			for(String s : mDependencies){
-				if(!s.equals(sig))
-					ms.add(s);
-			}
-		}
-		ms.add(sig);
-		infoflow.computeInfoflow(null, path, createEntryPoint(), ms, manager);
-		//infoflow.computeInfoflow(null, path, createEntryPoint(), Collections.singletonList(sig), manager);
+		infoflow.computeInfoflow(null, path, createEntryPoint(), Collections.singletonList(sig), manager);
 		return summaries;
 	}
 	
@@ -101,7 +93,7 @@ public class SummaryGenerator {
 		iFlow.setEnableStaticFieldTracking(enableStaticFieldTracking);
 		iFlow.setFlowSensitiveAliasing(flowSensitiveAliasing);
 		iFlow.setTaintWrapper(taintWrapper);
-
+		iFlow.setCallgraphAlgorithm(cfgAlgo);
 		if (config == null) {
 			iFlow.setSootConfig(new DefaultSummaryConfig());
 		} else {
