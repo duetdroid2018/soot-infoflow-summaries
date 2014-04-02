@@ -3,7 +3,7 @@ package soot.jimple.infoflow.test.methodSummary;
 
 
 public class SimpleList<E> {
-	Data first = new Data();
+	Data first ;
 	Object keySet;
 	private static class Node<E> {
 		E item;
@@ -21,7 +21,9 @@ public class SimpleList<E> {
 		first.d = next;
 		first.data = data;
 	}
-	
+	public void arg(){
+		keySet = first;
+	}
 	Data node() {
 		return first;
 	}

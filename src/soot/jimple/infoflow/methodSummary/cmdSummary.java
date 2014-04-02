@@ -129,7 +129,7 @@ public class cmdSummary {
 					if (filterInclude(m, filter)) {
 						printStartSummary(m);
 						try {
-							flows.merge(s.createMethodSummary(m));
+							flows.merge(s.createMethodSummary(m,Arrays.asList(mSigs)));
 						} catch (RuntimeException e) {
 							HandleException.handleException(flows, file, folder, e, "createSummary in class: " + clz
 									+ " method: " + m);

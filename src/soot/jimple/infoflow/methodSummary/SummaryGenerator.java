@@ -2,10 +2,12 @@ package soot.jimple.infoflow.methodSummary;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import soot.Scene;
 import soot.SootMethod;
 import soot.Unit;
 import soot.jimple.infoflow.Infoflow;
@@ -45,12 +47,15 @@ public class SummaryGenerator {
 		//substitutedWith.add("java.util.TreeMap");
 		initDefPath();
 	}
-
 	public MethodSummaries createMethodSummary(final String m) {
-		return createMethodSummary(m, new SummarySourceSinkManager(m));
+		return createMethodSummary(m,null,new SummarySourceSinkManager(m));
+	}
+
+	public MethodSummaries createMethodSummary(final String m, List<String> mDependencies) {
+		return createMethodSummary(m, mDependencies,new SummarySourceSinkManager(m));
 	}
 	
-	public MethodSummaries createMethodSummary(final String sig, final SummarySourceSinkManager manager) {
+	private MethodSummaries createMethodSummary(final String sig, List<String> mDependencies, final SummarySourceSinkManager manager) {
 		final MethodSummaries summaries = new MethodSummaries();
 		
 		Infoflow infoflow = initInfoflow();
@@ -66,8 +71,17 @@ public class SummaryGenerator {
 			}
 			
 		});
-		
-		infoflow.computeInfoflow(null, path, createEntryPoint(), Collections.singletonList(sig), manager);
+		//<soot.jimple.infoflow.test.methodSummary.SimpleList: void set(java.lang.Object)>
+		List<String> ms = new LinkedList<String>();
+		if(mDependencies != null){
+			for(String s : mDependencies){
+				if(!s.equals(sig))
+					ms.add(s);
+			}
+		}
+		ms.add(sig);
+		infoflow.computeInfoflow(null, path, createEntryPoint(), ms, manager);
+		//infoflow.computeInfoflow(null, path, createEntryPoint(), Collections.singletonList(sig), manager);
 		return summaries;
 	}
 	
