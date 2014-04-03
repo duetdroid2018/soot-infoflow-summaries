@@ -2,12 +2,15 @@ package soot.jimple.infoflow.methodSummary;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
+import soot.Scene;
 import soot.SootMethod;
 import soot.Unit;
+import soot.jimple.infoflow.IInfoflow.CallgraphAlgorithm;
 import soot.jimple.infoflow.Infoflow;
 import soot.jimple.infoflow.InfoflowResults;
 import soot.jimple.infoflow.config.IInfoflowConfig;
@@ -33,6 +36,7 @@ public class SummaryGenerator {
 	protected boolean enableExceptionTracking = false;
 	protected boolean enableStaticFieldTracking = false;
 	protected boolean flowSensitiveAliasing = false;
+	protected CallgraphAlgorithm cfgAlgo = CallgraphAlgorithm.CHA;
 	protected boolean debug = false;
 	protected ITaintPropagationWrapper taintWrapper;
 	protected IInfoflowConfig config;
@@ -45,12 +49,15 @@ public class SummaryGenerator {
 		//substitutedWith.add("java.util.TreeMap");
 		initDefPath();
 	}
-
 	public MethodSummaries createMethodSummary(final String m) {
-		return createMethodSummary(m, new SummarySourceSinkManager(m));
+		return createMethodSummary(m,null,new SummarySourceSinkManager(m));
+	}
+
+	public MethodSummaries createMethodSummary(final String m, List<String> mDependencies) {
+		return createMethodSummary(m, mDependencies,new SummarySourceSinkManager(m));
 	}
 	
-	public MethodSummaries createMethodSummary(final String sig, final SummarySourceSinkManager manager) {
+	private MethodSummaries createMethodSummary(final String sig, List<String> mDependencies, final SummarySourceSinkManager manager) {
 		final MethodSummaries summaries = new MethodSummaries();
 		
 		Infoflow infoflow = initInfoflow();
@@ -86,7 +93,7 @@ public class SummaryGenerator {
 		iFlow.setEnableStaticFieldTracking(enableStaticFieldTracking);
 		iFlow.setFlowSensitiveAliasing(flowSensitiveAliasing);
 		iFlow.setTaintWrapper(taintWrapper);
-
+		iFlow.setCallgraphAlgorithm(cfgAlgo);
 		if (config == null) {
 			iFlow.setSootConfig(new DefaultSummaryConfig());
 		} else {
@@ -103,9 +110,11 @@ public class SummaryGenerator {
 	protected void initDefPath() {
 		File f = new File(".");
 		try {
+			final String pathSep = System.getProperty("path.separator");
 			path = System.getProperty("java.home") + File.separator + "lib" + File.separator + "rt.jar"
-					+ System.getProperty("path.separator") + f.getCanonicalPath() + File.separator + "bin"
-					+ System.getProperty("path.separator") + f.getCanonicalPath() + File.separator + "lib";
+					+ pathSep + f.getCanonicalPath() + File.separator + "bin"
+					+ pathSep + f.getCanonicalPath() + File.separator + "build" + File.separator + "testclasses"
+					+ pathSep + f.getCanonicalPath() + File.separator + "lib";
 			/*
 			path = "D:\\Temp\\odex-phone\\android-phone.jar"
 					+ System.getProperty("path.separator") + f.getCanonicalPath() + File.separator + "bin"

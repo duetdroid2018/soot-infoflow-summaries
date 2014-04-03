@@ -104,7 +104,7 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 		}
 		
 		SootMethod m = cfg.getMethodOf(sCallSite);
-		if(m.toString().contains("standard"))
+		if(m.toString().contains("standart"))
 			System.out.println();
 		if (m.toString().equals("<dummyMainClass: void dummyMainMethod()>"))
 			return null;

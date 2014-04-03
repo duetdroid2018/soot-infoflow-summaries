@@ -455,5 +455,13 @@ public class ApiTests extends ApiTestHelper {
 		Set<AbstractMethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsFieldToParaFlow(res, NON_PRIMITIVE_VAR1,DATACLASS_INT_FIELD, 0,DATA_TYPE,DATACLASS_INT_FIELD));
 	}
+	@Test(timeout = 150000)
+	public void ListGetTest() {
+		SummaryGenerator s = getSummary();
+		String mSig = "<" + className + ": java.lang.Object get()>";
+		Set<AbstractMethodFlow> res = s.createMethodSummary(mSig,java.util.Collections.singletonList("<soot.jimple.infoflow.test.methodSummary.ApiClass: void set(soot.jimple.infoflow.test.methodSummary.ApiClass$Node)>")).getFlowsForMethod(mSig);
+		assertTrue(containsFieldToParaFlow(res, NON_PRIMITIVE_VAR1,DATACLASS_INT_FIELD, 0,DATA_TYPE,DATACLASS_INT_FIELD));
+	}
+
 
 }

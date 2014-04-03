@@ -15,6 +15,19 @@ public class ApiClass implements IApiClass {
 	@SuppressWarnings("unused")
 	private static Data staticNonPrimitiveVariable = new Data();
 
+	Node first ;
+	private static class Node {
+		Object item;
+	}
+	
+	public Object get() {
+		return first.item;
+//		return first == null ? null : first.data;
+	}
+	
+	public void set(Node data) {
+		first = data;
+	}
 	public Data getNonPrimitiveVariable() {
 		return nonPrimitiveVariable;
 	}

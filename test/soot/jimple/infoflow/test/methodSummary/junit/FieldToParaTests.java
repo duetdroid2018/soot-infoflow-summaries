@@ -2,9 +2,9 @@ package soot.jimple.infoflow.test.methodSummary.junit;
 
 import static org.junit.Assert.assertTrue;
 
-
-
 import java.util.Set;
+
+import junit.framework.Assert;
 
 import org.junit.Test;
 
@@ -21,7 +21,7 @@ public class FieldToParaTests extends TestHelper {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void dataParameter(soot.jimple.infoflow.test.methodSummary.Data)>";
 		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsFieldToParaFlow(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToPara: java.lang.Object obField>",NO_ACCESS_PATH, 0, DATA,DATACLASS_OBJECT_FIELD));
-		assertTrue(flow.size() == 1);
+		Assert.assertEquals(1, flow.size());
 	}
 
 	@Test(timeout = 100000)
@@ -30,7 +30,7 @@ public class FieldToParaTests extends TestHelper {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void dataParameter2(soot.jimple.infoflow.test.methodSummary.Data)>";
 		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsFieldToParaFlow(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToPara: java.lang.Object[] arrayField>",NO_ACCESS_PATH,0,DATA,DATACLASS_OBJECT_FIELD));
-		assertTrue(flow.size() == 1);
+		Assert.assertEquals(1, flow.size());
 	}
 
 	@Test(timeout = 100000)
@@ -40,7 +40,7 @@ public class FieldToParaTests extends TestHelper {
 		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsFieldToParaFlow(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToPara: java.util.LinkedList listField>",LINKEDLIST_FIRST,0,DATA,DATACLASS_OBJECT_FIELD));
 		assertTrue(containsFieldToParaFlow(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToPara: java.util.LinkedList listField>",LINKEDLIST_LAST,0,DATA,DATACLASS_OBJECT_FIELD));
-		assertTrue(flow.size() == 2);
+		Assert.assertEquals(2, flow.size());
 	}
 
 	@Test(timeout = 100000)
@@ -50,7 +50,7 @@ public class FieldToParaTests extends TestHelper {
 		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 
 		assertTrue(containsFieldToParaFlow(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToPara: soot.jimple.infoflow.test.methodSummary.Data dataField>",DATACLASS_OBJECT_FIELD,0,DATA,DATACLASS_OBJECT_FIELD));
-		assertTrue(flow.size() == 1);
+		Assert.assertEquals(1, flow.size());
 	}
 
 	@Test(timeout = 100000)
@@ -59,7 +59,7 @@ public class FieldToParaTests extends TestHelper {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void dataParameter5(soot.jimple.infoflow.test.methodSummary.Data)>";
 		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsFieldToParaFlow(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToPara: soot.jimple.infoflow.test.methodSummary.Data dataField>",DATACLASS_OBJECT_FIELD,0,DATA,DATACLASS_OBJECT_FIELD));
-		assertTrue(flow.size() == 1);
+		Assert.assertEquals(1, flow.size());
 	}
 
 	@Test(timeout = 100000)
@@ -68,7 +68,7 @@ public class FieldToParaTests extends TestHelper {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void dataParameterRec(soot.jimple.infoflow.test.methodSummary.Data,int)>";
 		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsFieldToParaFlow(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToPara: java.lang.Object obField>",NO_ACCESS_PATH,0,DATA,DATACLASS_OBJECT_FIELD));
-		assertTrue(flow.size() == 1);
+		Assert.assertEquals(1, flow.size());
 	}
 
 	@Test//(timeout = 100000)
@@ -77,7 +77,7 @@ public class FieldToParaTests extends TestHelper {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void objArrayParameter(java.lang.Object[])>";
 		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsFieldToParaFlow(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToPara: java.lang.Object obField>",NO_ACCESS_PATH,0,OBJECT_ARRAY,NO_ACCESS_PATH));
-		assertTrue(flow.size() == 1);
+		Assert.assertEquals(1, flow.size());
 	}
 
 	@Test(timeout = 100000)
@@ -86,7 +86,7 @@ public class FieldToParaTests extends TestHelper {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void objArrayParameter2(java.lang.Object[])>";
 		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsFieldToParaFlow(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToPara: java.lang.Object[] arrayField>",NO_ACCESS_PATH,0,OBJECT_ARRAY,NO_ACCESS_PATH));
-		assertTrue(flow.size() == 1);
+		Assert.assertEquals(1, flow.size());
 	}
 
 	@Test(timeout = 250000)
@@ -95,7 +95,7 @@ public class FieldToParaTests extends TestHelper {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void objArrayParameter3(java.lang.Object[])>";
 		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsFieldToParaFlow(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToPara: java.util.LinkedList listField>",LINKEDLIST_FIRST,0,OBJECT_ARRAY,NO_ACCESS_PATH));
-		assertTrue(flow.size() == 2);
+		Assert.assertEquals(2, flow.size());
 	}
 
 	@Test(timeout = 100000)
@@ -104,7 +104,7 @@ public class FieldToParaTests extends TestHelper {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void objArrayParameter4(java.lang.Object[])>";
 		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsFieldToParaFlow(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToPara: soot.jimple.infoflow.test.methodSummary.Data dataField>",DATACLASS_OBJECT_FIELD,0,OBJECT_ARRAY,NO_ACCESS_PATH));
-		assertTrue(flow.size() == 1);
+		Assert.assertEquals(1, flow.size());
 	}
 
 	@Test(timeout = 100000)
@@ -113,7 +113,7 @@ public class FieldToParaTests extends TestHelper {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void objArrayParameter5(java.lang.Object[])>";
 		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsFieldToParaFlow(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToPara: soot.jimple.infoflow.test.methodSummary.Data dataField>",DATACLASS_OBJECT_FIELD,0,OBJECT_ARRAY,NO_ACCESS_PATH));
-		assertTrue(flow.size() == 1);
+		Assert.assertEquals(1, flow.size());
 	}
 
 	@Test(timeout = 100000)

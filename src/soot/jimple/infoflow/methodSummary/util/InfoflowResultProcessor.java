@@ -120,22 +120,21 @@ public class InfoflowResultProcessor {
 					}
 	
 					// check return sink
-					if (a.getAccessPath().getPlainValue() instanceof Local) {
-						for (Unit u : m.getActiveBody().getUnits())
-							if (cfg.isExitStmt(u))
-								for (ValueBox vb : u.getUseBoxes())
-									if (vb.getValue() == a.getAccessPath().getPlainValue())
-										if (a.getAccessPath().isLocal())
-											sink = createFlowReturnSink(a.getAccessPath().getTaintSubFields());
-										else if (a.getAccessPath().getFieldCount() == 1)
-											sink = createFlowReturnSink(a.getAccessPath().getFirstField(), a
-													.getAccessPath().getTaintSubFields());
-										else
-											sink = createFlowReturnSink(a.getAccessPath().getFirstField(), true);
-						if (source != null && sink != null){
-							addFlow(source, sink, flows);
-							sink = null;
-						}
+
+					for (Unit u : m.getActiveBody().getUnits())
+						if (cfg.isExitStmt(u))
+							for (ValueBox vb : u.getUseBoxes())
+								if (vb.getValue() == a.getAccessPath().getPlainValue())
+									if (a.getAccessPath().isLocal())
+										sink = createFlowReturnSink(a.getAccessPath().getTaintSubFields());
+									else if (a.getAccessPath().getFieldCount() == 1)
+										sink = createFlowReturnSink(a.getAccessPath().getFirstField(), a
+												.getAccessPath().getTaintSubFields());
+									else
+										sink = createFlowReturnSink(a.getAccessPath().getFirstField(), true);
+					if (source != null && sink != null){
+						addFlow(source, sink, flows);
+						sink = null;
 					}
 	
 				}
@@ -146,24 +145,24 @@ public class InfoflowResultProcessor {
 	}
 
 	private boolean isIdentityFlow(IFlowSource source, IFlowSink sink) {
-		if (source.hasAccessPath() != sink.hasAccessPath())
-			return false;
-		if (!safeEquals(source.getAccessPath().fieldIdx(0), sink.getAccessPath().fieldIdx(0)))
-			return false;
-		
 		if (source.isParamter() != sink.isParamter())
 			return false;
+		if (source.isField() != sink.isField())
+			return false;
+		if (source.isThis() != sink.isThis())
+			return false;
+		
 		if (source.getParamterIndex() != sink.getParamterIndex())
 			return false;
 		if (!safeEquals(source.getParaType(), sink.getParaType()))
 			return false;
 		
-		if (source.isField() != sink.isField())
-			return false;
 		if (!safeEquals(source.getField(), sink.getField()))
 			return false;
 		
-		if (source.isThis() != sink.isThis())
+		if (source.hasAccessPath() != sink.hasAccessPath())
+			return false;
+		if (!safeEquals(source.getAccessPath().toString(), sink.getAccessPath().toString()))
 			return false;
 		
 		return true;
@@ -175,8 +174,8 @@ public class InfoflowResultProcessor {
 			return;
 		
 		AbstractMethodFlow mFlow = new DefaultMethodFlow(method, source, sink);
-		summaries.addFlowForMethod(method, mFlow);
-		debugMSG(source, sink);
+		if(summaries.addFlowForMethod(method, mFlow))
+			debugMSG(source, sink);
 	}
 
 	private boolean safeEquals(String accessPath, String accessPath2) {
@@ -191,7 +190,8 @@ public class InfoflowResultProcessor {
 		if (DEBUG) {
 			System.out.println("\nmethod: " + method);
 			System.out.println("source: " + source.toString());
-			System.out.println("sink: " + sink.toString());
+			System.out.println("sink  : " + sink.toString());
+
 			System.out.println("------------------------------------");
 		}
 	}

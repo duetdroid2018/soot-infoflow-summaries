@@ -29,7 +29,7 @@ import javax.xml.stream.XMLStreamException;
 
 import soot.jimple.infoflow.methodSummary.util.ClassFileInformation;
 import soot.jimple.infoflow.test.methodSummary.ApiClass;
-import soot.jimple.infoflow.test.methodSummary.ArbitraryAccessPath;
+
 
 @SuppressWarnings("unused")
 class Main {
@@ -49,10 +49,12 @@ class Main {
 				ArrayBlockingQueue.class, ArrayDeque.class, ConcurrentSkipListMap.class, DelayQueue.class,
 				TreeMap.class, ConcurrentHashMap.class, /*String.class,*/ StringBuilder.class,
 				RuntimeException.class };
+
 		Class<?>[] javaCollection = {ApiClass.class};
 		int runOption = 0;
 		boolean useOutPutFolder = false;
 		String outFolder = "jdkSummaries";
+		boolean overWriteFile = true;
 		
 		String mSig = "" ;//"<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>"; //<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>";
 		if (mSig.length() == 0) {
@@ -60,12 +62,13 @@ class Main {
 				for (Constructor<?> cons : c.getDeclaredConstructors())
 					mSig = mSig + ClassFileInformation.getMethodSig(cons) + ";";
 				for (Method m : c.getDeclaredMethods()) {
-					if (!m.toString().contains("$"))
+					//if (!m.toString().contains("$"))
 						mSig = mSig + ClassFileInformation.getMethodSig(m) + ";";
 				}
 			}
 			
 			mSig = mSig.substring(0, mSig.length() - 1).trim();
+
 		} 
 		String filter = "standardFlow3(";
 		if(filter != "")
@@ -76,6 +79,8 @@ class Main {
 		runArgs.add("-m " + mSig);
 		runArgs.add("-o " + runOption);
 		runArgs.add("-mf " + filter);
+		if(overWriteFile)
+			runArgs.add("-ow");
 		if (useOutPutFolder && outFolder != null && outFolder.length() > 0)
 			runArgs.add("-f " + outFolder);
 
