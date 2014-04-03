@@ -76,18 +76,22 @@ public class SourceModel {
 		ReachableMethods reachableMethods = new ReachableMethods(Scene.v().getCallGraph(), eps.iterator(), null);
 		reachableMethods.update();
 		boolean repeat = true;
+		//TODO fix me
 		while (repeat == true) {
 			repeat = false;
 			for (Iterator<MethodOrMethodContext> iter = reachableMethods.listener(); iter.hasNext();) {
 				SootMethod m = iter.next().method();
 				if (m.hasActiveBody()) {
-					buildSourceModelMethod(m);
+					if(buildSourceModelMethod(m)){
+						repeat = true;
+					}
 				}
 			}
 		}
 	}
 
-	private void buildSourceModelMethod(SootMethod m) {
+	private boolean buildSourceModelMethod(SootMethod m) {
+		boolean changes = false;
 		PatchingChain<Unit> units = m.getActiveBody().getUnits();
 		for (Unit u : units) {
 			Stmt s = (Stmt) u;
@@ -103,7 +107,7 @@ public class SourceModel {
 							Set<Source> sourceSet = sources.get(i);
 							for (Source source : sourceSet) {
 								if (source.pointsTo(localPt, (Local) fiedRef.getBase())) {
-									addNewSource(i, source, (Local) fiedRef.getBase(), fiedRef,
+									changes |= addNewSource(i, source, (Local) fiedRef.getBase(), fiedRef,
 											pta.reachingObjects((Local) stmt.getLeftOp()),
 											stmt.getLeftOp());
 								}
@@ -115,11 +119,12 @@ public class SourceModel {
 
 			}
 		}
+		return changes;
 	}
 
-	private void addNewSource(int apl, Source oldSource, Local base, InstanceFieldRef fieldRef, PointsToSet localPt, Value l) {
+	private boolean addNewSource(int apl, Source oldSource, Local base, InstanceFieldRef fieldRef, PointsToSet localPt, Value l) {
 		boolean star = apl +1 >= summaryAccessPathLength; 
-		sources.get(apl + 1).add(
+		return sources.get(apl + 1).add(
 				new Source(oldSource.getSourceInfo().createNewSource(fieldRef.getField()),base, (Local) l, localPt,star));
 	}
 

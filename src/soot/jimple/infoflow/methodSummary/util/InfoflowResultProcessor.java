@@ -32,6 +32,7 @@ import soot.jimple.infoflow.methodSummary.data.IFlowSink;
 import soot.jimple.infoflow.methodSummary.data.IFlowSource;
 import soot.jimple.infoflow.methodSummary.data.MethodSummaries;
 import soot.jimple.infoflow.methodSummary.data.impl.DefaultMethodFlow;
+import soot.jimple.infoflow.methodSummary.data.impl.FlowSourceForSummary;
 
 public class InfoflowResultProcessor {
 	private final Logger logger = LoggerFactory.getLogger(InfoflowResultProcessor.class);
@@ -145,27 +146,53 @@ public class InfoflowResultProcessor {
 	}
 
 	private boolean isIdentityFlow(IFlowSource source, IFlowSink sink) {
-		if (source.isParamter() != sink.isParamter())
+		
+		if (source.getAccessPath() == null) {
+			if (sink.getAccessPath() != null)
+				return false;
+		} else if (!source.getAccessPath().equals(sink.getAccessPath()))
 			return false;
-		if (source.isField() != sink.isField())
+		if (source.getField() == null) {
+			if (sink.getField() != null)
+				return false;
+		} else if (!source.getField().equals(sink.getField()))
+			return false;
+		if (source.getParaType() == null) {
+			if (sink.getParaType() != null)
+				return false;
+		} else if (!source.getParaType().equals(sink.getParaType()))
+			return false;
+		if (source.getParamterIndex() != sink.getParamterIndex())
 			return false;
 		if (source.isThis() != sink.isThis())
 			return false;
-		
-		if (source.getParamterIndex() != sink.getParamterIndex())
-			return false;
-		if (!safeEquals(source.getParaType(), sink.getParaType()))
-			return false;
-		
-		if (!safeEquals(source.getField(), sink.getField()))
-			return false;
-		
-		if (source.hasAccessPath() != sink.hasAccessPath())
-			return false;
-		if (!safeEquals(source.getAccessPath().toString(), sink.getAccessPath().toString()))
-			return false;
-		
 		return true;
+			
+//		if (source.isParamter() != sink.isParamter())
+//			return false;
+//		if (source.isField() != sink.isField())
+//			return false;
+//		if (source.isThis() != sink.isThis())
+//			return false;
+//		
+//		if (source.getParamterIndex() != sink.getParamterIndex())
+//			return false;
+//		if (!safeEquals(source.getParaType(), sink.getParaType()))
+//			return false;
+//		
+//		if (!safeEquals(source.getField(), sink.getField()))
+//			return false;
+//		
+//		if (source.hasAccessPath() != sink.hasAccessPath())
+//			return false;
+//		if(source.getAccessPath() == null && sink.getAccessPath() != null ||
+//				source.getAccessPath() != null && sink.getAccessPath() == null)
+//			return false;
+//		
+//		if (source.getAccessPath() != null && sink.getAccessPath() != null && !safeEquals(source.getAccessPath().toString(), sink.getAccessPath().toString()))
+//			return false;
+//		
+//		return true;
 	}
 	
 	private void addFlow(IFlowSource source, IFlowSink sink, MethodSummaries summaries) {

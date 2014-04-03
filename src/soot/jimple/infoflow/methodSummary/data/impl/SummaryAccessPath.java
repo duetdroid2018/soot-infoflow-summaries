@@ -10,7 +10,9 @@ import soot.SootField;
 public class SummaryAccessPath {
 	List<String> ap = new ArrayList<String>();
 	
-	
+	public SummaryAccessPath(){
+		
+	}
 	public SummaryAccessPath(SootField s) {
 		if(s != null)
 			ap.add(s.toString());
@@ -52,4 +54,28 @@ public class SummaryAccessPath {
 		}
 		return buf.toString().trim();
 	}
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((ap == null) ? 0 : ap.hashCode());
+		return result;
+	}
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		SummaryAccessPath other = (SummaryAccessPath) obj;
+		if (ap == null) {
+			if (other.ap != null)
+				return false;
+		} else if (!ap.equals(other.ap))
+			return false;
+		return true;
+	}
+	
 }

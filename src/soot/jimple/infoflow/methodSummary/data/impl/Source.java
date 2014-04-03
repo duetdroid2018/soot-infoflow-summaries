@@ -42,5 +42,52 @@ public class Source {
 	public String toString(){
 		return leftOp.toString();
 	}
+
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + ((fieldBase == null) ? 0 : fieldBase.hashCode());
+		result = prime * result + ((leftOp == null) ? 0 : leftOp.hashCode());
+		result = prime * result + ((pts == null) ? 0 : pts.hashCode());
+		result = prime * result + ((sourceInfo == null) ? 0 : sourceInfo.hashCode());
+		result = prime * result + (star ? 1231 : 1237);
+		return result;
+	}
+
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		Source other = (Source) obj;
+		if (fieldBase == null) {
+			if (other.fieldBase != null)
+				return false;
+		} else if (!fieldBase.equals(other.fieldBase))
+			return false;
+		if (leftOp == null) {
+			if (other.leftOp != null)
+				return false;
+		} else if (!leftOp.equals(other.leftOp))
+			return false;
+		if (pts == null) {
+			if (other.pts != null)
+				return false;
+		} else if (!pts.equals(other.pts))
+			return false;
+		if (sourceInfo == null) {
+			if (other.sourceInfo != null)
+				return false;
+		} else if (!sourceInfo.equals(other.sourceInfo))
+			return false;
+		if (star != other.star)
+			return false;
+		return true;
+	}
+	
 	
 }

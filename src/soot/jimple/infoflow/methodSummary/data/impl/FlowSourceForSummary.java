@@ -37,7 +37,7 @@ public class FlowSourceForSummary implements IFlowSource {
 	
 	public FlowSourceForSummary() {
 		parameterIdx = -1;
-		field = "THIS";
+		field = null;
 		paraTyp = null;
 		thisFlow = true;
 		accessPath = null;
@@ -58,7 +58,12 @@ public class FlowSourceForSummary implements IFlowSource {
 		}else{
 			ap = accessPath.extend(extension);
 		}
-		return new FlowSourceForSummary(this.parameterIdx,this.field, this.paraTyp, this.thisFlow, ap);
+		if(isThis()){
+			return new FlowSourceForSummary(this.parameterIdx,extension.toString(), this.paraTyp, false, new SummaryAccessPath());
+		}else{
+			return new FlowSourceForSummary(this.parameterIdx,this.field, this.paraTyp, this.thisFlow, ap);
+		}
+		
 	}
 	
 	@Override
@@ -78,8 +83,6 @@ public class FlowSourceForSummary implements IFlowSource {
 
 	@Override
 	public String getParaType() {
-		if (getParamterIndex() == -1)
-			return "failed2";
 		return paraTyp;
 	}
 	@Override

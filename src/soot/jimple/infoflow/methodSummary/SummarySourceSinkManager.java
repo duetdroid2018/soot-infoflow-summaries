@@ -116,6 +116,7 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 			if(rightOp instanceof InstanceFieldRef){
 				Source si = sModel.isSource((Local) ((InstanceFieldRef) rightOp).getBase());
 				if(si != null){
+					System.out.println("source: " + sCallSite + " " + m.getSignature());
 					return new SourceInfo(si.getStar(), si.getSourceInfo());
 				}
 				

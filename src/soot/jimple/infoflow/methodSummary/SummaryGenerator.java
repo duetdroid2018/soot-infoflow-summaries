@@ -36,7 +36,7 @@ public class SummaryGenerator {
 	protected boolean enableExceptionTracking = false;
 	protected boolean enableStaticFieldTracking = false;
 	protected boolean flowSensitiveAliasing = false;
-	protected CallgraphAlgorithm cfgAlgo = CallgraphAlgorithm.CHA;
+	protected CallgraphAlgorithm cfgAlgo = CallgraphAlgorithm.SPARK;
 	protected boolean debug = false;
 	protected ITaintPropagationWrapper taintWrapper;
 	protected IInfoflowConfig config;
