@@ -7,16 +7,16 @@ import soot.jimple.infoflow.methodSummary.data.IFlowSource;
 
 public class FlowSinkAndSourceFactory {
 
-	public static IFlowSource createFlowParamterSource(SootMethod m, int parameterIdx, SootField ap) {
-		return new DefaultFlowSource(m, parameterIdx, ap);
+	public static FlowSourceForSummary createFlowParamterSource(SootMethod m, int parameterIdx, SootField ap) {
+		return new FlowSourceForSummary(m, parameterIdx, ap);
 	}
 
-	public static IFlowSource createFlowFieldSource(SootField f, SootField ap) {
-		return new DefaultFlowSource(f, ap);
+	public static FlowSourceForSummary createFlowFieldSource(SootField f, SootField ap) {
+		return new FlowSourceForSummary(f, ap);
 	}
 	
-	public static IFlowSource createFlowThisSource() {
-		return new DefaultFlowSource();
+	public static FlowSourceForSummary createFlowThisSource() {
+		return new FlowSourceForSummary();
 	}
 
 	public static IFlowSink createFlowParamterSink(SootMethod m, int paraIdx, SootField ap, boolean taintSubF) {

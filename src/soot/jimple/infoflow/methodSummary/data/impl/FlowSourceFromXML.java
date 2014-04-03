@@ -63,8 +63,8 @@ public class FlowSourceFromXML implements IFlowSource {
 	}
 
 	@Override
-	public AccessPath getAccessPath() {
-		return new AccessPath(attributes.get(XMLConstants.ATTRIBUTE_ACCESSPATH));
+	public SummaryAccessPath getAccessPath() {
+		return new SummaryAccessPath(attributes.get(XMLConstants.ATTRIBUTE_ACCESSPATH));
 	}
 	
 }

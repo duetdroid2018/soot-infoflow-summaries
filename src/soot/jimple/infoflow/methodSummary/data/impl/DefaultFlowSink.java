@@ -14,12 +14,12 @@ public class DefaultFlowSink implements IFlowSink {
 	private final String paraTyp;
 	private final String field;
 	private final String returnLocal;
-	private final AccessPath accessPath;
+	private final SummaryAccessPath accessPath;
 	private final boolean taintSubFields;
 	
 	public DefaultFlowSink(SootField ap, boolean taintSubFields) {
 		this.field = null;
-		accessPath = new AccessPath(ap);
+		accessPath = new SummaryAccessPath(ap);
 		isReturn = true;
 		paraIdx = -1;
 		paraTyp = null;
@@ -29,7 +29,7 @@ public class DefaultFlowSink implements IFlowSink {
 
 	public DefaultFlowSink(SootField field2, SootField ap, boolean taintSubFields) {
 		this.field = field2.toString();
-		accessPath = new AccessPath(ap);
+		accessPath = new SummaryAccessPath(ap);
 		isReturn = false;
 		paraIdx = -1;
 		paraTyp = null;
@@ -39,7 +39,7 @@ public class DefaultFlowSink implements IFlowSink {
 
 	public DefaultFlowSink(SootMethod m, int paraIdx2, SootField ap, boolean taintSubFields) {
 		this.field = null;
-		accessPath = new AccessPath(ap);
+		accessPath = new SummaryAccessPath(ap);
 		isReturn = false;
 		paraIdx = paraIdx2;
 		paraTyp = m.getParameterType(getParamterIndex()).toString();
@@ -95,7 +95,7 @@ public class DefaultFlowSink implements IFlowSink {
 				res.put(XMLConstants.ATTRIBUTE_RETURN_LOCAL, returnLocal);
 		}
 		if(hasAccessPath()){
-			res.put(XMLConstants.ATTRIBUTE_ACCESSPATH, getAccessPath().toString());
+			res.put(XMLConstants.ATTRIBUTE_ACCESSPATH, accessPath.toString());
 		}
 		res.put(XMLConstants.ATTRIBUTE_TAINT_SUB_FIELDS, taintSubFields + "");
 		return res;
@@ -176,7 +176,7 @@ public class DefaultFlowSink implements IFlowSink {
 	}
 
 	@Override
-	public AccessPath getAccessPath() {
+	public SummaryAccessPath getAccessPath() {
 		return accessPath;
 	}
 

@@ -28,6 +28,8 @@ import java.util.concurrent.DelayQueue;
 import javax.xml.stream.XMLStreamException;
 
 import soot.jimple.infoflow.methodSummary.util.ClassFileInformation;
+import soot.jimple.infoflow.test.methodSummary.ApiClass;
+import soot.jimple.infoflow.test.methodSummary.ArbitraryAccessPath;
 
 @SuppressWarnings("unused")
 class Main {
@@ -47,7 +49,7 @@ class Main {
 				ArrayBlockingQueue.class, ArrayDeque.class, ConcurrentSkipListMap.class, DelayQueue.class,
 				TreeMap.class, ConcurrentHashMap.class, /*String.class,*/ StringBuilder.class,
 				RuntimeException.class };
-		Class<?>[] javaCollection = {String.class};
+		Class<?>[] javaCollection = {ApiClass.class};
 		int runOption = 0;
 		boolean useOutPutFolder = false;
 		String outFolder = "jdkSummaries";
@@ -65,7 +67,7 @@ class Main {
 			
 			mSig = mSig.substring(0, mSig.length() - 1).trim();
 		} 
-		String filter = "";
+		String filter = "standardFlow3(";
 		if(filter != "")
 			filter = filter.substring(0, filter.length() - 1);
 		

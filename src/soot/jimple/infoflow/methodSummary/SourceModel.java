@@ -29,43 +29,46 @@ import soot.jimple.InstanceFieldRef;
 import soot.jimple.ParameterRef;
 import soot.jimple.Stmt;
 import soot.jimple.ThisRef;
+import soot.jimple.infoflow.methodSummary.data.IFlowSource;
 import soot.jimple.infoflow.methodSummary.data.impl.Source;
 import soot.jimple.infoflow.source.SourceInfo;
 import soot.jimple.toolkits.callgraph.ReachableMethods;
 
 public class SourceModel {
 	private final int summaryAccessPathLength;
-	private Set<Source>[] sources;
-	private boolean init = false;
+	private List<Set<Source>> sources;
 	private SootMethod method;
 	private Collection<SootField> fields;
 	private PointsToAnalysis pta;
+	private Local thisLocal;
+	private PointsToSet ptThis;
 
 	public SourceModel(SootMethod m, int apLength, Collection<SootField> fields) {
 		summaryAccessPathLength = apLength;
 		this.method = m;
 		this.fields = fields;
-		sources = new HashSet[summaryAccessPathLength];
-		for (int i = 0; i < summaryAccessPathLength; i++) {
-			sources[i] = new HashSet<Source>();
-		}
-
-		pta = Scene.v().getPointsToAnalysis();
-		if (method.hasActiveBody()) {
-			for (int i = 0; i < method.getParameterCount(); i++) {
-				sources[0].add(new Source(createFlowParamterSource(method, i, null), pta.reachingObjects(method
-						.getActiveBody().getParameterLocal(i))));
+		sources = new ArrayList<Set<Source>>(apLength);
+		boolean skip = !(m.hasActiveBody() && m.isConcrete() && !m.isStatic());
+		if (!skip) {
+			pta = Scene.v().getPointsToAnalysis();
+			thisLocal = method.getActiveBody().getThisLocal();
+			ptThis = pta.reachingObjects(thisLocal);
+			for (int i = 0; i < summaryAccessPathLength; i++) {
+				sources.add(i, new HashSet<Source>());
 			}
-		}
-		for (SootField f : fields) {
-			sources[0].add(new Source(createFlowFieldSource(f, null), pta.reachingObjects(method.getActiveBody()
-					.getThisLocal(), f)));
-		}
 
+			for (int i = 0; i < method.getParameterCount(); i++) {
+				Local p = method.getActiveBody().getParameterLocal(i);
+				PointsToSet ptp = pta.reachingObjects(p);
+				sources.get(0).add(new Source(createFlowParamterSource(method, i, null),p, p,ptp,false));
+			}
+			sources.get(0).add(new Source(createFlowThisSource(), thisLocal,thisLocal, ptThis,false));
+			buildSourceModel();
+		}
 	}
 
 	/**
-	 * builds a modle of all soucres up to the limited access path
+	 * builds a model of all sources up to the limited access path
 	 * 
 	 */
 	private void buildSourceModel() {
@@ -83,25 +86,29 @@ public class SourceModel {
 			}
 		}
 	}
-	private void buildSourceModelMethod(SootMethod m ){
+
+	private void buildSourceModelMethod(SootMethod m) {
 		PatchingChain<Unit> units = m.getActiveBody().getUnits();
 		for (Unit u : units) {
 			Stmt s = (Stmt) u;
 			// we check for every stmt if it is a soucre
 			if (s instanceof DefinitionStmt) {
-				Value righOp = ((DefinitionStmt) s).getRightOp();
+				DefinitionStmt stmt = (DefinitionStmt) s;
+				Value righOp = stmt.getRightOp();
 				if (righOp instanceof InstanceFieldRef) {
 					InstanceFieldRef fiedRef = (InstanceFieldRef) righOp;
 					if (fiedRef.getBase() instanceof Local) {
 						PointsToSet localPt = pta.reachingObjects((Local) fiedRef.getBase());
-						for (int i = 0; i < summaryAccessPathLength; i++) {
-							for (Set<Source> sourceSet : sources) {
-								for(Source source : sourceSet){
-									if(source.pointsTo(localPt)){
-										addNewSource(i, source, fiedRef, localPt);
-									}
+						for (int i = 0; i < summaryAccessPathLength - 1; i++) {
+							Set<Source> sourceSet = sources.get(i);
+							for (Source source : sourceSet) {
+								if (source.pointsTo(localPt, (Local) fiedRef.getBase())) {
+									addNewSource(i, source, (Local) fiedRef.getBase(), fiedRef,
+											pta.reachingObjects((Local) stmt.getLeftOp()),
+											stmt.getLeftOp());
 								}
 							}
+
 						}
 					}
 				}
@@ -109,8 +116,34 @@ public class SourceModel {
 			}
 		}
 	}
-	private void addNewSource(int apl, Source oldSource, InstanceFieldRef fieldRef, PointsToSet localPt){
-		
+
+	private void addNewSource(int apl, Source oldSource, Local base, InstanceFieldRef fieldRef, PointsToSet localPt, Value l) {
+		boolean star = apl +1 >= summaryAccessPathLength; 
+		sources.get(apl + 1).add(
+				new Source(oldSource.getSourceInfo().createNewSource(fieldRef.getField()),base, (Local) l, localPt,star));
 	}
-	
+
+	@Override
+	public String toString() {
+		StringBuffer buf = new StringBuffer();
+		for (int i = 1; i < summaryAccessPathLength; i++) {
+			buf.append("APL: " + i + "\n");
+			for (Source s : sources.get(i)) {
+				buf.append(s.getSourceInfo().toString() + "\n");
+			}
+		}
+
+		return buf.toString();
+	}
+
+	public Source isSource(Local l) {
+		for (int i = 1; i < sources.size(); i++) {
+			for (Source s : sources.get(i)) {
+				if (l.equals(s.getFieldBase()))
+					return s;
+			}
+		}
+
+		return null;
+	}
 }

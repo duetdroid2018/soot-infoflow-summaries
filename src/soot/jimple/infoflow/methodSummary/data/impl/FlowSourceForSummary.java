@@ -10,42 +10,56 @@ import soot.SootMethod;
 import soot.jimple.infoflow.methodSummary.data.IFlowSource;
 import soot.jimple.infoflow.methodSummary.xml.XMLConstants;
 
-public class DefaultFlowSource implements IFlowSource {
+public class FlowSourceForSummary implements IFlowSource {
 
 	private final int parameterIdx;
 	private final String field;
 	private final String paraTyp;
 	private final boolean thisFlow;
-	private final AccessPath accessPath;
+	private final SummaryAccessPath accessPath;
 
 
-	public DefaultFlowSource(SootMethod m, int parameterIdx2, SootField ap) {
+	public FlowSourceForSummary(SootMethod m, int parameterIdx2, SootField ap) {
 		parameterIdx = parameterIdx2;
 		field = null;
 		paraTyp = m.getParameterTypes().get(getParamterIndex()).toString();
 		thisFlow = false;
-		accessPath = new AccessPath(ap);
-
-
+		accessPath = new SummaryAccessPath(ap);
 	}
 
-	public DefaultFlowSource(SootField f, SootField ap) {
+	public FlowSourceForSummary(SootField f, SootField ap) {
 		parameterIdx = -1;
 		field = f.toString();
 		paraTyp = null;
 		thisFlow = false;
-		accessPath = new AccessPath(ap);
+		accessPath = new SummaryAccessPath(ap);
 	}
 	
-	public DefaultFlowSource() {
+	public FlowSourceForSummary() {
 		parameterIdx = -1;
 		field = "THIS";
 		paraTyp = null;
 		thisFlow = true;
 		accessPath = null;
 	}
+	private FlowSourceForSummary(int paraIdx, String field, String paraTyp, boolean thisFlow, SummaryAccessPath ap){
+		this.parameterIdx = paraIdx;
+		this.field = field;
+		this.paraTyp = paraTyp;
+		this.thisFlow = thisFlow;
+		this.accessPath = ap;
+	}
 	
-
+	public FlowSourceForSummary createNewSource(SootField extension){
+		
+		SummaryAccessPath ap;
+		if(accessPath == null){
+			ap = new SummaryAccessPath(extension);
+		}else{
+			ap = accessPath.extend(extension);
+		}
+		return new FlowSourceForSummary(this.parameterIdx,this.field, this.paraTyp, this.thisFlow, ap);
+	}
 	
 	@Override
 	public boolean isParamter() {
@@ -86,7 +100,7 @@ public class DefaultFlowSource implements IFlowSource {
 		}
 		
 		if(hasAccessPath())
-			res.put(XMLConstants.ATTRIBUTE_ACCESSPATH, getAccessPath().toString());
+			res.put(XMLConstants.ATTRIBUTE_ACCESSPATH, accessPath.toString());
 		
 		return res;
 	}
@@ -104,8 +118,11 @@ public class DefaultFlowSource implements IFlowSource {
 		if(isField()){
 			buf.append("Field " + getField());
 		}
+		if(isThis()){
+			buf.append("THIS");
+		}
 		if(hasAccessPath()){
-			buf.append(" " + getAccessPath().toString());
+			buf.append(" " + accessPath.toString());
 		}
 		return buf.toString();
 	}
@@ -130,7 +147,7 @@ public class DefaultFlowSource implements IFlowSource {
 //			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		DefaultFlowSource other = (DefaultFlowSource) obj;
+		FlowSourceForSummary other = (FlowSourceForSummary) obj;
 		if (accessPath == null) {
 			if (other.accessPath != null)
 				return false;
@@ -159,7 +176,7 @@ public class DefaultFlowSource implements IFlowSource {
 	}
 
 	@Override
-	public AccessPath getAccessPath() {
+	public SummaryAccessPath getAccessPath() {
 		return accessPath;
 	}
 

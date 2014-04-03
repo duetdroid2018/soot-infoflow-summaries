@@ -29,6 +29,7 @@ import soot.SootField;
 import soot.SootMethod;
 import soot.Unit;
 import soot.Value;
+import soot.baf.Inst;
 import soot.jimple.DefinitionStmt;
 import soot.jimple.InstanceFieldRef;
 import soot.jimple.ParameterRef;
@@ -36,6 +37,7 @@ import soot.jimple.ReturnStmt;
 import soot.jimple.ReturnVoidStmt;
 import soot.jimple.Stmt;
 import soot.jimple.ThisRef;
+import soot.jimple.infoflow.methodSummary.data.IFlowSource;
 import soot.jimple.infoflow.methodSummary.data.MethodSummaries;
 import soot.jimple.infoflow.methodSummary.data.impl.Source;
 import soot.jimple.infoflow.source.ISourceSinkManager;
@@ -71,15 +73,18 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 	private SootMethod method = null;
 	private PointsToSet ptsThis = null;
 	private final int summaryAccessPathLength;
-	private Set<Source>[] sources ;
+	private SourceModel sModel = null;
+	
+	
 	public SummarySourceSinkManager(String mSig) {
 		this.methodSig = mSig;
-		summaryAccessPathLength = 1;
+		summaryAccessPathLength = 5;
+		
 	}
 
 	public SummarySourceSinkManager(String method, MethodSummaries flows) {
 		this.methodSig = method;
-		summaryAccessPathLength = 1;
+		summaryAccessPathLength = 5;
 	}
 
 
@@ -92,52 +97,37 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 				ptsThis = Scene.v().getPointsToAnalysis().reachingObjects
 						(method.getActiveBody().getThisLocal());
 		}
+		if(sModel == null){
+			sModel = new SourceModel(method, summaryAccessPathLength, getClassFields());
+			System.out.println(sModel.toString());
+			System.out.println();
+		}
 		
-		// If this is the dummy main method, we skip it
 		SootMethod m = cfg.getMethodOf(sCallSite);
+		if(m.toString().contains("standard"))
+			System.out.println();
 		if (m.toString().equals("<dummyMainClass: void dummyMainMethod()>"))
 			return null;
+
 		
 		if (sCallSite instanceof DefinitionStmt) {
 			DefinitionStmt jstmt = (DefinitionStmt) sCallSite;
 			Value rightOp = jstmt.getRightOp();
-			
-			// Check for field reads
-			if (rightOp instanceof InstanceFieldRef && ptsThis != null) {
-				InstanceFieldRef fieldRef = (InstanceFieldRef) rightOp;
-				Local fieldBase = (Local) fieldRef.getBase();
-				PointsToSet fieldBasePT = Scene.v().getPointsToAnalysis().reachingObjects(fieldBase);
+			if(rightOp instanceof InstanceFieldRef){
+				Source si = sModel.isSource((Local) ((InstanceFieldRef) rightOp).getBase());
+				if(si != null){
+					return new SourceInfo(si.getStar(), si.getSourceInfo());
+				}
 				
-				//field source apl = 2
-				for (SootField f : getClassFields()) {
-					if (!f.isStatic()) {
-						PointsToSet pointsToField = Scene.v().getPointsToAnalysis().reachingObjects
-								(method.getActiveBody().getThisLocal(), f);
-						if (fieldBasePT.hasNonEmptyIntersection(pointsToField)) {
-							System.out.println("source: (this)." + f  +"." + fieldRef.getField() + "  #  " + sCallSite);
-							
-							return new SourceInfo(true, createFlowFieldSource(f, fieldRef.getField()));
-						}
-					}
-					// Field source apl = 1
-					if (fieldBasePT.hasNonEmptyIntersection(ptsThis)) {
-						System.out.println("source: (this)." + fieldRef.getField() + "  #  " + sCallSite);
-						SourceInfo si =new SourceInfo(false, createFlowFieldSource(fieldRef.getField(), null));
-						return si;
-					}
-				}
-				//Scene.v().getPointsToAnalysis().reachingObjects(m.getActiveBody().getThisLocal()).hasNonEmptyIntersection(pTsPara)
-				// Check for parameter field reads
-				for (int i = 0 ; i < method.getParameterCount(); i++){
-					Local para = method.getActiveBody().getParameterLocal(i);
-					PointsToSet pTsPara = Scene.v().getPointsToAnalysis().reachingObjects(para);
-					if (fieldBasePT.hasNonEmptyIntersection(pTsPara)) {
-						System.out.println("source: " + fieldBase +"(Paramter)." +fieldRef.getField() + "  #  " + sCallSite);
-						return new SourceInfo(true, createFlowParamterSource(method, i, fieldRef.getField()));
-					}
-				}
 			}
-			
+		}
+
+//		// If this is the dummy main method, we skip it
+		
+		if (sCallSite instanceof DefinitionStmt) {
+			DefinitionStmt jstmt = (DefinitionStmt) sCallSite;
+			Value rightOp = jstmt.getRightOp();
+					
 			
 			SootMethod currentMethod = cfg.getMethodOf(sCallSite);
 

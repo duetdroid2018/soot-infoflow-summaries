@@ -75,7 +75,7 @@ public class InfoflowResultProcessor {
 					// Get the sink
 					IFlowSink sink = null;
 	
-					PointsToSet basePT = pTa.reachingObjects(a.getAccessPath().getPlainLocal());
+					PointsToSet basePT = pTa.reachingObjects(a.getAccessPath().getPlainValue());
 					// The sink may be a parameter
 					for (int i = 0; i < m.getParameterCount(); i++) {
 						Local p = m.getActiveBody().getParameterLocal(i);
@@ -103,7 +103,7 @@ public class InfoflowResultProcessor {
 	
 					// check field sink
 					if (a.getAccessPath().isInstanceFieldRef() && !m.isStatic()
-							&& a.getAccessPath().getPlainLocal() == m.getActiveBody().getThisLocal()) {
+							&& a.getAccessPath().getPlainValue() == m.getActiveBody().getThisLocal()) {
 						if (a.getAccessPath().getFieldCount() == 1)
 							sink = createFlowFieldSink(a.getAccessPath().getFirstField(), null, a.getAccessPath()
 									.getTaintSubFields());
@@ -120,7 +120,7 @@ public class InfoflowResultProcessor {
 					}
 	
 					// check return sink
-					if (a.getAccessPath().getPlainLocal() instanceof Local) {
+					if (a.getAccessPath().getPlainValue() instanceof Local) {
 						for (Unit u : m.getActiveBody().getUnits())
 							if (cfg.isExitStmt(u))
 								for (ValueBox vb : u.getUseBoxes())

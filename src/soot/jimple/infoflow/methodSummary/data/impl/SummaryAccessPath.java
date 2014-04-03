@@ -6,17 +6,18 @@ import java.util.List;
 
 import soot.SootField;
 
-//TODO check if the memory overhead is a problem
-//when we create a new ap from an old ap all strings from the old ap are copied into the new one
-public class AccessPath {
+
+public class SummaryAccessPath {
 	List<String> ap = new ArrayList<String>();
 	
 	
-	public AccessPath(SootField s) {
+	public SummaryAccessPath(SootField s) {
 		if(s != null)
 			ap.add(s.toString());
 	}
-	
+	private SummaryAccessPath(List<String> a){
+		this.ap = a;
+	}
 	public int getAPLength(){
 		return ap.size();
 	}
@@ -26,16 +27,17 @@ public class AccessPath {
 		return null;
 	}
 	
-	public AccessPath(SootField s, AccessPath ap){
-		this.ap.addAll(ap.ap);
-		if(ap != null)
-			this.ap.add(s.toString());
+	public SummaryAccessPath extend(SootField s){
+		List<String> a = new ArrayList<String>(ap);
+		a.add(s.toString());
+		return new SummaryAccessPath(a);
 	}
 	
 	//creates an accesspath from xml file
-	public AccessPath(String s){
+	public SummaryAccessPath(String s){
 		ap.addAll(Arrays.asList(s.split(" ")));
 	}
+	
 	
 	public boolean hasAP(){
 		return ap.size() > 0;
