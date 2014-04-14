@@ -1,5 +1,8 @@
 package soot.jimple.infoflow.methodSummary.data.impl;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -9,9 +12,16 @@ import soot.jimple.infoflow.methodSummary.xml.XMLConstants;
 public class FlowSourceFromXML implements IFlowSource {
 	
 	private Map<String, String> attributes;
+	private List<String> fields = new ArrayList<String>();
 
 	public FlowSourceFromXML(Map<String, String> s) {
 		this.attributes = s;
+		if(isField()){
+			fields.add(getFirstField());
+		}
+		if(hasAccessPath()){
+			fields.addAll(Arrays.asList(attributes.get(XMLConstants.ATTRIBUTE_ACCESSPATH).split(".")));
+		}
 	}
 
 	@Override
@@ -29,15 +39,8 @@ public class FlowSourceFromXML implements IFlowSource {
 		return attributes.get(XMLConstants.ATTRIBUTE_FLOWTYPE).equals(XMLConstants.VALUE_FIELD); 
 	}
 
-	@Override
-	public String getField() {
-		return attributes.get(XMLConstants.ATTRIBUTE_FIELD);
-	}
 	
-	@Override
-	public String getParaType() {
-		return attributes.get(XMLConstants.ATTRIBUTE_PARAMTER_TYPE);
-	}
+	
 
 	@Override
 	public Map<String, String> xmlAttributes() {
@@ -54,7 +57,7 @@ public class FlowSourceFromXML implements IFlowSource {
 
 	@Override
 	public boolean isThis() {
-		return isField() && getField().equals(XMLConstants.VALUE_THIS_FIELD);
+		return isField() && getFirstField().equals(XMLConstants.VALUE_THIS_FIELD);
 	}
 
 	@Override
@@ -62,9 +65,20 @@ public class FlowSourceFromXML implements IFlowSource {
 		return attributes.containsKey(XMLConstants.ATTRIBUTE_ACCESSPATH);
 	}
 
+
 	@Override
-	public SummaryAccessPath getAccessPath() {
-		return new SummaryAccessPath(attributes.get(XMLConstants.ATTRIBUTE_ACCESSPATH));
+	public List<String> getFields() {
+		return fields;
+	}
+
+	@Override
+	public String getFirstField() {
+		return attributes.get(XMLConstants.ATTRIBUTE_FIELD);
+	}
+
+	@Override
+	public int getFieldCount() {
+		return fields.size();
 	}
 	
 }

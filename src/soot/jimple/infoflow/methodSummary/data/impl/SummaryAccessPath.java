@@ -17,9 +17,14 @@ public class SummaryAccessPath {
 		if(s != null)
 			ap.add(s.toString());
 	}
-	private SummaryAccessPath(List<String> a){
-		this.ap = a;
+	public SummaryAccessPath(List<SootField> s) {
+		if(s != null){
+			for(SootField f : s)
+				ap.add(f.toString());
+		}
+			
 	}
+	
 	public int getAPLength(){
 		return ap.size();
 	}
@@ -32,7 +37,9 @@ public class SummaryAccessPath {
 	public SummaryAccessPath extend(SootField s){
 		List<String> a = new ArrayList<String>(ap);
 		a.add(s.toString());
-		return new SummaryAccessPath(a);
+		SummaryAccessPath ap = new SummaryAccessPath();
+		ap.setAP(a);
+		return ap;
 	}
 	
 	//creates an accesspath from xml file
@@ -76,6 +83,9 @@ public class SummaryAccessPath {
 		} else if (!ap.equals(other.ap))
 			return false;
 		return true;
+	}
+	private void setAP(List<String> ap){
+		this.ap = ap;
 	}
 	
 }

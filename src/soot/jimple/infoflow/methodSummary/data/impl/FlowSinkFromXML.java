@@ -1,5 +1,8 @@
 package soot.jimple.infoflow.methodSummary.data.impl;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -8,9 +11,17 @@ import soot.jimple.infoflow.methodSummary.xml.XMLConstants;
 
 public class FlowSinkFromXML implements IFlowSink {
 	private Map<String, String> attributes;
-
+	private List<String> fields = new ArrayList<String>();
+	
 	public FlowSinkFromXML(Map<String, String> s) {
 		this.attributes = s;
+		if(isField()){
+			fields.add(getFirstField());
+		}
+		if(hasAccessPath()){
+			fields.addAll(Arrays.asList(attributes.get(XMLConstants.ATTRIBUTE_ACCESSPATH).split(".")));
+		}
+		
 	}
 
 	@Override
@@ -29,15 +40,10 @@ public class FlowSinkFromXML implements IFlowSink {
 	}
 
 	@Override
-	public String getField() {
+	public String getFirstField() {
 		return attributes.get(XMLConstants.ATTRIBUTE_FIELD);
 	}
 	
-	@Override
-	public String getParaType() {
-		return attributes.get(XMLConstants.ATTRIBUTE_PARAMTER_TYPE);
-	}
-
 	@Override
 	public Map<String, String> xmlAttributes() {
 		return attributes;
@@ -53,7 +59,7 @@ public class FlowSinkFromXML implements IFlowSink {
 
 	@Override
 	public boolean isThis() {
-		return isField() && getField().equals(XMLConstants.VALUE_THIS_FIELD);
+		return isField() && getFirstField().equals(XMLConstants.VALUE_THIS_FIELD);
 	}
 
 	@Override
@@ -66,15 +72,25 @@ public class FlowSinkFromXML implements IFlowSink {
 		return attributes.containsKey(XMLConstants.ATTRIBUTE_ACCESSPATH);
 	}
 
-	@Override
-	public SummaryAccessPath getAccessPath() {
-		return new SummaryAccessPath(attributes.get(XMLConstants.ATTRIBUTE_ACCESSPATH));
-	}
+//	@Override
+//	public SummaryAccessPath getAccessPath() {
+//		return new SummaryAccessPath(attributes.get(XMLConstants.ATTRIBUTE_ACCESSPATH));
+//	}
 
 	@Override
 	public boolean taintSubFields() {
 		String val = attributes.get(XMLConstants.ATTRIBUTE_TAINT_SUB_FIELDS);
 		return val == null || !val.equals("false");
+	}
+
+	@Override
+	public List<String> getFields() {
+		return fields;
+	}
+
+	@Override
+	public int getFieldCount() {
+		return fields.size();
 	}
 
 

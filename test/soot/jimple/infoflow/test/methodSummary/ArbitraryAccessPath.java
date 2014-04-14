@@ -1,19 +1,50 @@
 package soot.jimple.infoflow.test.methodSummary;
 
 public class ArbitraryAccessPath {
-	Data d;
+	Data nullData;
+	Data data = new Data();
 	
-	public Object ap1(){
-		return d.d;
+	
+	
+	public Data getNullData() {
+		return nullData;
 	}
-	public Object ap2(){
-		return d.d.d;
+
+	public Data getData() {
+		return data;
 	}
-	public Object ap3(){
-		return d.d.d.d;
+
+	public Data getNullData2() {
+		return getNullData().d;
 	}
 	
-	public Object parameterAp3(Data p){
-		return p.d.d.d;
+	public void setNullData2(Data nullData) {
+		getNullData().d = nullData.d;
 	}
+	public Data getData2() {
+		return data.d;
+	}
+	public void setData2(Data data) {
+		this.data.d = data.d;
+	}
+	
+	public Data getNullData3() {
+		return nullData.d.d;
+	}
+	
+	public void setNullData3(Data nullData) {
+		getNullData().d.d = nullData.d.d;
+	}
+	public Data getData3() {
+		return data.d.d;
+	}
+	public void setData3(Data data) {
+		this.data.d.d = data.d.d;
+	}
+	
+	public void setObject(Object d) {
+		this.data.d.d.d.data = d;
+	}
+	
+	
 }

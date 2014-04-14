@@ -1,6 +1,8 @@
 package soot.jimple.infoflow.methodSummary.data.impl;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import soot.SootField;
@@ -9,67 +11,59 @@ import soot.jimple.infoflow.methodSummary.data.IFlowSink;
 import soot.jimple.infoflow.methodSummary.xml.XMLConstants;
 
 public class DefaultFlowSink implements IFlowSink {
-	private final int paraIdx;
+	
+	private final int parameterIdx;
 	private final boolean isReturn;
-	private final String paraTyp;
-	private final String field;
-	private final String returnLocal;
 	private final SummaryAccessPath accessPath;
 	private final boolean taintSubFields;
 	
-	public DefaultFlowSink(SootField ap, boolean taintSubFields) {
-		this.field = null;
-		accessPath = new SummaryAccessPath(ap);
-		isReturn = true;
-		paraIdx = -1;
-		paraTyp = null;
-		returnLocal = null;
-		this.taintSubFields = taintSubFields;
+	
+	/**
+	 * creates a return or fied sink sink
+	 * @param ap
+	 * @param taintSubF
+	 * @param reSink
+	 */
+	public DefaultFlowSink(boolean reSink, List<SootField> fields, boolean taintSubF)  {
+		isReturn = reSink; 
+		accessPath = new SummaryAccessPath(fields);
+		parameterIdx = -1;
+		this.taintSubFields = taintSubF;
 	}
 
-	public DefaultFlowSink(SootField field2, SootField ap, boolean taintSubFields) {
-		this.field = field2.toString();
-		accessPath = new SummaryAccessPath(ap);
+	/**
+	 * creates a parameter sink
+	 * @param m
+	 * @param paraIdx2
+	 * @param ap
+	 * @param taintSubFields
+	 */
+	public DefaultFlowSink(SootMethod m, int paraIdx, List<SootField> fields, boolean taintSubFields) {
+		accessPath = new SummaryAccessPath(fields);
 		isReturn = false;
-		paraIdx = -1;
-		paraTyp = null;
-		returnLocal = null;
-		this.taintSubFields = taintSubFields;
-	}
-
-	public DefaultFlowSink(SootMethod m, int paraIdx2, SootField ap, boolean taintSubFields) {
-		this.field = null;
-		accessPath = new SummaryAccessPath(ap);
-		isReturn = false;
-		paraIdx = paraIdx2;
-		paraTyp = m.getParameterType(getParamterIndex()).toString();
-		returnLocal = null;
+		this.parameterIdx = paraIdx;
 		this.taintSubFields = taintSubFields;
 	}
 
 	@Override
 	public boolean isParamter() {
-		return paraIdx >= 0;
+		return parameterIdx >= 0;
 	}
 
 	@Override
 	public int getParamterIndex() {
-		return paraIdx;
+		return parameterIdx;
 	}
 
 	@Override
 	public boolean isField() {
-		return !isParamter() && !isReturn() && field != null;
+		return !isParamter() && !isReturn();
 	}
 
-	@Override
-	public String getParaType() {
-		return paraTyp;
-	}
 
 	@Override
-	public String getField() {
-		return field;
+	public List<String> getFields() {
+		return accessPath.getAP();
 	}
 
 	@Override
@@ -83,14 +77,11 @@ public class DefaultFlowSink implements IFlowSink {
 		if (isParamter()) {
 			res.put(XMLConstants.ATTRIBUTE_FLOWTYPE, XMLConstants.VALUE_PARAMETER);
 			res.put(XMLConstants.ATTRIBUTE_PARAMTER_INDEX, getParamterIndex() + "");
-			res.put(XMLConstants.ATTRIBUTE_PARAMTER_TYPE, getParaType());		
 		} else if (isField()) {
 			res.put(XMLConstants.ATTRIBUTE_FLOWTYPE, XMLConstants.VALUE_FIELD);
-			res.put(XMLConstants.ATTRIBUTE_FIELD, getField());
+			res.put(XMLConstants.ATTRIBUTE_FIELD, getFirstField());
 		} else {
 			res.put(XMLConstants.ATTRIBUTE_FLOWTYPE, XMLConstants.VALUE_RETURN);
-			if(returnLocal != null)
-				res.put(XMLConstants.ATTRIBUTE_RETURN_LOCAL, returnLocal);
 		}
 		if(hasAccessPath()){
 			res.put(XMLConstants.ATTRIBUTE_ACCESSPATH, accessPath.toString());
@@ -102,7 +93,7 @@ public class DefaultFlowSink implements IFlowSink {
 
 	@Override
 	public boolean isThis() {
-		if (isField() && getField().equals(XMLConstants.VALUE_THIS_FIELD))
+		if (isField() && getFirstField().equals(XMLConstants.VALUE_THIS_FIELD))
 			return true;
 		return false;
 	}
@@ -110,26 +101,24 @@ public class DefaultFlowSink implements IFlowSink {
 	@Override
 	public String toString(){
 		if(isParamter()){
-			return "Parameter: " + getParamterIndex() + " " + getParaType() +((getAccessPath()!=null) ? getAccessPath() : "") + " " +taintSubFields();
+			return "Parameter: " + getParamterIndex() + " " + accessPath.toString() + " " +taintSubFields();
 		}else if(isField()){
-			return "Field " +getField() + ((getAccessPath()!=null) ? getAccessPath() : "") + " " +taintSubFields();
+			return "Field " + accessPath.toString() + " " +taintSubFields();
 		}else if(isReturn){
-			return "Return " + taintSubFields();
+			return "Return " + accessPath.toString() + " " + taintSubFields();
 		}else{
 			return "invalid sink";
 		}
 	}
+	
 	
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
 		result = prime * result + ((accessPath == null) ? 0 : accessPath.hashCode());
-		result = prime * result + ((field == null) ? 0 : field.hashCode());
 		result = prime * result + (isReturn ? 1231 : 1237);
-		result = prime * result + paraIdx;
-		result = prime * result + ((paraTyp == null) ? 0 : paraTyp.hashCode());
-		result = prime * result + ((returnLocal == null) ? 0 : returnLocal.hashCode());
+		result = prime * result + parameterIdx;
 		result = prime * result + (taintSubFields ? 1231 : 1237);
 		return result;
 	}
@@ -138,8 +127,8 @@ public class DefaultFlowSink implements IFlowSink {
 	public boolean equals(Object obj) {
 		if (this == obj)
 			return true;
-//		if (!super.equals(obj))
-//			return false;
+		if (obj == null)
+			return false;
 		if (getClass() != obj.getClass())
 			return false;
 		DefaultFlowSink other = (DefaultFlowSink) obj;
@@ -148,24 +137,9 @@ public class DefaultFlowSink implements IFlowSink {
 				return false;
 		} else if (!accessPath.equals(other.accessPath))
 			return false;
-		if (field == null) {
-			if (other.field != null)
-				return false;
-		} else if (!field.equals(other.field))
-			return false;
 		if (isReturn != other.isReturn)
 			return false;
-		if (paraIdx != other.paraIdx)
-			return false;
-		if (paraTyp == null) {
-			if (other.paraTyp != null)
-				return false;
-		} else if (!paraTyp.equals(other.paraTyp))
-			return false;
-		if (returnLocal == null) {
-			if (other.returnLocal != null)
-				return false;
-		} else if (!returnLocal.equals(other.returnLocal))
+		if (parameterIdx != other.parameterIdx)
 			return false;
 		if (taintSubFields != other.taintSubFields)
 			return false;
@@ -177,14 +151,20 @@ public class DefaultFlowSink implements IFlowSink {
 		return accessPath != null && accessPath.hasAP(); 
 	}
 
-	@Override
-	public SummaryAccessPath getAccessPath() {
-		return accessPath;
-	}
-
+	
 	@Override
 	public boolean taintSubFields() {
 		return taintSubFields;
+	}
+
+	@Override
+	public String getFirstField() {
+		return accessPath.getAP().get(0);
+	}
+
+	@Override
+	public int getFieldCount() {
+		return accessPath.getAPLength();
 	}
 	
 }

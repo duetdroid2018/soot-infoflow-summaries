@@ -20,6 +20,7 @@ import soot.jimple.infoflow.handlers.ResultsAvailableHandler;
 import soot.jimple.infoflow.methodSummary.data.MethodSummaries;
 import soot.jimple.infoflow.methodSummary.util.InfoflowResultProcessor;
 import soot.jimple.infoflow.methodSummary.util.SummaryTaintPropagationHandler;
+import soot.jimple.infoflow.solver.IInfoflowCFG;
 import soot.jimple.infoflow.taintWrappers.ITaintPropagationWrapper;
 import soot.jimple.toolkits.ide.icfg.BiDiInterproceduralCFG;
 
@@ -30,8 +31,9 @@ import soot.jimple.toolkits.ide.icfg.BiDiInterproceduralCFG;
  * @author Steven Arzt
  */
 public class SummaryGenerator {
-	
+
 	protected int accessPathLength = 3;
+	protected int summaryAPLength = accessPathLength - 1;
 	protected boolean enableImplicitFlows = false;
 	protected boolean enableExceptionTracking = false;
 	protected boolean enableStaticFieldTracking = false;
@@ -42,42 +44,45 @@ public class SummaryGenerator {
 	protected IInfoflowConfig config;
 	protected String path;
 	protected List<String> substitutedWith = new LinkedList<String>();
-	
+
 	public SummaryGenerator() {
 		substitutedWith.add("java.util.LinkedList");
 		substitutedWith.add("java.util.HashMap");
-		//substitutedWith.add("java.util.TreeMap");
+		// substitutedWith.add("java.util.TreeMap");
 		initDefPath();
 	}
+
 	public MethodSummaries createMethodSummary(final String m) {
-		return createMethodSummary(m,null,new SummarySourceSinkManager(m));
+		return createMethodSummary(m, null, new SummarySourceSinkManager(m));
 	}
 
 	public MethodSummaries createMethodSummary(final String m, List<String> mDependencies) {
-		return createMethodSummary(m, mDependencies,new SummarySourceSinkManager(m));
+		return createMethodSummary(m, mDependencies, new SummarySourceSinkManager(m));
 	}
-	
-	private MethodSummaries createMethodSummary(final String sig, List<String> mDependencies, final SummarySourceSinkManager manager) {
+
+	private MethodSummaries createMethodSummary(final String sig, List<String> mDependencies,
+			final SummarySourceSinkManager manager) {
 		final MethodSummaries summaries = new MethodSummaries();
-		
+
 		Infoflow infoflow = initInfoflow();
 		final SummaryTaintPropagationHandler listener = new SummaryTaintPropagationHandler(sig);
 		infoflow.addTaintPropagationHandler(listener);
 		infoflow.addResultsAvailableHandler(new ResultsAvailableHandler() {
 
 			@Override
-			public void onResultsAvailable(BiDiInterproceduralCFG<Unit, SootMethod> cfg, InfoflowResults results) {
-				InfoflowResultProcessor processor = new InfoflowResultProcessor
-						(listener.getResult(), cfg, sig, manager);
+			public void onResultsAvailable(IInfoflowCFG cfg, InfoflowResults results) {
+				InfoflowResultProcessor processor = new InfoflowResultProcessor(listener.getResult(), cfg, sig,
+						manager, summaryAPLength);
 				summaries.merge(processor.process());
+
 			}
-			
+
 		});
 		infoflow.computeInfoflow(null, path, createEntryPoint(), Collections.singletonList(sig), manager);
 		return summaries;
 	}
-	
-	private BaseEntryPointCreator createEntryPoint(){
+
+	private BaseEntryPointCreator createEntryPoint() {
 		DefaultEntryPointCreator dEntryPointCreater = new DefaultEntryPointCreator();
 		dEntryPointCreater.setSubstituteClasses(substitutedWith);
 		dEntryPointCreater.setSubstituteCallParams(true);
@@ -87,7 +92,7 @@ public class SummaryGenerator {
 	protected Infoflow initInfoflow() {
 		Infoflow iFlow = new Infoflow();
 		Infoflow.setAccessPathLength(accessPathLength);
-				
+
 		iFlow.setEnableImplicitFlows(enableImplicitFlows);
 		iFlow.setEnableExceptionTracking(enableExceptionTracking);
 		iFlow.setEnableStaticFieldTracking(enableStaticFieldTracking);
@@ -111,21 +116,21 @@ public class SummaryGenerator {
 		File f = new File(".");
 		try {
 			final String pathSep = System.getProperty("path.separator");
-			path = System.getProperty("java.home") + File.separator + "lib" + File.separator + "rt.jar"
-					+ pathSep + f.getCanonicalPath() + File.separator + "bin"
-					+ pathSep + f.getCanonicalPath() + File.separator + "build" + File.separator + "testclasses"
-					+ pathSep + f.getCanonicalPath() + File.separator + "lib";
+			path = System.getProperty("java.home") + File.separator + "lib" + File.separator + "rt.jar" + pathSep
+					+ f.getCanonicalPath() + File.separator + "bin" + pathSep + f.getCanonicalPath() + File.separator
+					+ "build" + File.separator + "testclasses" + pathSep + f.getCanonicalPath() + File.separator
+					+ "lib";
 			/*
-			path = "D:\\Temp\\odex-phone\\android-phone.jar"
-					+ System.getProperty("path.separator") + f.getCanonicalPath() + File.separator + "bin"
-					+ System.getProperty("path.separator") + f.getCanonicalPath() + File.separator + "lib";
-			*/
+			 * path = "D:\\Temp\\odex-phone\\android-phone.jar" + System.getProperty("path.separator") +
+			 * f.getCanonicalPath() + File.separator + "bin" + System.getProperty("path.separator") +
+			 * f.getCanonicalPath() + File.separator + "lib";
+			 */
 		} catch (IOException e) {
 			e.printStackTrace();
 			path = System.getProperty("java.home") + File.separator + "lib" + File.separator + "rt.jar";
 		}
 	}
-	
+
 	public void setTaintWrapper(ITaintPropagationWrapper taintWrapper) {
 		this.taintWrapper = taintWrapper;
 	}
@@ -133,7 +138,7 @@ public class SummaryGenerator {
 	public void setConfig(IInfoflowConfig config) {
 		this.config = config;
 	}
-	
+
 	public List<String> getSubstitutedWith() {
 		return substitutedWith;
 	}
@@ -181,5 +186,5 @@ public class SummaryGenerator {
 	public void setFlowSensitiveAliasing(boolean flowSensitiveAliasing) {
 		this.flowSensitiveAliasing = flowSensitiveAliasing;
 	}
-	
+
 }

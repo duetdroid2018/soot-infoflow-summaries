@@ -5,7 +5,9 @@ import static soot.jimple.infoflow.methodSummary.data.impl.FlowSinkAndSourceFact
 import static soot.jimple.infoflow.methodSummary.data.impl.FlowSinkAndSourceFactory.createFlowReturnSink;
 import heros.InterproceduralCFG;
 
+import java.util.ArrayList;
 import java.util.Collections;
+import java.util.List;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -16,6 +18,7 @@ import soot.Local;
 import soot.PointsToAnalysis;
 import soot.PointsToSet;
 import soot.Scene;
+import soot.SootField;
 import soot.SootMethod;
 import soot.Unit;
 import soot.ValueBox;
@@ -41,12 +44,14 @@ public class InfoflowResultProcessor {
 	private Set<Abstraction> result;
 	private boolean DEBUG = true;
 	private String method;
+	private int summaryAPLength;
 
 	public InfoflowResultProcessor(Set<Abstraction> result2, InterproceduralCFG<Unit, SootMethod> cfg, String m,
-			SummarySourceSinkManager manager) {
+			SummarySourceSinkManager manager, int sAPL) {
 		this.result = result2;
 		this.cfg = cfg;
 		this.method = m;
+		this.summaryAPLength = sAPL;
 	}
 
 	public MethodSummaries process() {
@@ -58,7 +63,7 @@ public class InfoflowResultProcessor {
 		IAbstractionPathBuilder pathBuilder = new DefaultPathBuilderFactory().createPathBuilder
 				(Runtime.getRuntime().availableProcessors());
 		
-		for (Abstraction a : result) {
+		for(Abstraction a : result){
 			logger.debug("abstraction: " + a.toString());
 			pathBuilder.getResults().clear();
 			pathBuilder.computeTaintSources(Collections.singleton(new AbstractionAtSink
@@ -86,13 +91,16 @@ public class InfoflowResultProcessor {
 						if (pPT.hasNonEmptyIntersection(basePT)) {
 							if (a.getAccessPath().isLocal()){
 								if(isArrayType)
-									sink = createFlowParamterSink(m, i, null, a.getAccessPath().getTaintSubFields());
+									sink = createFlowParamterSink(m, i, java.util.Collections.<SootField>emptyList(), a.getAccessPath().getTaintSubFields());
 							}
-							else if (a.getAccessPath().getFieldCount() == 1)
-								sink = createFlowParamterSink(m, i, a.getAccessPath().getFirstField(), a.getAccessPath()
+							else if (a.getAccessPath().getFieldCount() < summaryAPLength)
+								sink = createFlowParamterSink(m, i, a.getAccessPath().getFields(), a.getAccessPath()
 										.getTaintSubFields());
-							else
-								sink = createFlowParamterSink(m, i, a.getAccessPath().getFirstField(), true);
+							else{
+								
+								sink = createFlowParamterSink(m, i, cutAPLength(a.getAccessPath().getFields()), true);
+							}
+								
 						}
 						
 						if (source != null && sink != null){
@@ -105,15 +113,15 @@ public class InfoflowResultProcessor {
 					// check field sink
 					if (a.getAccessPath().isInstanceFieldRef() && !m.isStatic()
 							&& a.getAccessPath().getPlainValue() == m.getActiveBody().getThisLocal()) {
-						if (a.getAccessPath().getFieldCount() == 1)
-							sink = createFlowFieldSink(a.getAccessPath().getFirstField(), null, a.getAccessPath()
-									.getTaintSubFields());
-						else if (a.getAccessPath().getFieldCount() == 2)
-							sink = createFlowFieldSink(a.getAccessPath().getFirstField(), a.getAccessPath().getFields()[1],
-									a.getAccessPath().getTaintSubFields());
-						else
-							sink = createFlowFieldSink(a.getAccessPath().getFirstField(), a.getAccessPath().getFields()[1],
-									true);
+						if(a.getAccessPath().getFieldCount() < summaryAPLength){
+							//we can save the complete ap in the summary file
+							sink = createFlowFieldSink(a.getAccessPath().getFields(), a.getAccessPath().getTaintSubFields());
+							
+						}else{
+							//we have to cut the ap sience the ap is longer then the set limit
+							sink = createFlowFieldSink(cutAPLength(a.getAccessPath().getFields()), true);
+						}
+						
 						if (source != null && sink != null){
 							addFlow(source, sink, flows);
 							sink = null;
@@ -121,18 +129,19 @@ public class InfoflowResultProcessor {
 					}
 	
 					// check return sink
-
 					for (Unit u : m.getActiveBody().getUnits())
 						if (cfg.isExitStmt(u))
 							for (ValueBox vb : u.getUseBoxes())
 								if (vb.getValue() == a.getAccessPath().getPlainValue())
 									if (a.getAccessPath().isLocal())
 										sink = createFlowReturnSink(a.getAccessPath().getTaintSubFields());
-									else if (a.getAccessPath().getFieldCount() == 1)
-										sink = createFlowReturnSink(a.getAccessPath().getFirstField(), a
-												.getAccessPath().getTaintSubFields());
-									else
-										sink = createFlowReturnSink(a.getAccessPath().getFirstField(), true);
+									else if (a.getAccessPath().getFieldCount() < summaryAPLength){
+										sink = createFlowReturnSink(a.getAccessPath().getFields(), a.getAccessPath().getTaintSubFields());
+									}else{
+										sink = createFlowReturnSink(cutAPLength(a.getAccessPath().getFields()), true);
+									}
+
+
 					if (source != null && sink != null){
 						addFlow(source, sink, flows);
 						sink = null;
@@ -145,27 +154,37 @@ public class InfoflowResultProcessor {
 		return flows;
 	}
 
+	private List<SootField> cutAPLength(SootField[] fields) {
+		List<SootField> f = new ArrayList<SootField>(summaryAPLength);
+		for(int i = 0 ; i < summaryAPLength ; i++){
+			f.add(fields[i]);
+		}
+		return f;
+	}
+
 	private boolean isIdentityFlow(IFlowSource source, IFlowSink sink) {
-		
-		if (source.getAccessPath() == null) {
-			if (sink.getAccessPath() != null)
+		if(sink.isReturn())
+			return false;
+		if(sink.isField()){
+			if(source.isParamter())
 				return false;
-		} else if (!source.getAccessPath().equals(sink.getAccessPath()))
-			return false;
-		if (source.getField() == null) {
-			if (sink.getField() != null)
+		}
+		if(sink.isParamter()){
+			if(source.isField() || source.isThis())
 				return false;
-		} else if (!source.getField().equals(sink.getField()))
-			return false;
-		if (source.getParaType() == null) {
-			if (sink.getParaType() != null)
+		}
+		if(sink.isThis()){
+			if(source.isParamter())
 				return false;
-		} else if (!source.getParaType().equals(sink.getParaType()))
+		}
+		if(sink.getParamterIndex() != source.getParamterIndex())
 			return false;
-		if (source.getParamterIndex() != sink.getParamterIndex())
+		if(sink.getFieldCount() != source.getFieldCount())
 			return false;
-		if (source.isThis() != sink.isThis())
-			return false;
+		for(int i = 0 ; i < sink.getFieldCount(); i++){
+			if(!source.getFields().get(i).equals(sink.getFields().get(i)))
+				return false;
+		}
 		return true;
 			
 //		if (source.isParamter() != sink.isParamter())

@@ -65,9 +65,9 @@ public class ApiTests extends ApiTestHelper {
 		SummaryGenerator s = getSummary();
 		String mSig = "<" + className + ": int standardFlow3(" + DATA_TYPE + ")>";
 		Set<AbstractMethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
-		assertTrue(containsParaToReturn(res, 0, DATA_TYPE, NO_ACCESS_PATH, NO_ACCESS_PATH));
+	//	assertTrue(containsParaToReturn(res, 0, DATA_TYPE, NO_ACCESS_PATH, NO_ACCESS_PATH));
 		assertTrue(containsParaToReturn(res, 0, DATA_TYPE, DATACLASS_INT_FIELD, NO_ACCESS_PATH));
-		// assertTrue(res.size() == 1);
+		 assertTrue(res.size() == 1);
 	}
 
 	@Test(timeout = 100000)
@@ -313,7 +313,7 @@ public class ApiTests extends ApiTestHelper {
 		SummaryGenerator s = getSummary();
 		String mSig = "<" + className + ": void paraToparaFlow1(int," + DATA_TYPE + ")>";
 		Set<AbstractMethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
-		assertTrue(containsParaToParaFlow(res, 0, INT_TYPE,NO_ACCESS_PATH, 1, DATA_TYPE,NO_ACCESS_PATH));
+		assertTrue(containsParaToParaFlow(res, 0, INT_TYPE,NO_ACCESS_PATH, 1, DATA_TYPE,DATACLASS_INT_FIELD));
 		assertTrue(res.size() == 1);
 	}
 
@@ -376,8 +376,8 @@ public class ApiTests extends ApiTestHelper {
 		String mSig = "<" + className + ": int intInDataToReturn()>";
 		Set<AbstractMethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 
-		assertTrue(containsFieldToReturn(res, NON_PRIMITIVE_VAR1,NO_ACCESS_PATH,NO_ACCESS_PATH)
-				|| containsFieldToReturn(res, NON_PRIMITIVE_VAR1_VALUE,NO_ACCESS_PATH,NO_ACCESS_PATH));
+		assertTrue(containsFieldToReturn(res, NON_PRIMITIVE_VAR1,DATACLASS_INT_FIELD,NO_ACCESS_PATH));
+				//|| containsFieldToReturn(res, NON_PRIMITIVE_VAR1_VALUE,NO_ACCESS_PATH,NO_ACCESS_PATH));
 	}
 
 	@Test(timeout = 100000)
@@ -448,7 +448,7 @@ public class ApiTests extends ApiTestHelper {
 		assertTrue(containsFieldToFieldFlow(res, NON_PRIMITIVE_VAR1,NO_ACCESS_PATH, NON_PRIMITIVE_VAR2,NO_ACCESS_PATH));
 	}
 
-	@Test(timeout = 150000)
+	@Test//(timeout = 150000)
 	public void fieldToPara1() {
 		SummaryGenerator s = getSummary();
 		String mSig = "<" + className + ": void fieldToPara(" + DATA_TYPE + ")>";

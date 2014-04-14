@@ -3,15 +3,19 @@ package soot.jimple.infoflow.test.methodSummary;
 
 
 public class SimpleList<E> {
-	Data first ;
+	Data first = null;
 	Object keySet;
 	private static class Node<E> {
 		E item;
 	}
 	
 	public Object get() {
-		return first.data;
+		return node().data;
 //		return first == null ? null : first.data;
+	}
+	
+	public void getViaParameter(Data d){
+		d.data = get(); 
 	}
 	
 	public void set(Object data) {

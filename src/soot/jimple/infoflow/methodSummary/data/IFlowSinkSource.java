@@ -1,5 +1,6 @@
 package soot.jimple.infoflow.methodSummary.data;
 
+import java.util.List;
 import java.util.Map;
 
 import soot.jimple.infoflow.data.Abstraction;
@@ -15,13 +16,15 @@ public interface IFlowSinkSource {
 
 	public boolean isThis();
 
-	public String getField();
-
-	public String getParaType();
-
+	public List<String> getFields();
+	public String getFirstField();
+	public int getFieldCount();
 	public boolean hasAccessPath();
+	//public String getParaType();
+
 	
-	public SummaryAccessPath getAccessPath();
+	
+	//public SummaryAccessPath getAccessPath();
 	
 	public Map<String, String> xmlAttributes();
 	

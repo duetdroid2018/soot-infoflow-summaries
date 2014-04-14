@@ -7,11 +7,15 @@ public class FieldToPara {
 	int intField = 1;
 	Object obField = new Object();
 	@SuppressWarnings("rawtypes")
-	LinkedList<?> listField = new LinkedList();
+	LinkedList listField = new LinkedList();
 	Object[] arrayField = new Object[100];
 	int[] intArray = new int[100];
 	public Data dataField = new Data();
 	private ApiInternalClass apiInternal = new ApiInternalClass();
+	
+	public FieldToPara(){
+		listField.add(new Object());
+	}
 	
 	void objArrayParameter(Object[] o){
 		o[1] = obField;

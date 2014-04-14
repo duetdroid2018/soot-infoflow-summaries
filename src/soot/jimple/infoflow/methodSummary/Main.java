@@ -29,6 +29,9 @@ import javax.xml.stream.XMLStreamException;
 
 import soot.jimple.infoflow.methodSummary.util.ClassFileInformation;
 import soot.jimple.infoflow.test.methodSummary.ApiClass;
+import soot.jimple.infoflow.test.methodSummary.ArbitraryAccessPath;
+import soot.jimple.infoflow.test.methodSummary.FieldToPara;
+import soot.jimple.infoflow.test.methodSummary.SimpleList;
 
 
 @SuppressWarnings("unused")
@@ -50,7 +53,7 @@ class Main {
 				TreeMap.class, ConcurrentHashMap.class, /*String.class,*/ StringBuilder.class,
 				RuntimeException.class };
 
-		Class<?>[] javaCollection = {ApiClass.class};
+		Class<?>[] javaCollection = {ArbitraryAccessPath.class};
 		int runOption = 0;
 		boolean useOutPutFolder = false;
 		String outFolder = "jdkSummaries";
@@ -70,7 +73,7 @@ class Main {
 			mSig = mSig.substring(0, mSig.length() - 1).trim();
 
 		} 
-		String filter = "standardFlow3(";
+		String filter = "";
 		if(filter != "")
 			filter = filter.substring(0, filter.length() - 1);
 		

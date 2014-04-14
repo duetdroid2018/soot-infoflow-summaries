@@ -60,9 +60,9 @@ public class SourceModel {
 			for (int i = 0; i < method.getParameterCount(); i++) {
 				Local p = method.getActiveBody().getParameterLocal(i);
 				PointsToSet ptp = pta.reachingObjects(p);
-				sources.get(0).add(new Source(createFlowParamterSource(method, i, null),p, p,ptp,false));
+				sources.get(0).add(new Source(createFlowParamterSource(method, i, null), p, p, ptp, false));
 			}
-			sources.get(0).add(new Source(createFlowThisSource(), thisLocal,thisLocal, ptThis,false));
+			sources.get(0).add(new Source(createFlowThisSource(), thisLocal, thisLocal, ptThis, false));
 			buildSourceModel();
 		}
 	}
@@ -76,14 +76,19 @@ public class SourceModel {
 		ReachableMethods reachableMethods = new ReachableMethods(Scene.v().getCallGraph(), eps.iterator(), null);
 		reachableMethods.update();
 		boolean repeat = true;
-		//TODO fix me
+		int count = 1;
 		while (repeat == true) {
 			repeat = false;
 			for (Iterator<MethodOrMethodContext> iter = reachableMethods.listener(); iter.hasNext();) {
 				SootMethod m = iter.next().method();
 				if (m.hasActiveBody()) {
-					if(buildSourceModelMethod(m)){
-						repeat = true;
+					if (m.getSignature().contains("methodSummary"))
+						System.out.println();
+					if (buildSourceModelMethod(m)) {
+						if (count < summaryAccessPathLength) {
+							count++;
+							repeat = true;
+						}
 					}
 				}
 			}
@@ -108,8 +113,7 @@ public class SourceModel {
 							for (Source source : sourceSet) {
 								if (source.pointsTo(localPt, (Local) fiedRef.getBase())) {
 									changes |= addNewSource(i, source, (Local) fiedRef.getBase(), fiedRef,
-											pta.reachingObjects((Local) stmt.getLeftOp()),
-											stmt.getLeftOp());
+											pta.reachingObjects((Local) stmt.getLeftOp()), stmt.getLeftOp());
 								}
 							}
 
@@ -122,10 +126,12 @@ public class SourceModel {
 		return changes;
 	}
 
-	private boolean addNewSource(int apl, Source oldSource, Local base, InstanceFieldRef fieldRef, PointsToSet localPt, Value l) {
-		boolean star = apl +1 >= summaryAccessPathLength; 
+	private boolean addNewSource(int apl, Source oldSource, Local base, InstanceFieldRef fieldRef, PointsToSet localPt,
+			Value l) {
+		boolean star = apl + 1 >= summaryAccessPathLength;
 		return sources.get(apl + 1).add(
-				new Source(oldSource.getSourceInfo().createNewSource(fieldRef.getField()),base, (Local) l, localPt,star));
+				new Source(oldSource.getSourceInfo().createNewSource(fieldRef.getField()), base, (Local) l, localPt,
+						star));
 	}
 
 	@Override
