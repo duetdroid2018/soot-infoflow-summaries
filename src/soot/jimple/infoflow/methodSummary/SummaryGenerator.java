@@ -32,7 +32,7 @@ import soot.jimple.toolkits.ide.icfg.BiDiInterproceduralCFG;
  */
 public class SummaryGenerator {
 
-	protected int accessPathLength = 3;
+	protected int accessPathLength = 5;
 	protected int summaryAPLength = accessPathLength - 1;
 	protected boolean enableImplicitFlows = false;
 	protected boolean enableExceptionTracking = false;
@@ -68,15 +68,14 @@ public class SummaryGenerator {
 		final SummaryTaintPropagationHandler listener = new SummaryTaintPropagationHandler(sig);
 		infoflow.addTaintPropagationHandler(listener);
 		infoflow.addResultsAvailableHandler(new ResultsAvailableHandler() {
-
+			
 			@Override
-			public void onResultsAvailable(IInfoflowCFG cfg, InfoflowResults results) {
+			public void onResultsAvailable(BiDiInterproceduralCFG<Unit, SootMethod> cfg, InfoflowResults results) {
 				InfoflowResultProcessor processor = new InfoflowResultProcessor(listener.getResult(), cfg, sig,
 						manager, summaryAPLength);
 				summaries.merge(processor.process());
-
+				
 			}
-
 		});
 		infoflow.computeInfoflow(null, path, createEntryPoint(), Collections.singletonList(sig), manager);
 		return summaries;

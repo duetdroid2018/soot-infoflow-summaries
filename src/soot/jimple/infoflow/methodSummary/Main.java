@@ -53,7 +53,7 @@ class Main {
 				TreeMap.class, ConcurrentHashMap.class, /*String.class,*/ StringBuilder.class,
 				RuntimeException.class };
 
-		Class<?>[] javaCollection = {ArbitraryAccessPath.class};
+		Class<?>[] javaCollection = {ApiClass.class};
 		int runOption = 0;
 		boolean useOutPutFolder = false;
 		String outFolder = "jdkSummaries";

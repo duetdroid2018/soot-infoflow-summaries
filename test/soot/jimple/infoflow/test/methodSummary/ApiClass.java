@@ -421,4 +421,15 @@ public class ApiClass implements IApiClass {
 	public void paraToParaArray(Object []o ){
 		o[3] = o[2];
 	}
+	
+	public void setNonPrimitiveData1APL3(Object d){
+		nonPrimitiveVariable.d.data = d;
+	}
+	public Object getNonPrimitiveData2AP3(){
+		return nonPrimitiveVariable.d.data2;
+	}
+	public Object getNonPrimitiveData1APL3(){
+		return nonPrimitiveVariable.d.data;
+	}
+	
 }

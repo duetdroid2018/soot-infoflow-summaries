@@ -44,8 +44,8 @@ public class TestHelper {
 		
 		String[] fieldSink;
 		if(apSink != null){
-			fieldSink = new String[2];
-			fieldSink[1] = apSink;
+			fieldSink = new String[1];
+			fieldSink[0] = apSink;
 		}else{
 			fieldSink = new String[0];
 		}
@@ -130,12 +130,12 @@ public class TestHelper {
 	protected boolean containsParaToFieldFlow(Set<AbstractMethodFlow> res, int paraIdx, String type, String apSource, String field, String apSink) {
 		String[] fieldSource;
 		if(apSource != null){
-			fieldSource = new String[2];
-			fieldSource[0] = type;
-			fieldSource[1] = apSource;
-		}else{
 			fieldSource = new String[1];
-			fieldSource[0] = type;
+			//fieldSource[0] = type;
+			fieldSource[0] = apSource;
+		}else{
+			fieldSource = new String[0];
+			//fieldSource[0] = type;
 		}
 		
 		String[] fieldSink;

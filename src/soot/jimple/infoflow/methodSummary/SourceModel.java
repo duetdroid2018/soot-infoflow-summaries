@@ -1,17 +1,13 @@
 package soot.jimple.infoflow.methodSummary;
 
-import static soot.jimple.infoflow.methodSummary.data.impl.FlowSinkAndSourceFactory.createFlowFieldSource;
 import static soot.jimple.infoflow.methodSummary.data.impl.FlowSinkAndSourceFactory.createFlowParamterSource;
 import static soot.jimple.infoflow.methodSummary.data.impl.FlowSinkAndSourceFactory.createFlowThisSource;
-import heros.InterproceduralCFG;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import soot.Local;
@@ -26,12 +22,8 @@ import soot.Unit;
 import soot.Value;
 import soot.jimple.DefinitionStmt;
 import soot.jimple.InstanceFieldRef;
-import soot.jimple.ParameterRef;
 import soot.jimple.Stmt;
-import soot.jimple.ThisRef;
-import soot.jimple.infoflow.methodSummary.data.IFlowSource;
 import soot.jimple.infoflow.methodSummary.data.impl.Source;
-import soot.jimple.infoflow.source.SourceInfo;
 import soot.jimple.toolkits.callgraph.ReachableMethods;
 
 public class SourceModel {
@@ -60,9 +52,9 @@ public class SourceModel {
 			for (int i = 0; i < method.getParameterCount(); i++) {
 				Local p = method.getActiveBody().getParameterLocal(i);
 				PointsToSet ptp = pta.reachingObjects(p);
-				sources.get(0).add(new Source(createFlowParamterSource(method, i, null), p, p, ptp, false));
+				sources.get(0).add(new Source(createFlowParamterSource(method, i, null),p, p,null, ptp, false));
 			}
-			sources.get(0).add(new Source(createFlowThisSource(), thisLocal, thisLocal, ptThis, false));
+			sources.get(0).add(new Source(createFlowThisSource(), thisLocal, thisLocal, null,ptThis, false));
 			buildSourceModel();
 		}
 	}
@@ -126,12 +118,15 @@ public class SourceModel {
 		return changes;
 	}
 
-	private boolean addNewSource(int apl, Source oldSource, Local base, InstanceFieldRef fieldRef, PointsToSet localPt,
-			Value l) {
+	private boolean addNewSource(int apl, Source oldSource, Local base, InstanceFieldRef fieldRef, PointsToSet localPt, Value l) {
 		boolean star = apl + 1 >= summaryAccessPathLength;
-		return sources.get(apl + 1).add(
-				new Source(oldSource.getSourceInfo().createNewSource(fieldRef.getField()), base, (Local) l, localPt,
-						star));
+		return sources.get(apl + 1).add(new Source(
+				oldSource.getSourceInfo().createNewSource(fieldRef.getField()), 
+				base,
+				(Local) l,
+				fieldRef.getField(),
+				localPt, 
+				star));
 	}
 
 	@Override
@@ -139,22 +134,33 @@ public class SourceModel {
 		StringBuffer buf = new StringBuffer();
 		for (int i = 1; i < summaryAccessPathLength; i++) {
 			buf.append("APL: " + i + "\n");
-			for (Source s : sources.get(i)) {
-				buf.append(s.getSourceInfo().toString() + "\n");
+			if (sources.size() >= i && sources.get(i) != null) {
+				for (Source s : sources.get(i)) {
+					buf.append(s.getSourceInfo().toString() + "\n");
+				}
 			}
 		}
 
 		return buf.toString();
 	}
 
-	public Source isSource(Local l) {
+	public Source isSource(Local l, SootField f) {
+		boolean matchedLocal = false;
 		for (int i = 1; i < sources.size(); i++) {
 			for (Source s : sources.get(i)) {
-				if (l.equals(s.getFieldBase()))
-					return s;
+				if (l.equals(s.getFieldBase())){
+					matchedLocal = true;
+					if( (f == null && s.getField() == null) || (f != null && f.equals(s.getField()))){
+						return s;
+					}
+					
+				}
+					
 			}
 		}
-
+		if(matchedLocal){
+			throw new RuntimeException("the local: " +l + " is a source but we dont have it in our source model" );
+		}
 		return null;
 	}
 }

@@ -2,6 +2,7 @@ package soot.jimple.infoflow.methodSummary.data.impl;
 
 import soot.Local;
 import soot.PointsToSet;
+import soot.SootField;
 import soot.jimple.infoflow.methodSummary.data.IFlowSource;
 
 public class Source {
@@ -9,15 +10,17 @@ public class Source {
 	private PointsToSet pts;
 	private Local leftOp;
 	private Local fieldBase;
+	private SootField f;
 	private boolean star;
 	
-	public Source(FlowSourceForSummary sourceInfo,Local base, Local leftOp, PointsToSet pts, boolean s) {
+	public Source(FlowSourceForSummary sourceInfo,Local base, Local leftOp, SootField f,PointsToSet pts, boolean s) {
 		super();
 		this.sourceInfo = sourceInfo;
 		this.pts = pts;
 		this.leftOp = leftOp;
 		this.fieldBase = base;
 		this.star = s;
+		this.f = f;
 	}
 	
 	public boolean pointsTo(PointsToSet pts2,Local l2){
@@ -88,6 +91,8 @@ public class Source {
 			return false;
 		return true;
 	}
-	
+	public SootField getField(){
+		return f;
+	}
 	
 }

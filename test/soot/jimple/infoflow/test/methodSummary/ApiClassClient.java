@@ -119,6 +119,22 @@ public class ApiClassClient {
 		sink(tmp);
 	}
 	
+	public void apl3NoFlow(){
+		ApiClass api = new ApiClass();
+		Object s = source();
+		api.setNonPrimitiveData1APL3(s);
+		Object tmp = api.getNonPrimitiveData2AP3();
+		sink(tmp);
+	}
+	
+	public void apl3Flow(){
+		ApiClass api = new ApiClass();
+		Object s = source();
+		api.setNonPrimitiveData1APL3(s);
+		Object tmp = api.getNonPrimitiveData1APL3();
+		sink(tmp);
+	}
+	
 
 	public void sink(Object out) {
 		System.out.println(out);

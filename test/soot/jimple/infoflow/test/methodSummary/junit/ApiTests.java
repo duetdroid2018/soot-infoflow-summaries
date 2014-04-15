@@ -325,7 +325,7 @@ public class ApiTests extends ApiTestHelper {
 		Set<AbstractMethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsParaToParaFlow(res, 0, INT_TYPE,NO_ACCESS_PATH, 2, DATA_TYPE,DATACLASS_INT_FIELD));
 		assertTrue(containsParaToParaFlow(res, 1, OBJECT_TYPE,NO_ACCESS_PATH, 2, DATA_TYPE,DATACLASS_OBJECT_FIELD));
-		assertTrue(containsParaToParaFlow(res, 1, OBJECT_TYPE,NO_ACCESS_PATH, 3, DATA_TYPE,NO_ACCESS_PATH));
+		assertTrue(containsParaToParaFlow(res, 1, OBJECT_TYPE,NO_ACCESS_PATH, 3, DATA_TYPE,DATACLASS_OBJECT_FIELD));
 		// assertTrue(res.size() == 2);
 	}
 

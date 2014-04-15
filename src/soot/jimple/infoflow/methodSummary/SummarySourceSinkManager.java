@@ -1,27 +1,18 @@
 package soot.jimple.infoflow.methodSummary;
 
-import static soot.jimple.infoflow.methodSummary.data.impl.FlowSinkAndSourceFactory.createFlowFieldSource;
 import static soot.jimple.infoflow.methodSummary.data.impl.FlowSinkAndSourceFactory.createFlowParamterSource;
 import static soot.jimple.infoflow.methodSummary.data.impl.FlowSinkAndSourceFactory.createFlowThisSource;
 import heros.InterproceduralCFG;
 import heros.solver.IDESolver;
 
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import soot.Local;
-import soot.MethodOrMethodContext;
-import soot.PatchingChain;
 import soot.PointsToSet;
 import soot.Scene;
 import soot.SootClass;
@@ -29,7 +20,6 @@ import soot.SootField;
 import soot.SootMethod;
 import soot.Unit;
 import soot.Value;
-import soot.baf.Inst;
 import soot.jimple.DefinitionStmt;
 import soot.jimple.InstanceFieldRef;
 import soot.jimple.ParameterRef;
@@ -37,12 +27,10 @@ import soot.jimple.ReturnStmt;
 import soot.jimple.ReturnVoidStmt;
 import soot.jimple.Stmt;
 import soot.jimple.ThisRef;
-import soot.jimple.infoflow.methodSummary.data.IFlowSource;
 import soot.jimple.infoflow.methodSummary.data.MethodSummaries;
 import soot.jimple.infoflow.methodSummary.data.impl.Source;
 import soot.jimple.infoflow.source.ISourceSinkManager;
 import soot.jimple.infoflow.source.SourceInfo;
-import soot.jimple.toolkits.callgraph.ReachableMethods;
 
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
@@ -114,7 +102,7 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 			DefinitionStmt jstmt = (DefinitionStmt) sCallSite;
 			Value rightOp = jstmt.getRightOp();
 			if(rightOp instanceof InstanceFieldRef){
-				Source si = sModel.isSource((Local) ((InstanceFieldRef) rightOp).getBase());
+				Source si = sModel.isSource((Local) ((InstanceFieldRef) rightOp).getBase(),((InstanceFieldRef) rightOp).getField());
 				if(si != null){
 					System.out.println("source: " + sCallSite + " # " + m.getSignature());
 					return new SourceInfo(si.getStar(), si.getSourceInfo());

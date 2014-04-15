@@ -119,6 +119,14 @@ public class SummaryTaintWrapperTests {
 	public void fieldToParaFlow() {
 		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void fieldToParaFlow()>");
 	}
+	@Test
+	public void apl3NoFlow() {
+		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void apl3NoFlow()>");
+	}
+	@Test
+	public void apl3Flow() {
+		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void apl3Flow()>");
+	}
 
 	private void testFlowForMethod(String m) {
 		Infoflow iFlow = null;
