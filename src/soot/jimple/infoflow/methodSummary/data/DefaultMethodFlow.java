@@ -1,8 +1,7 @@
-package soot.jimple.infoflow.methodSummary.data.impl;
+package soot.jimple.infoflow.methodSummary.data;
 
-import soot.jimple.infoflow.methodSummary.data.AbstractMethodFlow;
-import soot.jimple.infoflow.methodSummary.data.IFlowSink;
-import soot.jimple.infoflow.methodSummary.data.IFlowSource;
+import soot.jimple.infoflow.methodSummary.sourceSink.IFlowSource;
+
 
 public class DefaultMethodFlow extends AbstractMethodFlow {
 	public String methodSig() {

@@ -12,6 +12,17 @@ public class FieldToReturn {
 	int[] intArray = new int[100];
 	Data dataField =  new Data();
 	
+	@SuppressWarnings("unchecked")
+	public
+	FieldToReturn(){
+		listField.add(new Object());
+		listField.add(new Object());
+		listField.add(new Integer(3));
+		listField.add(new Object());
+		listField.add(new Object());
+		listField.add(new Object());
+	}
+	
 	int fieldToReturn(){
 		return intField;
 	}
@@ -25,7 +36,7 @@ public class FieldToReturn {
 		return listField;
 	}
 	
-	Object fieldToReturn4(){
+	public Object fieldToReturn4(){
 		return listField.get(2);
 	}
 	

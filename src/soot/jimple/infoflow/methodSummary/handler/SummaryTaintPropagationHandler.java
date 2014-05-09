@@ -1,4 +1,4 @@
-package soot.jimple.infoflow.methodSummary.util;
+package soot.jimple.infoflow.methodSummary.handler;
 
 import java.util.Set;
 

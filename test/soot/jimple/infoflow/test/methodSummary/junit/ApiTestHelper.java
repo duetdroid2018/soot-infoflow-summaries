@@ -1,6 +1,6 @@
 package soot.jimple.infoflow.test.methodSummary.junit;
 
-public class ApiTestHelper extends TestHelper {
+public abstract class ApiTestHelper extends TestHelper {
 	protected final static String CLASS_SIG = "soot.jimple.infoflow.test.methodSummary.ApiClass";
 	
 	protected final static String DATA_TYPE = "soot.jimple.infoflow.test.methodSummary.Data";

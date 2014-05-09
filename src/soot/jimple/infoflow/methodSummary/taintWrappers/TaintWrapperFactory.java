@@ -7,7 +7,7 @@ import java.util.List;
 
 import javax.xml.stream.XMLStreamException;
 
-import soot.jimple.infoflow.methodSummary.data.impl.LazySummary;
+import soot.jimple.infoflow.methodSummary.sourceSink.LazySummary;
 import soot.jimple.infoflow.taintWrappers.ITaintPropagationWrapper;
 
 public class TaintWrapperFactory {

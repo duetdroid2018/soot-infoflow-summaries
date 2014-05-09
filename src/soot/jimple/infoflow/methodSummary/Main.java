@@ -53,9 +53,9 @@ class Main {
 				TreeMap.class, ConcurrentHashMap.class, /*String.class,*/ StringBuilder.class,
 				RuntimeException.class };
 
-		Class<?>[] javaCollection = {ApiClass.class};
+		Class<?>[] javaCollection = {LinkedList.class}; //{FieldToPara.class};
 		int runOption = 0;
-		boolean useOutPutFolder = false;
+		boolean useOutPutFolder = true;
 		String outFolder = "jdkSummaries";
 		boolean overWriteFile = true;
 		

@@ -1,0 +1,12 @@
+TODOs:
+	- complex parameter sources
+		e.g. LinkedList isn't working as source. I guess the problem is that the item is null
+		
+	- sources in method before real method create somehow a flow.
+	
+	- for class linkedlist we get as sources for linkedlist.get()
+		- node.item
+		- node.next.item
+		- node.next.next.item
+		...
+		upto our apl

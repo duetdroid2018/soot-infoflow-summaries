@@ -1,7 +1,5 @@
-package soot.jimple.infoflow.methodSummary;
+package soot.jimple.infoflow.methodSummary.sourceSinkManager;
 
-import static soot.jimple.infoflow.methodSummary.data.impl.FlowSinkAndSourceFactory.createFlowParamterSource;
-import static soot.jimple.infoflow.methodSummary.data.impl.FlowSinkAndSourceFactory.createFlowThisSource;
 import heros.InterproceduralCFG;
 import heros.solver.IDESolver;
 
@@ -13,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import soot.Local;
-import soot.PointsToSet;
 import soot.Scene;
 import soot.SootClass;
 import soot.SootField;
@@ -28,7 +25,7 @@ import soot.jimple.ReturnVoidStmt;
 import soot.jimple.Stmt;
 import soot.jimple.ThisRef;
 import soot.jimple.infoflow.methodSummary.data.MethodSummaries;
-import soot.jimple.infoflow.methodSummary.data.impl.Source;
+import soot.jimple.infoflow.methodSummary.sourceSinkFactory.SourceSinkFactory;
 import soot.jimple.infoflow.source.ISourceSinkManager;
 import soot.jimple.infoflow.source.SourceInfo;
 
@@ -59,77 +56,69 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 	private final String methodSig;
 	
 	private SootMethod method = null;
-	private PointsToSet ptsThis = null;
 	private final int summaryAccessPathLength;
 	private SourceModel sModel = null;
 	
-	
-	public SummarySourceSinkManager(String mSig) {
+	public SummarySourceSinkManager(String mSig, int apl) {
 		this.methodSig = mSig;
-		summaryAccessPathLength = 5;
+		summaryAccessPathLength = apl;
 		
 	}
 
-	public SummarySourceSinkManager(String method, MethodSummaries flows) {
+	public SummarySourceSinkManager(String method, MethodSummaries flows,int  apl) {
 		this.methodSig = method;
-		summaryAccessPathLength = 5;
+		summaryAccessPathLength = apl;
 	}
 
 
 	
 	@Override
 	public SourceInfo getSourceInfo(Stmt sCallSite, InterproceduralCFG<Unit, SootMethod> cfg) {
-		if (method == null) {
+		if(method == null && sModel == null){
 			method = Scene.v().getMethod(methodSig);
-			if (!method.isStatic())
-				ptsThis = Scene.v().getPointsToAnalysis().reachingObjects
-						(method.getActiveBody().getThisLocal());
-		}
-		if(sModel == null){
 			sModel = new SourceModel(method, summaryAccessPathLength, getClassFields());
 			System.out.println(sModel.toString());
-			System.out.println();
 		}
 		
-		SootMethod m = cfg.getMethodOf(sCallSite);
-		if(m.toString().contains("dataParameter3"))
-			System.out.println();
-		if (m.toString().equals("<dummyMainClass: void dummyMainMethod()>"))
+		SootMethod currentMethod = cfg.getMethodOf(sCallSite);
+		if(currentMethod.toString().contains("get(") ){
+			int a ;
+			a = 3;
+		}
+			 
+		
+		// If this is the dummy main method, we skip it
+		if (currentMethod.toString().contains("<dummyMainClass: void dummyMainMethod()>"))
 			return null;
 
-		
+		//check if we have a source with apl > 0
 		if (sCallSite instanceof DefinitionStmt) {
 			DefinitionStmt jstmt = (DefinitionStmt) sCallSite;
 			Value rightOp = jstmt.getRightOp();
 			if(rightOp instanceof InstanceFieldRef){
-				Source si = sModel.isSource((Local) ((InstanceFieldRef) rightOp).getBase(),((InstanceFieldRef) rightOp).getField());
-				if(si != null){
-					System.out.println("source: " + sCallSite + " # " + m.getSignature());
-					return new SourceInfo(si.getStar(), si.getSourceInfo());
+				SourceData si = sModel.isSource((Local) ((InstanceFieldRef) rightOp).getBase(),((InstanceFieldRef) rightOp).getField());
+				if(si!=null){
+					System.out.println("source: " + sCallSite + " " + currentMethod.getSignature());
+					return new SourceInfo(si.isTaintSubFields(), si.getSourceInfo());
 				}
-				
+					
 			}
 		}
-
-//		// If this is the dummy main method, we skip it
-		
+	
+		//check if we have  asource with apl = 0 (this or paramter source)
 		if (sCallSite instanceof DefinitionStmt) {
 			DefinitionStmt jstmt = (DefinitionStmt) sCallSite;
 			Value rightOp = jstmt.getRightOp();
-					
-			
-			SootMethod currentMethod = cfg.getMethodOf(sCallSite);
-
 			// Check for direct parameter accesses
 			if (currentMethod == method && rightOp instanceof ParameterRef) {
 				ParameterRef pref = (ParameterRef) rightOp;
-				logger.debug("source: " + sCallSite + " " + m.getSignature());
-				System.out.println("source: " + sCallSite + " " + m.getSignature());
-				return new SourceInfo(false, createFlowParamterSource(method, pref.getIndex(), null));
+				logger.debug("source: " + sCallSite + " " + currentMethod.getSignature());
+				System.out.println("source: " + sCallSite + " " + currentMethod.getSignature());
+				return new SourceInfo(false, SourceSinkFactory.createParamterSource(method, pref.getIndex(), null));
 			}
 			else if (currentMethod == method && rightOp instanceof ThisRef) {
-				System.out.println("source: (this)" + sCallSite + " " + m.getSignature());
-				return new SourceInfo(false, createFlowThisSource());
+				System.out.println("source: (this)" + sCallSite + " " + currentMethod.getSignature());
+				return new SourceInfo(false, SourceSinkFactory.createThisSource());
 			}
 		}
 		return null;

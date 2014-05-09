@@ -1,4 +1,4 @@
-package soot.jimple.infoflow.methodSummary.data.impl;
+package soot.jimple.infoflow.methodSummary.data;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -13,17 +13,17 @@ public class SummaryAccessPath {
 	public SummaryAccessPath(){
 		
 	}
-	public SummaryAccessPath(SootField s) {
+	public SummaryAccessPath(String s) {
 		if(s != null)
 			ap.add(s.toString());
 	}
-	public SummaryAccessPath(List<SootField> s) {
+	public SummaryAccessPath(List<String> s) {
 		if(s != null){
-			for(SootField f : s)
+			for(String f : s)
 				ap.add(f.toString());
 		}
-			
 	}
+	
 	
 	public int getAPLength(){
 		return ap.size();
@@ -42,10 +42,6 @@ public class SummaryAccessPath {
 		return ap;
 	}
 	
-	//creates an accesspath from xml file
-	public SummaryAccessPath(String s){
-		ap.addAll(Arrays.asList(s.split(" ")));
-	}
 	
 	
 	public boolean hasAP(){

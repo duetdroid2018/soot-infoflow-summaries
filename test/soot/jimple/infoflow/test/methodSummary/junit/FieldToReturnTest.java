@@ -1,155 +1,198 @@
 package soot.jimple.infoflow.test.methodSummary.junit;
 
 import static org.junit.Assert.assertTrue;
+import static soot.jimple.infoflow.methodSummary.data.SourceSinkType.Field;
+import static soot.jimple.infoflow.methodSummary.data.SourceSinkType.Parameter;
+import static soot.jimple.infoflow.methodSummary.data.SourceSinkType.Return;
 
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import org.junit.Ignore;
 import org.junit.Test;
 
 import soot.jimple.infoflow.methodSummary.SummaryGenerator;
 import soot.jimple.infoflow.methodSummary.data.AbstractMethodFlow;
+import soot.jimple.infoflow.methodSummary.data.SourceSinkType;
+import soot.jimple.infoflow.test.methodSummary.ArbitraryAccessPath;
 
 public class FieldToReturnTest extends TestHelper{
 	protected static Map<String, Set<AbstractMethodFlow>> flows;
 	static boolean executeSummary = true;
 	static final String className = "soot.jimple.infoflow.test.methodSummary.FieldToReturn"; 
-
+	static final String INT_FIELD = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: int intField>";
+	static final String OBJ_FIELD = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.lang.Object obField>";
+	static final String LIST_FIELD = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.util.LinkedList listField>";
+	static final String OBJ_ARRAY = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.lang.Object[] arrayField>";
+	static final String DATA_FIELD = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: soot.jimple.infoflow.test.methodSummary.Data dataField>";
+	static final String INT_ARRAY = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: int[] intArray>";
 
 	@Test(timeout = 100000)
 	public void fieldToReturn1() {
-		SummaryGenerator s = new SummaryGenerator();
+		SummaryGenerator s = summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: int fieldToReturn()>";
 		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
-		assertTrue(containsFieldToReturn(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToReturn: int intField>",NO_ACCESS_PATH,NO_ACCESS_PATH));
+		assertTrue(containsFlow(flow, Field,new String[] {INT_FIELD}, Return,new String[] {}));
+		//assertTrue(containsFieldToReturn(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToReturn: int intField>",NO_ACCESS_PATH,NO_ACCESS_PATH));
 		assertTrue(flow.size() == 1);
 	}
 
 	@Test(timeout = 100000)
 	public void fieldToReturn2() {
-		SummaryGenerator s = new SummaryGenerator();
+		SummaryGenerator s = summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.lang.Object fieldToReturn2()>";
 		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
-		assertTrue(containsFieldToReturn(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.lang.Object obField>",NO_ACCESS_PATH,NO_ACCESS_PATH));
+		assertTrue(containsFlow(flow, Field,new String[] {OBJ_FIELD}, Return,new String[] {}));
+		//assertTrue(containsFieldToReturn(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.lang.Object obField>",NO_ACCESS_PATH,NO_ACCESS_PATH));
 		assertTrue(flow.size() == 1);
 	}
 
 	@Test(timeout = 100000)
 	public void fieldToReturn3() {
-		SummaryGenerator s = new SummaryGenerator();
+		SummaryGenerator s = summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.util.List fieldToReturn3()>";
 		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
-		assertTrue(containsFieldToReturn(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.util.LinkedList listField>",NO_ACCESS_PATH,NO_ACCESS_PATH));
+		assertTrue(containsFlow(flow, Field,new String[] {LIST_FIELD}, Return,new String[] {}));
+		//assertTrue(containsFieldToReturn(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.util.LinkedList listField>",NO_ACCESS_PATH,NO_ACCESS_PATH));
+		assertTrue(flow.size() == 1);
+	}
+
+	
+	@Test//(timeout = 100000)
+	public void NotWfieldToReturn4() {
+		SummaryGenerator s = summaryGenerator();
+		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.lang.Object fieldToReturn4()>";
+		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		assertTrue(containsFlow(flow, Field,new String[] {LIST_FIELD,"<java.util.LinkedList: java.util.LinkedList$Node last>","<java.util.LinkedList$Node: java.lang.Object item>"}, Return,new String[] {}));
+		//assertTrue(containsFieldToReturn(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.util.LinkedList listField>",NO_ACCESS_PATH,NO_ACCESS_PATH));
+		//assertTrue(containsFieldToReturn(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.util.LinkedList listField>",NO_ACCESS_PATH,NO_ACCESS_PATH));
+		
 		assertTrue(flow.size() == 1);
 	}
 
 	@Test(timeout = 100000)
-	public void NotWfieldToReturn4() {
-		SummaryGenerator s = new SummaryGenerator();
-		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.lang.Object fieldToReturn4()>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
-		assertTrue(containsFieldToReturn(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.util.LinkedList listField>",NO_ACCESS_PATH,NO_ACCESS_PATH));
-		assertTrue(containsFieldToReturn(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.util.LinkedList listField>",NO_ACCESS_PATH,NO_ACCESS_PATH));
-		assertTrue(flow.size() == 2);
-	}
-
-	@Test(timeout = 100000)
 	public void fieldToReturn5() {
-		SummaryGenerator s = new SummaryGenerator();
+		SummaryGenerator s = summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.lang.Object fieldToReturn5()>";
 		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
-		assertTrue(containsFieldToReturn(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.lang.Object[] arrayField>",NO_ACCESS_PATH,NO_ACCESS_PATH));
+		assertTrue(containsFlow(flow, Field,new String[] {OBJ_ARRAY}, Return,new String[] {}));
+		//assertTrue(containsFieldToReturn(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.lang.Object[] arrayField>",NO_ACCESS_PATH,NO_ACCESS_PATH));
 		assertTrue(flow.size() == 1);
 	}
 
 	@Test(timeout = 100000)
 	public void fieldToReturn5Rec() {
-		SummaryGenerator s = new SummaryGenerator();
+		SummaryGenerator s = summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.lang.Object fieldToReturn5Rec(int)>";
 		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
-		assertTrue(containsFieldToReturn(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.lang.Object[] arrayField>",NO_ACCESS_PATH,NO_ACCESS_PATH));
-		//assertTrue(flow.size() == 2); //TODO readd
+		assertTrue(containsFlow(flow, Field,new String[] {OBJ_ARRAY}, Return,new String[] {}));
+		//assertTrue(containsFieldToReturn(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.lang.Object[] arrayField>",NO_ACCESS_PATH,NO_ACCESS_PATH));
+		assertTrue(flow.size() ==1);
 	}
 
 	@Test(timeout = 100000)
 	public void fieldToReturn6() {
-		SummaryGenerator s = new SummaryGenerator();
+		SummaryGenerator s = summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.lang.Object[] fieldToReturn6()>";
 		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
-		assertTrue(containsFieldToReturn(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.lang.Object[] arrayField>",NO_ACCESS_PATH,NO_ACCESS_PATH));
+		assertTrue(containsFlow(flow, Field,new String[] {OBJ_ARRAY}, Return,new String[] {}));
+		//assertTrue(containsFieldToReturn(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.lang.Object[] arrayField>",NO_ACCESS_PATH,NO_ACCESS_PATH));
 		assertTrue(flow.size() == 1);
 	}
 
 	@Test(timeout = 100000)
 	public void fieldToReturn7() {
-		SummaryGenerator s = new SummaryGenerator();
+		SummaryGenerator s = summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: int fieldToReturn7()>";
 		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
-		assertTrue(containsFieldToReturn(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToReturn: int[] intArray>",NO_ACCESS_PATH,NO_ACCESS_PATH));
+		assertTrue(containsFlow(flow, Field,new String[] {INT_ARRAY}, Return,new String[] {}));
+		//assertTrue(containsFieldToReturn(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToReturn: int[] intArray>",NO_ACCESS_PATH,NO_ACCESS_PATH));
 		assertTrue(flow.size() == 1);
 	}
 
 	@Test(timeout = 100000)
 	public void fieldToReturn8() {
-		SummaryGenerator s = new SummaryGenerator();
+		SummaryGenerator s = summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: int[] fieldToReturn8()>";
 		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
-		assertTrue(containsFieldToReturn(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToReturn: int[] intArray>",NO_ACCESS_PATH,NO_ACCESS_PATH));
+		assertTrue(containsFlow(flow, Field,new String[] {INT_ARRAY}, Return,new String[] {}));
+		//assertTrue(containsFieldToReturn(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToReturn: int[] intArray>",NO_ACCESS_PATH,NO_ACCESS_PATH));
 		assertTrue(flow.size() == 1);
 	}
 
 	@Test(timeout = 100000)
 	public void fieldToReturn9() {
-		SummaryGenerator s = new SummaryGenerator();
+		SummaryGenerator s = summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: int fieldToReturn9()>";
 		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
-		assertTrue(containsFieldToReturn(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToReturn: soot.jimple.infoflow.test.methodSummary.Data dataField>",DATACLASS_INT_FIELD,NO_ACCESS_PATH));
+		assertTrue(containsFlow(flow, Field,new String[] {DATA_FIELD,DATACLASS_INT_FIELD}, Return,new String[] {}));
+		//assertTrue(containsFieldToReturn(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToReturn: soot.jimple.infoflow.test.methodSummary.Data dataField>",DATACLASS_INT_FIELD,NO_ACCESS_PATH));
 		assertTrue(flow.size() == 1);
 	}
 
 	@Test(timeout = 100000)
 	public void fieldToReturn10() {
-		SummaryGenerator s = new SummaryGenerator();
+		SummaryGenerator s = summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.lang.Object fieldToReturn10()>";
 		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
-		assertTrue(containsFieldToReturn(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToReturn: soot.jimple.infoflow.test.methodSummary.Data dataField>",DATACLASS_OBJECT_FIELD,NO_ACCESS_PATH));
+		assertTrue(containsFlow(flow, Field,new String[] {DATA_FIELD,DATACLASS_OBJECT_FIELD}, Return,new String[] {}));
+		//assertTrue(containsFieldToReturn(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToReturn: soot.jimple.infoflow.test.methodSummary.Data dataField>",DATACLASS_OBJECT_FIELD,NO_ACCESS_PATH));
 		assertTrue(flow.size() == 1);
 	}
 
 	@Test(timeout = 100000)
 	public void fieldToReturn11() {
-		SummaryGenerator s = new SummaryGenerator();
+		SummaryGenerator s = summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.lang.String fieldToReturn11()>";
 		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
-		assertTrue(containsFieldToReturn(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToReturn: soot.jimple.infoflow.test.methodSummary.Data dataField>",DATACLASS_STRING_FIELD,NO_ACCESS_PATH));
-	//	assertTrue(flow.size() == 3);
+		assertTrue(containsFlow(flow, Field,new String[] {DATA_FIELD,DATACLASS_STRING_FIELD}, Return,new String[] {}));
+		//assertTrue(containsFieldToReturn(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToReturn: soot.jimple.infoflow.test.methodSummary.Data dataField>",DATACLASS_STRING_FIELD,NO_ACCESS_PATH));
+		assertTrue(flow.size() == 1);
 	}
 	
 	@Test(timeout = 100000)
 	public void fieldToReturn12() {
-		SummaryGenerator s = new SummaryGenerator();
+		SummaryGenerator s = summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: "+DATA+" fieldToReturn12()>";
 		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
-		assertTrue(containsFieldToReturn(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToReturn: soot.jimple.infoflow.test.methodSummary.Data dataField>",DATACLASS_INT_FIELD,DATACLASS_INT_FIELD));
+		assertTrue(containsFlow(flow, Field,new String[] {DATA_FIELD,DATACLASS_INT_FIELD}, Return,new String[] {DATACLASS_INT_FIELD}));
+		//assertTrue(containsFieldToReturn(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToReturn: soot.jimple.infoflow.test.methodSummary.Data dataField>",DATACLASS_INT_FIELD,DATACLASS_INT_FIELD));
 		assertTrue(flow.size() == 1);
 	}
 	
 	@Test(timeout = 100000)
 	public void fieldToReturn13() {
-		SummaryGenerator s = new SummaryGenerator();
+		SummaryGenerator s = summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: "+DATA+" fieldToReturn13()>";
 		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
-		assertTrue(containsFieldToReturn(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToReturn: soot.jimple.infoflow.test.methodSummary.Data dataField>",DATACLASS_OBJECT_FIELD,DATACLASS_OBJECT_FIELD));
+		assertTrue(containsFlow(flow, Field,new String[] {DATA_FIELD,DATACLASS_OBJECT_FIELD}, Return,new String[] {DATACLASS_OBJECT_FIELD}));
+		//assertTrue(containsFieldToReturn(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToReturn: soot.jimple.infoflow.test.methodSummary.Data dataField>",DATACLASS_OBJECT_FIELD,DATACLASS_OBJECT_FIELD));
 		assertTrue(flow.size() == 1);
 	}
 	
 	@Test(timeout = 100000)
 	public void fieldToReturn14() {
-		SummaryGenerator s = new SummaryGenerator();
+		SummaryGenerator s = summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: "+DATA+" fieldToReturn14()>";
 		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
-		assertTrue(containsFieldToReturn(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToReturn: int intField>",NO_ACCESS_PATH,DATACLASS_INT_FIELD));
+		assertTrue(containsFlow(flow, Field,new String[] {INT_FIELD}, Return,new String[] {DATACLASS_INT_FIELD}));
+		//assertTrue(containsFieldToReturn(flow,"<soot.jimple.infoflow.test.methodSummary.FieldToReturn: int intField>",NO_ACCESS_PATH,DATACLASS_INT_FIELD));
 		assertTrue(flow.size() == 1);
+	}
+	@Override
+	Class getClazz() {
+		return FieldToReturnTest.class;
+	}
+	
+	private SummaryGenerator summaryGenerator() {
+		SummaryGenerator sg = new SummaryGenerator() ;
+		
+		List<String> sub = new LinkedList<String>();
+		sub.add("java.util.LinkedList");
+		sg.setSubstitutedWith(sub);
+		return sg;  
 	}
 }

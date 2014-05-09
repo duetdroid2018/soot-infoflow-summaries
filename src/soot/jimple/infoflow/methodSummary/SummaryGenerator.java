@@ -2,14 +2,9 @@ package soot.jimple.infoflow.methodSummary;
 
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Method;
-import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
-import soot.Scene;
-import soot.SootMethod;
-import soot.Unit;
 import soot.jimple.infoflow.IInfoflow.CallgraphAlgorithm;
 import soot.jimple.infoflow.Infoflow;
 import soot.jimple.infoflow.InfoflowResults;
@@ -18,11 +13,11 @@ import soot.jimple.infoflow.entryPointCreators.BaseEntryPointCreator;
 import soot.jimple.infoflow.entryPointCreators.DefaultEntryPointCreator;
 import soot.jimple.infoflow.handlers.ResultsAvailableHandler;
 import soot.jimple.infoflow.methodSummary.data.MethodSummaries;
-import soot.jimple.infoflow.methodSummary.util.InfoflowResultProcessor;
-import soot.jimple.infoflow.methodSummary.util.SummaryTaintPropagationHandler;
+import soot.jimple.infoflow.methodSummary.handler.SummaryTaintPropagationHandler;
+import soot.jimple.infoflow.methodSummary.postProcessor.InfoflowResultProcessor;
+import soot.jimple.infoflow.methodSummary.sourceSinkManager.SummarySourceSinkManager;
 import soot.jimple.infoflow.solver.IInfoflowCFG;
 import soot.jimple.infoflow.taintWrappers.ITaintPropagationWrapper;
-import soot.jimple.toolkits.ide.icfg.BiDiInterproceduralCFG;
 
 /**
  * Class for generating library summaries
@@ -34,6 +29,7 @@ public class SummaryGenerator {
 
 	protected int accessPathLength = 5;
 	protected int summaryAPLength = accessPathLength - 1;
+	protected boolean ignoreFlowsInSystemPackages = false;
 	protected boolean enableImplicitFlows = false;
 	protected boolean enableExceptionTracking = false;
 	protected boolean enableStaticFieldTracking = false;
@@ -44,20 +40,22 @@ public class SummaryGenerator {
 	protected IInfoflowConfig config;
 	protected String path;
 	protected List<String> substitutedWith = new LinkedList<String>();
+	private boolean disableFlowOverMain = true;
+	private boolean analyseMethodsTogether = true;
 
 	public SummaryGenerator() {
-		substitutedWith.add("java.util.LinkedList");
-		substitutedWith.add("java.util.HashMap");
+		//substitutedWith.add("java.util.LinkedList");
+		//substitutedWith.add("java.util.HashMap");
 		// substitutedWith.add("java.util.TreeMap");
 		initDefPath();
 	}
 
 	public MethodSummaries createMethodSummary(final String m) {
-		return createMethodSummary(m, null, new SummarySourceSinkManager(m));
+		return createMethodSummary(m, null, new SummarySourceSinkManager(m, summaryAPLength));
 	}
 
 	public MethodSummaries createMethodSummary(final String m, List<String> mDependencies) {
-		return createMethodSummary(m, mDependencies, new SummarySourceSinkManager(m));
+		return createMethodSummary(m, mDependencies, new SummarySourceSinkManager(m,summaryAPLength));
 	}
 
 	private MethodSummaries createMethodSummary(final String sig, List<String> mDependencies,
@@ -68,16 +66,26 @@ public class SummaryGenerator {
 		final SummaryTaintPropagationHandler listener = new SummaryTaintPropagationHandler(sig);
 		infoflow.addTaintPropagationHandler(listener);
 		infoflow.addResultsAvailableHandler(new ResultsAvailableHandler() {
-			
+
 			@Override
-			public void onResultsAvailable(BiDiInterproceduralCFG<Unit, SootMethod> cfg, InfoflowResults results) {
+			public void onResultsAvailable(IInfoflowCFG cfg, InfoflowResults results) {
 				InfoflowResultProcessor processor = new InfoflowResultProcessor(listener.getResult(), cfg, sig,
 						manager, summaryAPLength);
 				summaries.merge(processor.process());
-				
 			}
 		});
-		infoflow.computeInfoflow(null, path, createEntryPoint(), Collections.singletonList(sig), manager);
+
+		List<String> ms = new LinkedList<String>();
+		if (analyseMethodsTogether ) {
+			if (mDependencies != null) {
+				for (String s : mDependencies) {
+					if (!s.equals(sig))
+						ms.add(s);
+				}
+			}
+		}
+		ms.add(sig);
+		infoflow.computeInfoflow(null, path, createEntryPoint(), ms, manager);
 		return summaries;
 	}
 
@@ -98,6 +106,9 @@ public class SummaryGenerator {
 		iFlow.setFlowSensitiveAliasing(flowSensitiveAliasing);
 		iFlow.setTaintWrapper(taintWrapper);
 		iFlow.setCallgraphAlgorithm(cfgAlgo);
+		iFlow.setDisableFlowOverDummyMain(disableFlowOverMain);
+		iFlow.setIgnoreFlowsInSystemPackages(ignoreFlowsInSystemPackages);
+		
 		if (config == null) {
 			iFlow.setSootConfig(new DefaultSummaryConfig());
 		} else {

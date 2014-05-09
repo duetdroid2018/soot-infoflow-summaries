@@ -1,5 +1,7 @@
 package soot.jimple.infoflow.methodSummary.data;
 
+import soot.jimple.infoflow.methodSummary.sourceSink.IFlowSource;
+
 public abstract class AbstractMethodFlow {
 
 	abstract public IFlowSource source();

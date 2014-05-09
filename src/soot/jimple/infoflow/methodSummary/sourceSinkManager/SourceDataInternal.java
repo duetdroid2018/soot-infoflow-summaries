@@ -1,33 +1,41 @@
-package soot.jimple.infoflow.methodSummary.data.impl;
+package soot.jimple.infoflow.methodSummary.sourceSinkManager;
 
 import soot.Local;
 import soot.PointsToSet;
 import soot.SootField;
-import soot.jimple.infoflow.methodSummary.data.IFlowSource;
+import soot.jimple.infoflow.methodSummary.data.DefaultFlowSource;
 
-public class Source {
-	private FlowSourceForSummary sourceInfo;
+/**
+ * Source data class which save the information
+ * which are needed for the Summaries (sourceInfo) 
+ * and additional contains the information to identify
+ * sources which contains this sources as base.
+ */
+class SourceDataInternal {
+	
+	private DefaultFlowSource sourceInfo;
+	//points to set of x where x.field
 	private PointsToSet pts;
 	private Local leftOp;
 	private Local fieldBase;
-	private SootField f;
-	private boolean star;
+	private SootField field;
+	private boolean taintSubFields;
 	
-	public Source(FlowSourceForSummary sourceInfo,Local base, Local leftOp, SootField f,PointsToSet pts, boolean s) {
+	public SourceDataInternal(DefaultFlowSource sourceInfo,Local base, Local leftOp, SootField f,PointsToSet pts, boolean s) {
 		super();
 		this.sourceInfo = sourceInfo;
 		this.pts = pts;
 		this.leftOp = leftOp;
 		this.fieldBase = base;
-		this.star = s;
-		this.f = f;
+		this.taintSubFields = s;
+		this.field = f;
 	}
 	
 	public boolean pointsTo(PointsToSet pts2,Local l2){
 		return leftOp.equals(l2) || pts.hasNonEmptyIntersection(pts2);
 	} 
 	
-	public FlowSourceForSummary getSourceInfo(){
+	public DefaultFlowSource getSourceInfo(){
 		return sourceInfo;
 	}
 	
@@ -35,7 +43,7 @@ public class Source {
 		return leftOp;
 	}
 	public boolean getStar(){
-		return this.star;
+		return this.taintSubFields;
 	}
 	public Local getFieldBase(){
 		return fieldBase;
@@ -43,7 +51,7 @@ public class Source {
 	
 	@Override
 	public String toString(){
-		return leftOp.toString();
+		return leftOp.toString() + " = " + fieldBase.toString() +"." + field.toString() + "  ::  " + sourceInfo.toString();
 	}
 
 	@Override
@@ -54,7 +62,7 @@ public class Source {
 		result = prime * result + ((leftOp == null) ? 0 : leftOp.hashCode());
 		result = prime * result + ((pts == null) ? 0 : pts.hashCode());
 		result = prime * result + ((sourceInfo == null) ? 0 : sourceInfo.hashCode());
-		result = prime * result + (star ? 1231 : 1237);
+		result = prime * result + (taintSubFields ? 1231 : 1237);
 		return result;
 	}
 
@@ -66,7 +74,7 @@ public class Source {
 			return false;
 		if (getClass() != obj.getClass())
 			return false;
-		Source other = (Source) obj;
+		SourceDataInternal other = (SourceDataInternal) obj;
 		if (fieldBase == null) {
 			if (other.fieldBase != null)
 				return false;
@@ -87,12 +95,16 @@ public class Source {
 				return false;
 		} else if (!sourceInfo.equals(other.sourceInfo))
 			return false;
-		if (star != other.star)
+		if (taintSubFields != other.taintSubFields)
 			return false;
 		return true;
 	}
 	public SootField getField(){
-		return f;
+		return field;
+	}
+
+	public boolean isTaintSubFields() {
+		return taintSubFields;
 	}
 	
 }

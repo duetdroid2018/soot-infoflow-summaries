@@ -66,10 +66,10 @@ public class ParaToField {
 		intField = d.getValue();
 		dataField.setValue(d.value);
 		intArray[5] = d.value;
-		obField = list.get(1);
+		obField = list.get(0);
 		dataField.data = d.getO();
 		arrayField[3] = d.data;
-		listField.add(list.get(3));
+		listField.add(list.get(0));
 	}
 	
 	void setIntArray(Data d, List<Object> list) {

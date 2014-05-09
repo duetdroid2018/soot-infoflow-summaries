@@ -1,7 +1,7 @@
 package soot.jimple.infoflow.test.methodSummary;
 
 public class ArbitraryAccessPath {
-	Data nullData;
+	Data nullData ;
 	Data data = new Data();
 	
 	
@@ -44,6 +44,14 @@ public class ArbitraryAccessPath {
 	
 	public void setObject(Object d) {
 		this.data.d.d.d.data = d;
+	}
+
+	public void setNullData(Data nullData) {
+		this.nullData = nullData;
+	}
+
+	public void setData(Data data) {
+		this.data = data;
 	}
 	
 	

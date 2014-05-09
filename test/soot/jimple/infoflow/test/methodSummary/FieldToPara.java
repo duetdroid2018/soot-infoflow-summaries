@@ -1,5 +1,6 @@
 package soot.jimple.infoflow.test.methodSummary;
 
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -7,14 +8,16 @@ public class FieldToPara {
 	int intField = 1;
 	Object obField = new Object();
 	@SuppressWarnings("rawtypes")
-	LinkedList listField = new LinkedList();
+	List listField = new ArrayList();
 	Object[] arrayField = new Object[100];
 	int[] intArray = new int[100];
 	public Data dataField = new Data();
 	private ApiInternalClass apiInternal = new ApiInternalClass();
 	
+	
+	@SuppressWarnings("unchecked")
 	public FieldToPara(){
-		listField.add(new Object());
+		listField.add("Tainted");
 	}
 	
 	void objArrayParameter(Object[] o){
@@ -47,7 +50,14 @@ public class FieldToPara {
 		d.setO(arrayField[2]);
 	}
 	void dataParameter3(Data d){
-		d.data = listField.get(0);
+		//d.data = listField.get(0);
+		d.setO(listField.get(0));
+		
+	}
+	public Object dataParameter3333(Data d){
+		//d.data = listField.get(0);
+		return listField.get(0);
+		
 	}
 	void dataParameter4(Data d){
 		d.setO(dataField.data);
@@ -103,6 +113,10 @@ public class FieldToPara {
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	void listParameter6(List list){
 		list.add(dataField.data);
+	}
+
+	public void setListField(ArrayList listField) {
+		this.listField = listField;
 	}
 	
 	

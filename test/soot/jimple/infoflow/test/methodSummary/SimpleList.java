@@ -5,8 +5,11 @@ package soot.jimple.infoflow.test.methodSummary;
 public class SimpleList<E> {
 	Data first = null;
 	Object keySet;
+	int intField;
 	private static class Node<E> {
 		E item;
+		
+		
 	}
 	
 	public Object get() {
@@ -32,9 +35,37 @@ public class SimpleList<E> {
 		return first;
 	}
 	
-    public Object keySet() {
+	
+    public Data getFirst() {
+		return first;
+	}
+
+	public void setFirst(Data first) {
+		this.first = first;
+	}
+
+	public Object getKeySet() {
+		return keySet;
+	}
+
+	public void setKeySet(Object keySet) {
+		this.keySet = keySet;
+	}
+
+	public Object keySet() {
     	Object ks = keySet;
         return (ks != null ? ks : (keySet = new Object()));
     }
 
+	public int getIntField() {
+		return intField;
+	}
+
+	public void setIntField(int intField) {
+		this.intField = intField;
+		first.setData(intField);
+	}
+
+	
+	
 }

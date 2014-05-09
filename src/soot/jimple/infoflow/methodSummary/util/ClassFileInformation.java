@@ -11,10 +11,10 @@ public class ClassFileInformation {
 	 * 
 	 * @return all method signatures of class clazz in a soot processable format
 	 */
-	public static List<String> getMethodSignature(Class<?> clazz, Class<?> startClazz) {
+	public static List<String> getMethodSignature(Class<?> clazz) {
 		List<String> res = new LinkedList<String>();
 		for (Class<?> c : clazz.getDeclaredClasses()) {
-			res.addAll(getMethodSignature(c, startClazz));
+			res.addAll(getMethodSignature(c));
 		}
 		Method[] methods = clazz.getDeclaredMethods();
 
