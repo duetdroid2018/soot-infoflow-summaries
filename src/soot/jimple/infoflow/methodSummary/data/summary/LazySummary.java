@@ -1,4 +1,4 @@
-package soot.jimple.infoflow.methodSummary.data;
+package soot.jimple.infoflow.methodSummary.data.summary;
 
 import java.io.File;
 import java.util.Arrays;
@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Set;
 
 import soot.SootMethod;
+import soot.jimple.infoflow.methodSummary.data.MethodFlow;
 import soot.jimple.infoflow.methodSummary.xml.ISummaryReader;
 import soot.jimple.infoflow.methodSummary.xml.XMLReader;
 
@@ -59,7 +60,7 @@ public class LazySummary {
 		return false;
 	}
 
-	public Set<AbstractMethodFlow> getMethodFlows(SootMethod method) {
+	public Set<MethodFlow> getMethodFlows(SootMethod method) {
 		String clazz = method.getDeclaringClass().getName();
 		if (loadableClasses.contains(clazz)) {
 			loadClass(clazz);

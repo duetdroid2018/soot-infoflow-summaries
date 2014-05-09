@@ -1,11 +1,10 @@
 package soot.jimple.infoflow.methodSummary.postProcessor;
 
+import static soot.jimple.infoflow.methodSummary.data.factory.SourceSinkFactory.createFieldSink;
+import static soot.jimple.infoflow.methodSummary.data.factory.SourceSinkFactory.createParamterSink;
+import static soot.jimple.infoflow.methodSummary.data.factory.SourceSinkFactory.createReturnSink;
 import heros.InterproceduralCFG;
-import static soot.jimple.infoflow.methodSummary.sourceSinkFactory.SourceSinkFactory.createFieldSink;
-import static soot.jimple.infoflow.methodSummary.sourceSinkFactory.SourceSinkFactory.createParamterSink;
-import static soot.jimple.infoflow.methodSummary.sourceSinkFactory.SourceSinkFactory.createReturnSink;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
@@ -28,27 +27,28 @@ import soot.jimple.NullConstant;
 import soot.jimple.infoflow.InfoflowResults.SourceInfo;
 import soot.jimple.infoflow.data.Abstraction;
 import soot.jimple.infoflow.data.AbstractionAtSink;
+import soot.jimple.infoflow.data.AccessPath;
 import soot.jimple.infoflow.data.pathBuilders.DefaultPathBuilderFactory;
 import soot.jimple.infoflow.data.pathBuilders.IAbstractionPathBuilder;
-import soot.jimple.infoflow.methodSummary.data.AbstractMethodFlow;
-import soot.jimple.infoflow.methodSummary.data.DefaultMethodFlow;
-import soot.jimple.infoflow.methodSummary.data.IFlowSink;
-import soot.jimple.infoflow.methodSummary.data.IFlowSource;
-import soot.jimple.infoflow.methodSummary.data.MethodSummaries;
-import soot.jimple.infoflow.methodSummary.sourceSinkManager.SummarySourceSinkManager;
+import soot.jimple.infoflow.methodSummary.data.FlowSink;
+import soot.jimple.infoflow.methodSummary.data.FlowSource;
+import soot.jimple.infoflow.methodSummary.data.MethodFlow;
+import soot.jimple.infoflow.methodSummary.data.impl.DefaultMethodFlow;
+import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
+import soot.jimple.infoflow.methodSummary.source.SummarySourceSinkManager;
 
 public class InfoflowResultProcessor {
 	private final Logger logger = LoggerFactory.getLogger(InfoflowResultProcessor.class);
 
 	private InterproceduralCFG<Unit, SootMethod> cfg;
-	private Set<Abstraction> result;
+	private Set<Abstraction> collectedAbstractions;
 	private boolean DEBUG = true;
 	private String method;
 	private int summaryAPLength;
-
-	public InfoflowResultProcessor(Set<Abstraction> result2, InterproceduralCFG<Unit, SootMethod> cfg, String m,
+	final PointsToAnalysis pTa = Scene.v().getPointsToAnalysis();
+	public InfoflowResultProcessor(Set<Abstraction> collectedAbstractions, InterproceduralCFG<Unit, SootMethod> cfg, String m,
 			SummarySourceSinkManager manager, int sAPL) {
-		this.result = result2;
+		this.collectedAbstractions = collectedAbstractions;
 		this.cfg = cfg;
 		this.method = m;
 		this.summaryAPLength = sAPL;
@@ -59,12 +59,12 @@ public class InfoflowResultProcessor {
 		System.out.println();
 		logger.info("start processing infoflow abstractions");
 		final SootMethod m = Scene.v().getMethod(method);
-		final PointsToAnalysis pTa = Scene.v().getPointsToAnalysis();
+		
 
 		IAbstractionPathBuilder pathBuilder = new DefaultPathBuilderFactory().createPathBuilder(Runtime.getRuntime()
 				.availableProcessors());
 
-		for (Abstraction a : result) {
+		for (Abstraction a : collectedAbstractions) {
 			logger.debug("abstraction: " + a.toString());
 			pathBuilder.getResults().clear();
 			pathBuilder.computeTaintSources(Collections.singleton(new AbstractionAtSink(a, NullConstant.v(), Jimple.v()
@@ -77,89 +77,20 @@ public class InfoflowResultProcessor {
 						continue;
 
 					// Get the source
-					List<IFlowSource> sources = new LinkedList<IFlowSource>();
-					if (si.getUserData() instanceof IFlowSource) {
-						IFlowSource source = (IFlowSource) si.getUserData();
+					List<FlowSource> sources = new LinkedList<FlowSource>();
+					if (si.getUserData() instanceof FlowSource) {
+						FlowSource source = (FlowSource) si.getUserData();
 						sources.add(source);
 					} else{
 						@SuppressWarnings("unchecked")
-						List<IFlowSource> userData = (List<IFlowSource>) si.getUserData();
+						List<FlowSource> userData = (List<FlowSource>) si.getUserData();
 						sources = userData;
 					}
 
 					if (sources.size() == 0)
 						throw new RuntimeException("Link to source missing");
-					for (IFlowSource source : sources) {
-						// Get the sink
-						IFlowSink sink = null;
-
- 						PointsToSet basePT = pTa.reachingObjects(a.getAccessPath().getPlainValue());
-						// The sink may be a parameter
-						for (int i = 0; i < m.getParameterCount(); i++) {
-							Local p = m.getActiveBody().getParameterLocal(i);
-							// boolean isPrimitiveType = m.getParameterType(i) instanceof PrimType ;
-							boolean isArrayType = m.getParameterType(i) instanceof ArrayType;
-							PointsToSet pPT = pTa.reachingObjects(p);
-							if (pPT.hasNonEmptyIntersection(basePT)) {
-								if (a.getAccessPath().isLocal()) {
-									if (isArrayType)
-										sink = createParamterSink(m, i, java.util.Collections.<SootField> emptyList(),
-												a.getAccessPath().getTaintSubFields());
-								} else if (a.getAccessPath().getFieldCount() < summaryAPLength)
-									sink = createParamterSink(m, i, a.getAccessPath().getFields(), a.getAccessPath()
-											.getTaintSubFields());
-								else {
-
-									sink = createParamterSink(m, i, cutAPLength(a.getAccessPath().getFields()), true);
-								}
-
-							}
-
-							if (source != null && sink != null) {
-								addFlow(source, sink, flows);
-								sink = null;
-							}
-
-						}
-
-						// check field sink
-						if (a.getAccessPath().isInstanceFieldRef() && !m.isStatic()
-								&& a.getAccessPath().getPlainValue() == m.getActiveBody().getThisLocal()) {
-							if (a.getAccessPath().getFieldCount() < summaryAPLength) {
-								// we can save the complete ap in the summary file
-								sink = createFieldSink(a.getAccessPath().getFields(), a.getAccessPath()
-										.getTaintSubFields());
-
-							} else {
-								// we have to cut the ap sience the ap is longer then the set limit
-								sink = createFieldSink(cutAPLength(a.getAccessPath().getFields()), true);
-							}
-
-							if (source != null && sink != null) {
-								addFlow(source, sink, flows);
-								sink = null;
-							}
-						}
-
-						// check return sink
-						for (Unit u : m.getActiveBody().getUnits())
-							if (cfg.isExitStmt(u))
-								for (ValueBox vb : u.getUseBoxes())
-									if (vb.getValue() == a.getAccessPath().getPlainValue())
-										if (a.getAccessPath().isLocal())
-											sink = createReturnSink(a.getAccessPath().getTaintSubFields());
-										else if (a.getAccessPath().getFieldCount() < summaryAPLength) {
-											sink = createReturnSink(a.getAccessPath().getFields(), a.getAccessPath()
-													.getTaintSubFields());
-										} else {
-											sink = createReturnSink(cutAPLength(a.getAccessPath().getFields()), true);
-										}
-
-						if (source != null && sink != null) {
-							addFlow(source, sink, flows);
-							sink = null;
-						}
-
+					for (FlowSource source : sources) {
+						calcFlow(flows,a, m, source);
 					}
 				}
 			}
@@ -167,6 +98,79 @@ public class InfoflowResultProcessor {
 
 		logger.info("Result processing finished");
 		return flows;
+	}
+	
+	private void calcFlow(MethodSummaries flows, Abstraction a, SootMethod m, FlowSource source){
+		// Get the sink
+		FlowSink sink = null;
+
+			PointsToSet basePT = pTa.reachingObjects(a.getAccessPath().getPlainValue());
+		// The sink may be a parameter
+		for (int i = 0; i < m.getParameterCount(); i++) {
+			Local p = m.getActiveBody().getParameterLocal(i);
+			// boolean isPrimitiveType = m.getParameterType(i) instanceof PrimType ;
+			boolean isArrayType = m.getParameterType(i) instanceof ArrayType;
+			PointsToSet pPT = pTa.reachingObjects(p);
+			if (pPT.hasNonEmptyIntersection(basePT)) {
+				if (a.getAccessPath().isLocal()) {
+					if (isArrayType)
+						sink = createParamterSink(m, i, java.util.Collections.<SootField> emptyList(),
+								a.getAccessPath().getTaintSubFields());
+				} else if (a.getAccessPath().getFieldCount() < summaryAPLength)
+					sink = createParamterSink(m, i, a.getAccessPath().getFields(), a.getAccessPath()
+							.getTaintSubFields());
+				else {
+
+					sink = createParamterSink(m, i, cutAPLength(a.getAccessPath().getFields()), true);
+				}
+
+			}
+
+			if (source != null && sink != null) {
+				addFlow(source, sink, flows);
+				sink = null;
+			}
+
+		}
+
+		// check field sink
+		if (a.getAccessPath().isInstanceFieldRef() && !m.isStatic()
+				&& a.getAccessPath().getPlainValue() == m.getActiveBody().getThisLocal()) {
+			if (a.getAccessPath().getFieldCount() < summaryAPLength) {
+				// we can save the complete ap in the summary file
+				sink = createFieldSink(a.getAccessPath().getFields(), a.getAccessPath()
+						.getTaintSubFields());
+
+			} else {
+				// we have to cut the ap sience the ap is longer then the set limit
+				sink = createFieldSink(cutAPLength(a.getAccessPath().getFields()), true);
+			}
+
+			if (source != null && sink != null) {
+				addFlow(source, sink, flows);
+				sink = null;
+			}
+		}
+
+		// check return sink
+		for (Unit u : m.getActiveBody().getUnits())
+			if (cfg.isExitStmt(u))
+				for (ValueBox vb : u.getUseBoxes())
+					if (vb.getValue() == a.getAccessPath().getPlainValue())
+						if (a.getAccessPath().isLocal())
+							sink = createReturnSink(a.getAccessPath().getTaintSubFields());
+						else if (a.getAccessPath().getFieldCount() < summaryAPLength) {
+							sink = createReturnSink(a.getAccessPath().getFields(), a.getAccessPath()
+									.getTaintSubFields());
+						} else {
+							sink = createReturnSink(cutAPLength(a.getAccessPath().getFields()), true);
+						}
+
+		if (source != null && sink != null) {
+			addFlow(source, sink, flows);
+			sink = null;
+		}
+
 	}
 
 	private SootField[] cutAPLength(SootField[] fields) {
@@ -177,22 +181,22 @@ public class InfoflowResultProcessor {
 		return f;
 	}
 
-	private boolean isIdentityFlow(IFlowSource source, IFlowSink sink) {
+	private boolean isIdentityFlow(FlowSource source, FlowSink sink) {
 		if (sink.isReturn())
 			return false;
 		if (sink.isField()) {
-			if (source.isParamter())
+			if (source.isParameter())
 				return false;
 		}
-		if (sink.isParamter()) {
+		if (sink.isParameter()) {
 			if (source.isField() || source.isThis())
 				return false;
 		}
 		if (sink.isThis()) {
-			if (source.isParamter())
+			if (source.isParameter())
 				return false;
 		}
-		if (sink.getParamterIndex() != source.getParamterIndex())
+		if (sink.getParameterIndex() != source.getParameterIndex())
 			return false;
 		if (sink.getFieldCount() != source.getFieldCount())
 			return false;
@@ -230,12 +234,12 @@ public class InfoflowResultProcessor {
 		// return true;
 	}
 
-	private void addFlow(IFlowSource source, IFlowSink sink, MethodSummaries summaries) {
+	private void addFlow(FlowSource source, FlowSink sink, MethodSummaries summaries) {
 		// Ignore identity flows
 		if (isIdentityFlow(source, sink))
 			return;
 
-		AbstractMethodFlow mFlow = new DefaultMethodFlow(method, source, sink);
+		MethodFlow mFlow = new DefaultMethodFlow(method, source, sink);
 		if (summaries.addFlowForMethod(method, mFlow))
 			debugMSG(source, sink);
 	}
@@ -248,7 +252,7 @@ public class InfoflowResultProcessor {
 		return accessPath.equals(accessPath2);
 	}
 
-	private void debugMSG(IFlowSource source, IFlowSink sink) {
+	private void debugMSG(FlowSource source, FlowSink sink) {
 		if (DEBUG) {
 			System.out.println("\nmethod: " + method);
 			System.out.println("source: " + source.toString());

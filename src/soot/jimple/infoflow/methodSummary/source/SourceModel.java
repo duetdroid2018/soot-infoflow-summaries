@@ -1,4 +1,4 @@
-package soot.jimple.infoflow.methodSummary.sourceSinkManager;
+package soot.jimple.infoflow.methodSummary.source;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -21,8 +21,8 @@ import soot.Value;
 import soot.jimple.DefinitionStmt;
 import soot.jimple.InstanceFieldRef;
 import soot.jimple.Stmt;
-import soot.jimple.infoflow.methodSummary.data.DefaultFlowSource;
-import soot.jimple.infoflow.methodSummary.sourceSinkFactory.SourceSinkFactory;
+import soot.jimple.infoflow.methodSummary.data.factory.SourceSinkFactory;
+import soot.jimple.infoflow.methodSummary.data.impl.DefaultFlowSource;
 import soot.jimple.toolkits.callgraph.ReachableMethods;
 
 /**
@@ -44,7 +44,7 @@ public class SourceModel {
 	private List<Set<SourceDataInternal>> sources;
 	
 	private SootMethod method;
-	private Collection<SootField> fields;
+	//private Collection<SootField> fields;
 	private PointsToAnalysis pta;
 	private Local thisLocal;
 	private PointsToSet thisPt;
@@ -52,7 +52,7 @@ public class SourceModel {
 	public SourceModel(SootMethod method, int apLength, Collection<SootField> fields) {
 		summaryAccessPathLength = apLength +1;
 		this.method = method;
-		this.fields = fields;
+		//this.fields = fields;
 		sources = new ArrayList<Set<SourceDataInternal>>(apLength);
 		boolean skip = !(method.hasActiveBody() && method.isConcrete() && !method.isStatic());
 		if (!skip) {
@@ -166,10 +166,6 @@ public class SourceModel {
 	}
 	
 	private boolean checkIfStmtIsSource(Stmt s){
-		if(s.toString().contains("first")){
-			int i = 3;
-		}
-			
 		if (s instanceof DefinitionStmt) {
 			DefinitionStmt stmt = (DefinitionStmt) s;
 			Value righOp = stmt.getRightOp();

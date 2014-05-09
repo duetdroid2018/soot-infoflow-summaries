@@ -15,12 +15,12 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import soot.jimple.infoflow.methodSummary.SummaryGenerator;
-import soot.jimple.infoflow.methodSummary.data.AbstractMethodFlow;
+import soot.jimple.infoflow.methodSummary.data.MethodFlow;
 import soot.jimple.infoflow.methodSummary.data.SourceSinkType;
 import soot.jimple.infoflow.test.methodSummary.ArbitraryAccessPath;
 
 public class ParaToFieldTests extends TestHelper {
-	protected static Map<String, Set<AbstractMethodFlow>> flows;
+	protected static Map<String, Set<MethodFlow>> flows;
 	static boolean executeSummary = true;
 	static final String className = "soot.jimple.infoflow.test.methodSummary.ParaToField";
 	static final String LIST_ITEM[] = new String[]{"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.util.List listField>","<java.util.LinkedList: java.util.LinkedList$Node first>","<java.util.LinkedList$Node: java.lang.Object item>"} ;
@@ -30,7 +30,7 @@ public class ParaToFieldTests extends TestHelper {
 	public void intParameter() {
 		SummaryGenerator s =  summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToField: void intPara(int)>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: int intField>"}));
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: soot.jimple.infoflow.test.methodSummary.Data dataField>", DATACLASS_INT_FIELD}));
@@ -44,7 +44,7 @@ public class ParaToFieldTests extends TestHelper {
 	public void intParameterRec() {
 		SummaryGenerator s =  summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToField: void intParaRec(int,int)>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: int intField>"}));
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: soot.jimple.infoflow.test.methodSummary.Data dataField>",DATACLASS_INT_FIELD}));
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: int[] intArray>"}));
@@ -56,7 +56,7 @@ public class ParaToFieldTests extends TestHelper {
 	public void objectParameter() {
 		SummaryGenerator s =  summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToField: void objPara(java.lang.Object)>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.lang.Object obField>"}));
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.lang.Object[] arrayField>"}));
@@ -67,7 +67,7 @@ public class ParaToFieldTests extends TestHelper {
 	public void objectParameter2() {
 		SummaryGenerator s =  summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToField: void objPara(java.lang.Object)>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: soot.jimple.infoflow.test.methodSummary.Data dataField>",DATACLASS_OBJECT_FIELD}));
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,LIST_ITEM));
@@ -79,7 +79,7 @@ public class ParaToFieldTests extends TestHelper {
 	public void intAndObjectParameter() {
 		SummaryGenerator s =  summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToField: void intAndObj(int,java.lang.Object)>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: int intField>"}));
 		assertTrue(containsFlow(flow, Parameter,1,new String[] {}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.lang.Object obField>"}));
@@ -93,7 +93,7 @@ public class ParaToFieldTests extends TestHelper {
 	public void intAndObjectParameter2() {
 		SummaryGenerator s =  summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToField: void intAndObj(int,java.lang.Object)>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		
 		assertTrue(containsFlow(flow, Parameter,1,new String[] {}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: soot.jimple.infoflow.test.methodSummary.Data dataField>",DATACLASS_OBJECT_FIELD}));
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: int intField>"}));
@@ -110,7 +110,7 @@ public class ParaToFieldTests extends TestHelper {
 	public void arrayParas() {
 		SummaryGenerator s =  summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToField: void arrayParas(int[],java.lang.Object[])>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: int intField>"}));
 		assertTrue(containsFlow(flow, Parameter,1,new String[] {}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.lang.Object obField>"}));
@@ -125,7 +125,7 @@ public class ParaToFieldTests extends TestHelper {
 	public void arrayParas2() {
 		SummaryGenerator s =  summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToField: void arrayParas(int[],java.lang.Object[])>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: int intField>"}));
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: soot.jimple.infoflow.test.methodSummary.Data dataField>",DATACLASS_INT_FIELD}));
@@ -141,7 +141,7 @@ public class ParaToFieldTests extends TestHelper {
 	public void dataAndListParameterNotCompled() {
 		SummaryGenerator s = summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToField: void dataAndList(soot.jimple.infoflow.test.methodSummary.Data,java.util.List)>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {DATACLASS_INT_FIELD}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: int intField>"}));
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {DATACLASS_OBJECT_FIELD}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: soot.jimple.infoflow.test.methodSummary.Data dataField>",DATACLASS_OBJECT_FIELD}));
@@ -156,7 +156,7 @@ public class ParaToFieldTests extends TestHelper {
 	public void dataAndListParameter() {
 		SummaryGenerator s = summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToField: void dataAndList(soot.jimple.infoflow.test.methodSummary.Data,java.util.List)>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {DATACLASS_INT_FIELD}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: int intField>"}));
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {DATACLASS_OBJECT_FIELD}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: soot.jimple.infoflow.test.methodSummary.Data dataField>",DATACLASS_OBJECT_FIELD}));
@@ -172,7 +172,7 @@ public class ParaToFieldTests extends TestHelper {
 		
 		SummaryGenerator s =  summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToField: void dataAndList(soot.jimple.infoflow.test.methodSummary.Data,java.util.List)>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {DATACLASS_INT_FIELD}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: int intField>"}));
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {DATACLASS_INT_FIELD}, Field,new String[] {DATA_FIELD,DATACLASS_INT_FIELD}));
@@ -188,7 +188,7 @@ public class ParaToFieldTests extends TestHelper {
 		
 		SummaryGenerator s =  summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToField: void dataAndList(soot.jimple.infoflow.test.methodSummary.Data,java.util.List)>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {DATACLASS_INT_FIELD}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: int intField>"}));
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {DATACLASS_INT_FIELD}, Field,new String[] {DATA_FIELD,DATACLASS_INT_FIELD}));

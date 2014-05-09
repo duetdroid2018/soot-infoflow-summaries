@@ -9,7 +9,7 @@ import java.util.Set;
 import org.junit.Test;
 
 import soot.jimple.infoflow.methodSummary.SummaryGenerator;
-import soot.jimple.infoflow.methodSummary.data.AbstractMethodFlow;
+import soot.jimple.infoflow.methodSummary.data.MethodFlow;
 import soot.jimple.infoflow.methodSummary.data.SourceSinkType;
 import soot.jimple.infoflow.test.methodSummary.ArbitraryAccessPath;
 public class ArbitraryAccessPathTest  extends TestHelper{
@@ -23,7 +23,7 @@ public class ArbitraryAccessPathTest  extends TestHelper{
 	public void getNullData() {
 		SummaryGenerator s = getSummary();
 		String mSig = mSig(DATA_TYPE,"getNullData","");
-		Set<AbstractMethodFlow> res = s.createMethodSummary(mSig,methods()).getFlowsForMethod(mSig);
+		Set<MethodFlow> res = s.createMethodSummary(mSig,methods()).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(res, Field,new String[] {NULL_FIELD}, SourceSinkType.Return,new String[] {}));
 		assertEquals(1,res.size());
 	}
@@ -31,7 +31,7 @@ public class ArbitraryAccessPathTest  extends TestHelper{
 	public void getData() {
 		SummaryGenerator s = getSummary();
 		String mSig = mSig(DATA_TYPE,"getData","");
-		Set<AbstractMethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(res, Field,new String[] {DATA_FIELD}, SourceSinkType.Return,new String[] {}));
 		assertEquals(1,res.size());
 	}
@@ -39,7 +39,7 @@ public class ArbitraryAccessPathTest  extends TestHelper{
 	public void getNullData2() {
 		SummaryGenerator s = getSummary();
 		String mSig = mSig(DATA_TYPE,"getNullData2","");
-		Set<AbstractMethodFlow> res = s.createMethodSummary(mSig,methods()).getFlowsForMethod(mSig);
+		Set<MethodFlow> res = s.createMethodSummary(mSig,methods()).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(res, Field,new String[] {NULL_FIELD,_D}, SourceSinkType.Return,new String[] {}));
 		assertEquals(1,res.size());
 	}
@@ -47,7 +47,7 @@ public class ArbitraryAccessPathTest  extends TestHelper{
 	public void getData2() {
 		SummaryGenerator s = getSummary();
 		String mSig = mSig(DATA_TYPE,"getData2","");
-		Set<AbstractMethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(res, Field,new String[] {DATA_FIELD,_D}, SourceSinkType.Return,new String[] {}));
 		assertEquals(1,res.size());
 	}
@@ -55,7 +55,7 @@ public class ArbitraryAccessPathTest  extends TestHelper{
 	public void getNullData3() {
 		SummaryGenerator s = getSummary();
 		String mSig = mSig(DATA_TYPE,"getNullData3","");
-		Set<AbstractMethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(res, Field,new String[] {NULL_FIELD,_D,_D}, SourceSinkType.Return,new String[] {}));
 		assertEquals(1,res.size());
 	}
@@ -63,7 +63,7 @@ public class ArbitraryAccessPathTest  extends TestHelper{
 	public void getData3() {
 		SummaryGenerator s = getSummary();
 		String mSig = mSig(DATA_TYPE,"getData3","");
-		Set<AbstractMethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(res, Field,new String[] {DATA_FIELD,_D,_D}, SourceSinkType.Return,new String[] {}));
 		assertEquals(1,res.size());
 	}
@@ -72,7 +72,7 @@ public class ArbitraryAccessPathTest  extends TestHelper{
 	public void setData2() {
 		SummaryGenerator s = getSummary();
 		String mSig = mSig("void","setData2",DATA_TYPE);
-		Set<AbstractMethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(res, Parameter,0,new String[] {_D}, Field,new String[] {DATA_FIELD}));
 		assertEquals(1,res.size());
 	}
@@ -80,7 +80,7 @@ public class ArbitraryAccessPathTest  extends TestHelper{
 	public void setData3() {
 		SummaryGenerator s = getSummary();
 		String mSig = mSig("void","setData3",DATA_TYPE);
-		Set<AbstractMethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(res, Parameter,0,new String[] {_D,_D}, Field,new String[] {DATA_FIELD}));
 		assertEquals(1,res.size());
 	}

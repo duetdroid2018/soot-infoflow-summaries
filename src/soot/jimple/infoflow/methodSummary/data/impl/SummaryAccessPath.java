@@ -1,4 +1,4 @@
-package soot.jimple.infoflow.methodSummary.data;
+package soot.jimple.infoflow.methodSummary.data.impl;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -8,34 +8,34 @@ import soot.SootField;
 
 
 public class SummaryAccessPath {
-	List<String> ap = new ArrayList<String>();
+	List<String> taintedField = new ArrayList<String>();
 	
 	public SummaryAccessPath(){
 		
 	}
-	public SummaryAccessPath(String s) {
-		if(s != null)
-			ap.add(s.toString());
+	public SummaryAccessPath(String field) {
+		if(field != null)
+			taintedField.add(field.toString());
 	}
-	public SummaryAccessPath(List<String> s) {
-		if(s != null){
-			for(String f : s)
-				ap.add(f.toString());
+	public SummaryAccessPath(List<String> fields) {
+		if(fields != null){
+			for(String f : fields)
+				taintedField.add(f.toString());
 		}
 	}
 	
 	
 	public int getAPLength(){
-		return ap.size();
+		return taintedField.size();
 	}
 	public String fieldIdx(int index){
-		if(ap.size() > index)
-			return ap.get(index);
+		if(taintedField.size() > index)
+			return taintedField.get(index);
 		return null;
 	}
 	
 	public SummaryAccessPath extend(SootField s){
-		List<String> a = new ArrayList<String>(ap);
+		List<String> a = new ArrayList<String>(taintedField);
 		a.add(s.toString());
 		SummaryAccessPath ap = new SummaryAccessPath();
 		ap.setAP(a);
@@ -45,14 +45,14 @@ public class SummaryAccessPath {
 	
 	
 	public boolean hasAP(){
-		return ap.size() > 0;
+		return taintedField.size() > 0;
 	}
 	public List<String> getAP(){
-		return ap;
+		return taintedField;
 	}
 	public String toString(){
 		StringBuffer buf = new StringBuffer();
-		for(String s : ap){
+		for(String s : taintedField){
 			buf.append(s);
 		}
 		return buf.toString().trim();
@@ -61,7 +61,7 @@ public class SummaryAccessPath {
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((ap == null) ? 0 : ap.hashCode());
+		result = prime * result + ((taintedField == null) ? 0 : taintedField.hashCode());
 		return result;
 	}
 	@Override
@@ -73,15 +73,15 @@ public class SummaryAccessPath {
 		if (getClass() != obj.getClass())
 			return false;
 		SummaryAccessPath other = (SummaryAccessPath) obj;
-		if (ap == null) {
-			if (other.ap != null)
+		if (taintedField == null) {
+			if (other.taintedField != null)
 				return false;
-		} else if (!ap.equals(other.ap))
+		} else if (!taintedField.equals(other.taintedField))
 			return false;
 		return true;
 	}
 	private void setAP(List<String> ap){
-		this.ap = ap;
+		this.taintedField = ap;
 	}
 	
 }

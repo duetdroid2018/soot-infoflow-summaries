@@ -1,18 +1,18 @@
-package soot.jimple.infoflow.methodSummary.sourceSinkFactory;
+package soot.jimple.infoflow.methodSummary.data.factory;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
 
-import soot.jimple.infoflow.methodSummary.data.DefaultFlowSink;
-import soot.jimple.infoflow.methodSummary.data.DefaultFlowSource;
-import soot.jimple.infoflow.methodSummary.data.IFlowSink;
-import soot.jimple.infoflow.methodSummary.data.IFlowSource;
+import soot.jimple.infoflow.methodSummary.data.FlowSink;
+import soot.jimple.infoflow.methodSummary.data.FlowSource;
 import soot.jimple.infoflow.methodSummary.data.SourceSinkType;
+import soot.jimple.infoflow.methodSummary.data.impl.DefaultFlowSink;
+import soot.jimple.infoflow.methodSummary.data.impl.DefaultFlowSource;
 import soot.jimple.infoflow.methodSummary.xml.XMLConstants;
 
 public class XMLSourceSinkFactory {
-	public static IFlowSource createSource(Map<String, String> attributes){
+	public static FlowSource createSource(Map<String, String> attributes){
 		if(isField(attributes)){
 			return new DefaultFlowSource(SourceSinkType.Field, -1, getFields(attributes));
 		}else if(isParameter(attributes)){
@@ -20,7 +20,7 @@ public class XMLSourceSinkFactory {
 		}
 		return null;
 	}
-	public static IFlowSink createSink(Map<String, String> attributes){
+	public static FlowSink createSink(Map<String, String> attributes){
 		if(isField(attributes)){
 			return new DefaultFlowSink(SourceSinkType.Field, -1,getFields(attributes), taintSubFields(attributes));
 		}else if(isParameter(attributes)){

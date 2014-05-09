@@ -1,13 +1,15 @@
-package soot.jimple.infoflow.methodSummary.data;
+package soot.jimple.infoflow.methodSummary.data.impl;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import soot.jimple.infoflow.methodSummary.data.FlowSink;
+import soot.jimple.infoflow.methodSummary.data.SourceSinkType;
 import soot.jimple.infoflow.methodSummary.xml.XMLConstants;
 
 
-public class DefaultFlowSink extends IFlowSink {
+public class DefaultFlowSink extends FlowSink {
 	
 
 	public DefaultFlowSink(SourceSinkType type, int paraIdx, List<String> fields, boolean taintSubFields) {
@@ -18,9 +20,9 @@ public class DefaultFlowSink extends IFlowSink {
 	@Override
 	public Map<String, String> xmlAttributes() {
 		Map<String, String> res = new HashMap<String, String>();
-		if (isParamter()) {
+		if (isParameter()) {
 			res.put(XMLConstants.ATTRIBUTE_FLOWTYPE, XMLConstants.VALUE_PARAMETER);
-			res.put(XMLConstants.ATTRIBUTE_PARAMTER_INDEX, getParamterIndex() + "");
+			res.put(XMLConstants.ATTRIBUTE_PARAMTER_INDEX, getParameterIndex() + "");
 		} else if (isField()) {
 			res.put(XMLConstants.ATTRIBUTE_FLOWTYPE, XMLConstants.VALUE_FIELD);
 			res.put(XMLConstants.ATTRIBUTE_FIELD, "(this)");
@@ -38,8 +40,8 @@ public class DefaultFlowSink extends IFlowSink {
 		
 	@Override
 	public String toString(){
-		if(isParamter()){
-			return "Parameter: " + getParamterIndex() + " " + getAccessPath().toString() + " " +taintSubFields();
+		if(isParameter()){
+			return "Parameter: " + getParameterIndex() + " " + getAccessPath().toString() + " " +taintSubFields();
 		}else if(isField()){
 			return "Field " + getAccessPath().toString() + " " +taintSubFields();
 		}else if(isReturn()){

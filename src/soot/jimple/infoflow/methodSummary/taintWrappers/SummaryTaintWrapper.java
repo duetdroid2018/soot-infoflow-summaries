@@ -15,10 +15,10 @@ import soot.jimple.InstanceInvokeExpr;
 import soot.jimple.InvokeExpr;
 import soot.jimple.Stmt;
 import soot.jimple.infoflow.data.AccessPath;
-import soot.jimple.infoflow.methodSummary.data.AbstractMethodFlow;
-import soot.jimple.infoflow.methodSummary.data.IFlowSink;
-import soot.jimple.infoflow.methodSummary.data.IFlowSource;
-import soot.jimple.infoflow.methodSummary.data.LazySummary;
+import soot.jimple.infoflow.methodSummary.data.MethodFlow;
+import soot.jimple.infoflow.methodSummary.data.FlowSink;
+import soot.jimple.infoflow.methodSummary.data.FlowSource;
+import soot.jimple.infoflow.methodSummary.data.summary.LazySummary;
 import soot.jimple.infoflow.solver.IInfoflowCFG;
 import soot.jimple.infoflow.taintWrappers.AbstractTaintWrapper;
 
@@ -39,15 +39,15 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 		callees.addAll(icfg.getCalleesOfCallAt(stmt));
 		callees.add(stmt.getInvokeExpr().getMethod());
 
-		Collection<AbstractMethodFlow> methodFlows = getAllFlows(callees);
+		Collection<MethodFlow> methodFlows = getAllFlows(callees);
 
 		// calc taints
-		for (AbstractMethodFlow mFlow : methodFlows) {
-			final IFlowSource flowSource = mFlow.source();
-			final IFlowSink flowSink = mFlow.sink();
+		for (MethodFlow mFlow : methodFlows) {
+			final FlowSource flowSource = mFlow.source();
+			final FlowSink flowSink = mFlow.sink();
 
-			if (flowSource.isParamter()) {
-				int paraIdx = flowSource.getParamterIndex();
+			if (flowSource.isParameter()) {
+				int paraIdx = flowSource.getParameterIndex();
 				if (stmt.getInvokeExpr().getArg(paraIdx).equals(taintedPath.getPlainValue())) {
 					if (compareFields(taintedPath, flowSource))
 						addSinkTaint(res, flowSource, flowSink, stmt, taintedPath);
@@ -68,7 +68,7 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 		return res; 
 	}
 
-	private boolean compareFields(AccessPath taintedPath, IFlowSource flowSource) {
+	private boolean compareFields(AccessPath taintedPath, FlowSource flowSource) {
 		// If a is tainted, the summary must match a. If a.* is tainted, the
 		// summary can also be a.b.
 		if (taintedPath.getFieldCount() == 0)
@@ -134,7 +134,7 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 		
 	}
 
-	private void addSinkTaint(Set<AccessPath> res, IFlowSource flowSource, IFlowSink flowSink, Stmt stmt, AccessPath taintedPath) {
+	private void addSinkTaint(Set<AccessPath> res, FlowSource flowSource, FlowSink flowSink, Stmt stmt, AccessPath taintedPath) {
 		boolean taintSubFields = flowSink.taintSubFields() || taintedPath.getTaintSubFields();
 
 		// Do we need to taint the return value?
@@ -170,8 +170,8 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 			res.add(new AccessPath(iinv.getBase(), sinkFields, taintSubFields));
 		}
 		// Do we need to taint a field of the parameter?
-		else if (flowSink.isParamter()) {
-			Value arg = stmt.getInvokeExpr().getArg(flowSink.getParamterIndex());
+		else if (flowSink.isParameter()) {
+			Value arg = stmt.getInvokeExpr().getArg(flowSink.getParameterIndex());
 			res.add(new AccessPath(arg, safeGetFields(flowSink.getFields()), taintSubFields));
 		}
 		// We dont't know what this is
@@ -186,8 +186,8 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 	 *            The set of methods for which to get flow summaries
 	 * @return The set of flow summaries for the given methods
 	 */
-	private Collection<AbstractMethodFlow> getAllFlows(Collection<SootMethod> methods) {
-		List<AbstractMethodFlow> methodFlows = new LinkedList<AbstractMethodFlow>();
+	private Collection<MethodFlow> getAllFlows(Collection<SootMethod> methods) {
+		List<MethodFlow> methodFlows = new LinkedList<MethodFlow>();
 		for (SootMethod m : methods)
 			methodFlows.addAll(flows.getMethodFlows(m));
 		return methodFlows;

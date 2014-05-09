@@ -5,7 +5,7 @@ import java.io.FileNotFoundException;
 
 import javax.xml.stream.XMLStreamException;
 
-import soot.jimple.infoflow.methodSummary.data.MethodSummaries;
+import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
 
 public interface ISummaryReader {
 	public MethodSummaries processXMLFile(File source) throws XMLStreamException, FileNotFoundException;

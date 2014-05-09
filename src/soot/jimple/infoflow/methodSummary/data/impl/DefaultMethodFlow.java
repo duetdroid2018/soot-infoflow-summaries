@@ -1,29 +1,33 @@
-package soot.jimple.infoflow.methodSummary.data;
+package soot.jimple.infoflow.methodSummary.data.impl;
+
+import soot.jimple.infoflow.methodSummary.data.FlowSink;
+import soot.jimple.infoflow.methodSummary.data.FlowSource;
+import soot.jimple.infoflow.methodSummary.data.MethodFlow;
 
 
 
-public class DefaultMethodFlow extends AbstractMethodFlow {
+public class DefaultMethodFlow implements MethodFlow {
 	public String methodSig() {
 		return methodSig;
 	}
 
 	private final String methodSig;
-	private final IFlowSource from;
-	private final IFlowSink to;
+	private final FlowSource from;
+	private final FlowSink to;
 
-	public DefaultMethodFlow(String methodSig, IFlowSource from, IFlowSink to) {
+	public DefaultMethodFlow(String methodSig, FlowSource from, FlowSink to) {
 		this.methodSig = methodSig;
 		this.from = from;
 		this.to = to;
 	}
 	
 	@Override
-	public IFlowSource source() {
+	public FlowSource source() {
 		return from;
 	}
 
 	@Override
-	public IFlowSink sink() {
+	public FlowSink sink() {
 		return to;
 	}
 

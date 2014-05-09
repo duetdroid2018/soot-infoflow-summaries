@@ -12,10 +12,10 @@ import java.util.Set;
 import org.junit.Test;
 
 import soot.jimple.infoflow.methodSummary.SummaryGenerator;
-import soot.jimple.infoflow.methodSummary.data.AbstractMethodFlow;
+import soot.jimple.infoflow.methodSummary.data.MethodFlow;
 
 public class FieldToReturnTest extends TestHelper{
-	protected static Map<String, Set<AbstractMethodFlow>> flows;
+	protected static Map<String, Set<MethodFlow>> flows;
 	static boolean executeSummary = true;
 	static final String className = "soot.jimple.infoflow.test.methodSummary.FieldToReturn"; 
 	static final String INT_FIELD = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: int intField>";
@@ -29,7 +29,7 @@ public class FieldToReturnTest extends TestHelper{
 	public void fieldToReturn1() {
 		SummaryGenerator s = summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: int fieldToReturn()>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Field,new String[] {INT_FIELD}, Return,new String[] {}));
 		assertTrue(flow.size() == 1);
 	}
@@ -38,7 +38,7 @@ public class FieldToReturnTest extends TestHelper{
 	public void fieldToReturn2() {
 		SummaryGenerator s = summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.lang.Object fieldToReturn2()>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Field,new String[] {OBJ_FIELD}, Return,new String[] {}));
 		assertTrue(flow.size() == 1);
 	}
@@ -47,7 +47,7 @@ public class FieldToReturnTest extends TestHelper{
 	public void fieldToReturn3() {
 		SummaryGenerator s = summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.util.List fieldToReturn3()>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Field,new String[] {LIST_FIELD}, Return,new String[] {}));
 		assertTrue(flow.size() == 1);
 	}
@@ -57,7 +57,7 @@ public class FieldToReturnTest extends TestHelper{
 	public void NotWfieldToReturn4() {
 		SummaryGenerator s = summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.lang.Object fieldToReturn4()>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Field,new String[] {LIST_FIELD,"<java.util.LinkedList: java.util.LinkedList$Node last>","<java.util.LinkedList$Node: java.lang.Object item>"}, Return,new String[] {}));
 		assertTrue(flow.size() == 1);
 	}
@@ -66,7 +66,7 @@ public class FieldToReturnTest extends TestHelper{
 	public void fieldToReturn5() {
 		SummaryGenerator s = summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.lang.Object fieldToReturn5()>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Field,new String[] {OBJ_ARRAY}, Return,new String[] {}));
 		assertTrue(flow.size() == 1);
 	}
@@ -75,7 +75,7 @@ public class FieldToReturnTest extends TestHelper{
 	public void fieldToReturn5Rec() {
 		SummaryGenerator s = summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.lang.Object fieldToReturn5Rec(int)>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Field,new String[] {OBJ_ARRAY}, Return,new String[] {}));
 		assertTrue(flow.size() ==1);
 	}
@@ -84,7 +84,7 @@ public class FieldToReturnTest extends TestHelper{
 	public void fieldToReturn6() {
 		SummaryGenerator s = summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.lang.Object[] fieldToReturn6()>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Field,new String[] {OBJ_ARRAY}, Return,new String[] {}));
 		assertTrue(flow.size() == 1);
 	}
@@ -93,7 +93,7 @@ public class FieldToReturnTest extends TestHelper{
 	public void fieldToReturn7() {
 		SummaryGenerator s = summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: int fieldToReturn7()>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Field,new String[] {INT_ARRAY}, Return,new String[] {}));
 		assertTrue(flow.size() == 1);
 	}
@@ -102,7 +102,7 @@ public class FieldToReturnTest extends TestHelper{
 	public void fieldToReturn8() {
 		SummaryGenerator s = summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: int[] fieldToReturn8()>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Field,new String[] {INT_ARRAY}, Return,new String[] {}));
 		assertTrue(flow.size() == 1);
 	}
@@ -111,7 +111,7 @@ public class FieldToReturnTest extends TestHelper{
 	public void fieldToReturn9() {
 		SummaryGenerator s = summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: int fieldToReturn9()>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Field,new String[] {DATA_FIELD,DATACLASS_INT_FIELD}, Return,new String[] {}));
 		assertTrue(flow.size() == 1);
 	}
@@ -120,7 +120,7 @@ public class FieldToReturnTest extends TestHelper{
 	public void fieldToReturn10() {
 		SummaryGenerator s = summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.lang.Object fieldToReturn10()>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Field,new String[] {DATA_FIELD,DATACLASS_OBJECT_FIELD}, Return,new String[] {}));
 		assertTrue(flow.size() == 1);
 	}
@@ -129,7 +129,7 @@ public class FieldToReturnTest extends TestHelper{
 	public void fieldToReturn11() {
 		SummaryGenerator s = summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.lang.String fieldToReturn11()>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Field,new String[] {DATA_FIELD,DATACLASS_STRING_FIELD}, Return,new String[] {}));
 		assertTrue(flow.size() == 1);
 	}
@@ -138,7 +138,7 @@ public class FieldToReturnTest extends TestHelper{
 	public void fieldToReturn12() {
 		SummaryGenerator s = summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: "+DATA_TYPE+" fieldToReturn12()>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Field,new String[] {DATA_FIELD,DATACLASS_INT_FIELD}, Return,new String[] {DATACLASS_INT_FIELD}));
 		assertTrue(flow.size() == 1);
 	}
@@ -147,7 +147,7 @@ public class FieldToReturnTest extends TestHelper{
 	public void fieldToReturn13() {
 		SummaryGenerator s = summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: "+DATA_TYPE+" fieldToReturn13()>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Field,new String[] {DATA_FIELD,DATACLASS_OBJECT_FIELD}, Return,new String[] {DATACLASS_OBJECT_FIELD}));
 		assertTrue(flow.size() == 1);
 	}
@@ -156,7 +156,7 @@ public class FieldToReturnTest extends TestHelper{
 	public void fieldToReturn14() {
 		SummaryGenerator s = summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: "+DATA_TYPE+" fieldToReturn14()>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Field,new String[] {INT_FIELD}, Return,new String[] {DATACLASS_INT_FIELD}));
 		assertTrue(flow.size() == 1);
 	}

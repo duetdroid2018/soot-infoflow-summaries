@@ -14,7 +14,7 @@ import soot.jimple.infoflow.Infoflow;
 import soot.jimple.infoflow.config.ConfigForTest;
 import soot.jimple.infoflow.entryPointCreators.DefaultEntryPointCreator;
 import soot.jimple.infoflow.methodSummary.handler.SummaryTaintPropagationHandler;
-import soot.jimple.infoflow.methodSummary.sourceSinkManager.SummarySourceSinkManager;
+import soot.jimple.infoflow.methodSummary.source.SummarySourceSinkManager;
 import soot.jimple.infoflow.source.ISourceSinkManager;
 
 public class NonStandartSourcesAndSinksTest {

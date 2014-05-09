@@ -1,9 +1,9 @@
-package soot.jimple.infoflow.methodSummary.sourceSinkManager;
+package soot.jimple.infoflow.methodSummary.source;
 
 import soot.Local;
 import soot.PointsToSet;
 import soot.SootField;
-import soot.jimple.infoflow.methodSummary.data.DefaultFlowSource;
+import soot.jimple.infoflow.methodSummary.data.impl.DefaultFlowSource;
 
 /**
  * Source data class which save the information

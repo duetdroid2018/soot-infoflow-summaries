@@ -1,4 +1,4 @@
-package soot.jimple.infoflow.methodSummary.sourceSinkManager;
+package soot.jimple.infoflow.methodSummary.source;
 
 import heros.InterproceduralCFG;
 import heros.solver.IDESolver;
@@ -24,8 +24,8 @@ import soot.jimple.ReturnStmt;
 import soot.jimple.ReturnVoidStmt;
 import soot.jimple.Stmt;
 import soot.jimple.ThisRef;
-import soot.jimple.infoflow.methodSummary.data.MethodSummaries;
-import soot.jimple.infoflow.methodSummary.sourceSinkFactory.SourceSinkFactory;
+import soot.jimple.infoflow.methodSummary.data.factory.SourceSinkFactory;
+import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
 import soot.jimple.infoflow.source.ISourceSinkManager;
 import soot.jimple.infoflow.source.SourceInfo;
 
@@ -87,11 +87,6 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 		}
 		
 		SootMethod currentMethod = cfg.getMethodOf(sCallSite);
-		if(currentMethod.toString().contains("get(") ){
-			int a ;
-			a = 3;
-		}
-			 
 		
 		// If this is the dummy main method, we skip it
 		if (currentMethod.toString().contains("<dummyMainClass: void dummyMainMethod()>"))

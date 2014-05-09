@@ -11,9 +11,9 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
-import soot.jimple.infoflow.methodSummary.data.DefaultMethodFlow;
-import soot.jimple.infoflow.methodSummary.data.MethodSummaries;
-import soot.jimple.infoflow.methodSummary.sourceSinkFactory.XMLSourceSinkFactory;
+import soot.jimple.infoflow.methodSummary.data.factory.XMLSourceSinkFactory;
+import soot.jimple.infoflow.methodSummary.data.impl.DefaultMethodFlow;
+import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
 
 
 

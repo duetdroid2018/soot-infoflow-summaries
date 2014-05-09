@@ -11,8 +11,8 @@ import javax.xml.stream.XMLOutputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
-import soot.jimple.infoflow.methodSummary.data.AbstractMethodFlow;
-import soot.jimple.infoflow.methodSummary.data.MethodSummaries;
+import soot.jimple.infoflow.methodSummary.data.MethodFlow;
+import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
 
 public class XMLWriter implements ISummaryWriter {
 	private File fileName;
@@ -33,11 +33,11 @@ public class XMLWriter implements ISummaryWriter {
 		writer.writeStartDocument();
 		writer.writeStartElement("methods");
 
-		for (Entry<String, Set<AbstractMethodFlow>> m : flow.getFlows().entrySet()) {
+		for (Entry<String, Set<MethodFlow>> m : flow.getFlows().entrySet()) {
 			writer.writeStartElement("method");
 			writer.writeAttribute("id", m.getKey());
 			writer.writeStartElement("flows");
-			for (AbstractMethodFlow data : m.getValue()) {
+			for (MethodFlow data : m.getValue()) {
 				writer.writeStartElement("flow");
 				writer.writeStartElement("from");
 				for (Entry<String, String> t : data.source().xmlAttributes().entrySet()) {

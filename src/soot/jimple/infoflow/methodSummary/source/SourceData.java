@@ -1,8 +1,8 @@
-package soot.jimple.infoflow.methodSummary.sourceSinkManager;
+package soot.jimple.infoflow.methodSummary.source;
 
 import java.util.List;
 
-import soot.jimple.infoflow.methodSummary.data.DefaultFlowSource;
+import soot.jimple.infoflow.methodSummary.data.impl.DefaultFlowSource;
 
 public class SourceData {
 	List<DefaultFlowSource> sourceInfo;

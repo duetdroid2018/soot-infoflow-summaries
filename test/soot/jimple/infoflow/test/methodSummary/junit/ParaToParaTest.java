@@ -14,11 +14,11 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import soot.jimple.infoflow.methodSummary.SummaryGenerator;
-import soot.jimple.infoflow.methodSummary.data.AbstractMethodFlow;
+import soot.jimple.infoflow.methodSummary.data.MethodFlow;
 import soot.jimple.infoflow.test.methodSummary.ArbitraryAccessPath;
 
 public class ParaToParaTest extends TestHelper {
-	protected static Map<String, Set<AbstractMethodFlow>> flows;
+	protected static Map<String, Set<MethodFlow>> flows;
 	static boolean executeSummary = true;
 	static final String className = "soot.jimple.infoflow.test.methodSummary.ParaToParaFlows";
 
@@ -26,7 +26,7 @@ public class ParaToParaTest extends TestHelper {
 	public void array() {
 		SummaryGenerator s = new SummaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToParaFlows: void array(java.lang.Object,java.lang.Object[])>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Parameter,1,new String[] {}));
 		assertEquals(1,flow.size());
 	}
@@ -35,7 +35,7 @@ public class ParaToParaTest extends TestHelper {
 	public void arrayRec() {
 		SummaryGenerator s = new SummaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToParaFlows: void arrayRec(java.lang.Object,java.lang.Object[],int)>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Parameter,1,new String[] {}));
 		assertEquals(1,flow.size());
 	}
@@ -44,7 +44,7 @@ public class ParaToParaTest extends TestHelper {
 	public void list() {
 		SummaryGenerator s = summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToParaFlows: int list(java.util.List,java.lang.Object)>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 
 		assertTrue(containsFlow(flow, Parameter,1,new String[] {}, Parameter,0,new String[] {LINKEDLIST_FIRST,LINKEDLIST_ITEM}));
 		assertTrue(containsFlow(flow, Parameter,1,new String[] {}, Parameter,0,new String[] {LINKEDLIST_LAST,LINKEDLIST_ITEM}));
@@ -55,7 +55,7 @@ public class ParaToParaTest extends TestHelper {
 	public void list2() {
 		SummaryGenerator s =  summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToParaFlows: int list(java.util.List,java.lang.Object)>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		
 		assertTrue(containsFlow(flow, Parameter,1,new String[] {}, Parameter,1,new String[] {LINKEDLIST_FIRST,LINKEDLIST_ITEM}));
 		assertTrue(containsFlow(flow, Parameter,1,new String[] {}, Parameter,1,new String[] {LINKEDLIST_LAST,LINKEDLIST_ITEM}));
@@ -65,7 +65,7 @@ public class ParaToParaTest extends TestHelper {
 	public void setter() {
 		SummaryGenerator s =  summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToParaFlows: int setter(java.lang.String,soot.jimple.infoflow.test.methodSummary.Data)>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Parameter,1,new String[] {DATACLASS_STRING_FIELD}));
 		assertEquals(1,flow.size());
@@ -75,7 +75,7 @@ public class ParaToParaTest extends TestHelper {
 	public void setter2() {
 		SummaryGenerator s =  summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToParaFlows: int setter2(int,soot.jimple.infoflow.test.methodSummary.Data)>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Parameter,1,new String[] {DATACLASS_INT_FIELD}));
 		assertEquals(1,flow.size());
@@ -85,7 +85,7 @@ public class ParaToParaTest extends TestHelper {
 	public void innerClass() {
 		SummaryGenerator s =  summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToParaFlows: void innerClass(java.lang.Object,soot.jimple.infoflow.test.methodSummary.ParaToParaFlows$InnerClass)>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Parameter,1,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToParaFlows$InnerClass: java.lang.Object o>"}));
 		assertEquals(1,flow.size());

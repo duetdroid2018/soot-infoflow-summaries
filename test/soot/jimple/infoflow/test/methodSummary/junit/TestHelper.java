@@ -6,9 +6,9 @@ import java.util.Set;
 
 import soot.jimple.infoflow.methodSummary.SummaryGenerator;
 import soot.jimple.infoflow.methodSummary.data.AbstractFlowSinkSource;
-import soot.jimple.infoflow.methodSummary.data.AbstractMethodFlow;
-import soot.jimple.infoflow.methodSummary.data.IFlowSink;
-import soot.jimple.infoflow.methodSummary.data.IFlowSource;
+import soot.jimple.infoflow.methodSummary.data.MethodFlow;
+import soot.jimple.infoflow.methodSummary.data.FlowSink;
+import soot.jimple.infoflow.methodSummary.data.FlowSource;
 import soot.jimple.infoflow.methodSummary.data.SourceSinkType;
 import soot.jimple.infoflow.methodSummary.util.ClassFileInformation;
 
@@ -29,24 +29,24 @@ public abstract class TestHelper {
 	protected final static String LINKEDLIST_LAST = "<java.util.LinkedList: java.util.LinkedList$Node last>";
 	protected final static String LINKEDLIST_ITEM = "<java.util.LinkedList$Node: java.lang.Object item>";
 
-	protected boolean containsFlow(Set<AbstractMethodFlow> flows, SourceSinkType sourceTyp, String[] sourceFields,
+	protected boolean containsFlow(Set<MethodFlow> flows, SourceSinkType sourceTyp, String[] sourceFields,
 			SourceSinkType sinkTyp, String[] sinkFields) {
 		return containsFlow(flows, sourceTyp, -1 ,sourceFields, sinkTyp, -1,sinkFields);
 	}
-	protected boolean containsFlow(Set<AbstractMethodFlow> flows, SourceSinkType sourceTyp, String[] sourceFields,
+	protected boolean containsFlow(Set<MethodFlow> flows, SourceSinkType sourceTyp, String[] sourceFields,
 			SourceSinkType sinkTyp, int sinkParameterIdx, String[] sinkFields) {
 		return containsFlow(flows, sourceTyp, -1 ,sourceFields, sinkTyp, sinkParameterIdx,sinkFields);
 	}
-	protected boolean containsFlow(Set<AbstractMethodFlow> flows, SourceSinkType sourceTyp, int sourceParamterIdx, String[] sourceFields,
+	protected boolean containsFlow(Set<MethodFlow> flows, SourceSinkType sourceTyp, int sourceParamterIdx, String[] sourceFields,
 			SourceSinkType sinkTyp, String[] sinkFields) {
 		return containsFlow(flows, sourceTyp, sourceParamterIdx,sourceFields,  sinkTyp, -1, sinkFields);
 	}
 
-	protected boolean containsFlow(Set<AbstractMethodFlow> flows, SourceSinkType sourceTyp,int sourceParamterIdx, String[] sourceFields,
+	protected boolean containsFlow(Set<MethodFlow> flows, SourceSinkType sourceTyp,int sourceParamterIdx, String[] sourceFields,
 			SourceSinkType sinkTyp, int sinkParamterIdx,String[] sinkFields) {
-		for (AbstractMethodFlow mf : flows) {
-			IFlowSource source = mf.source();
-			IFlowSink sink = mf.sink();
+		for (MethodFlow mf : flows) {
+			FlowSource source = mf.source();
+			FlowSink sink = mf.sink();
 			if (source.type().equals(sourceTyp) && sink.type().equals(sinkTyp)) {
 				if (checkParamter(source, sourceTyp, sourceParamterIdx)
 						&& checkParamter(sink, sinkTyp, sinkParamterIdx)) {
@@ -63,7 +63,7 @@ public abstract class TestHelper {
 	private boolean checkParamter(AbstractFlowSinkSource s, SourceSinkType sType, int parameterIdx) {
 		if (sType.equals(SourceSinkType.Parameter)) {
 			if (s.type().equals(SourceSinkType.Parameter)) {
-				return s.getParamterIndex() == parameterIdx;
+				return s.getParameterIndex() == parameterIdx;
 			}
 			return false;
 		}

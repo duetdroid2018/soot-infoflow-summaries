@@ -1,13 +1,15 @@
-package soot.jimple.infoflow.methodSummary.data;
+package soot.jimple.infoflow.methodSummary.data.impl;
 
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import soot.SootField;
+import soot.jimple.infoflow.methodSummary.data.FlowSource;
+import soot.jimple.infoflow.methodSummary.data.SourceSinkType;
 import soot.jimple.infoflow.methodSummary.xml.XMLConstants;
 
-public class DefaultFlowSource extends IFlowSource {
+public class DefaultFlowSource extends FlowSource {
 
 
 
@@ -30,9 +32,9 @@ public class DefaultFlowSource extends IFlowSource {
 	@Override
 	public Map<String, String> xmlAttributes() {
 		Map<String, String> res = new HashMap<String, String>();
-		if (isParamter()) {
+		if (isParameter()) {
 			res.put(XMLConstants.ATTRIBUTE_FLOWTYPE, XMLConstants.VALUE_PARAMETER);
-			res.put(XMLConstants.ATTRIBUTE_PARAMTER_INDEX, getParamterIndex() + "");
+			res.put(XMLConstants.ATTRIBUTE_PARAMTER_INDEX, getParameterIndex() + "");
 		} else { // isField
 			res.put(XMLConstants.ATTRIBUTE_FLOWTYPE, XMLConstants.VALUE_FIELD);
 			res.put(XMLConstants.ATTRIBUTE_FIELD, "(this)");
@@ -46,8 +48,8 @@ public class DefaultFlowSource extends IFlowSource {
 	@Override
 	public String toString(){
 		StringBuffer buf = new StringBuffer();
-		if(isParamter()){
-			buf.append("Paramter " + getParamterIndex() + " " +  accessPath.toString());
+		if(isParameter()){
+			buf.append("Paramter " + getParameterIndex() + " " +  accessPath.toString());
 		}
 		if(isField()){
 			buf.append("Field " + accessPath.toString());
