@@ -18,6 +18,11 @@ import soot.jimple.infoflow.methodSummary.util.HandleException;
 import soot.jimple.infoflow.methodSummary.xml.ISummaryWriter;
 import soot.jimple.infoflow.methodSummary.xml.WriterFactory;
 
+/**
+ * cmdSummay allow to create method summary over the cmd. 
+ * 
+ *
+ */
 public class cmdSummary {
 
 	private static final Logger logger = LoggerFactory.getLogger(SummaryGenerator.class);
@@ -118,7 +123,6 @@ public class cmdSummary {
 			SummaryGenerator s = new SummaryGenerator();
 			MethodSummaries flows = new MethodSummaries();
 			
-			// Do not overwrite existing summaries
 			String xmlFile = classToFile(clz);
 			File f = new File(folder + File.separator + xmlFile);
 			if (f.exists() && !ow)

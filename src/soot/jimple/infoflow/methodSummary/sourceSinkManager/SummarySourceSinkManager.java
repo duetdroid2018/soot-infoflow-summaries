@@ -39,6 +39,8 @@ import com.google.common.cache.LoadingCache;
  * @author Steven Arzt
  */
 public class SummarySourceSinkManager implements ISourceSinkManager {
+	
+	
 
 	protected final LoadingCache<SootClass, Collection<SootField>> classToFields =
 		IDESolver.DEFAULT_CACHE_BUILDER.build(new CacheLoader<SootClass, Collection<SootField>>() {
@@ -52,6 +54,10 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 			}
 		});
 	
+	private boolean forceTaintSubFields = false;
+	
+	
+
 	private final Logger logger = LoggerFactory.getLogger(SummarySourceSinkManager.class);
 	private final String methodSig;
 	
@@ -98,8 +104,11 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 			if(rightOp instanceof InstanceFieldRef){
 				SourceData si = sModel.isSource((Local) ((InstanceFieldRef) rightOp).getBase(),((InstanceFieldRef) rightOp).getField());
 				if(si!=null){
+					if(jstmt.toString().contains("soot.jimple.infoflow.test.methodSummary.FieldToPara: java.lang.Object[] arrayField")){
+						System.out.println();
+					}
 					System.out.println("source: " + sCallSite + " " + currentMethod.getSignature());
-					return new SourceInfo(si.isTaintSubFields(), si.getSourceInfo());
+					return new SourceInfo(si.isTaintSubFields()|| forceTaintSubFields, si.getSourceInfo());
 				}
 					
 			}
@@ -114,11 +123,11 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 				ParameterRef pref = (ParameterRef) rightOp;
 				logger.debug("source: " + sCallSite + " " + currentMethod.getSignature());
 				System.out.println("source: " + sCallSite + " " + currentMethod.getSignature());
-				return new SourceInfo(false, SourceSinkFactory.createParamterSource(method, pref.getIndex(), null));
+				return new SourceInfo(false || forceTaintSubFields, SourceSinkFactory.createParamterSource(method, pref.getIndex(), null));
 			}
 			else if (currentMethod == method && rightOp instanceof ThisRef) {
-				System.out.println("source: (this)" + sCallSite + " " + currentMethod.getSignature());
-				return new SourceInfo(false, SourceSinkFactory.createThisSource());
+				System.out.println("source: (this)" + sCallSite + " " + currentMethod.getSignature());				
+				return new SourceInfo(false|| forceTaintSubFields, SourceSinkFactory.createThisSource());
 			}
 		}
 		return null;
@@ -150,5 +159,7 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 	private Collection<SootField> getClassFields(){
 		return classToFields.getUnchecked(method.getDeclaringClass());
 	}
-	
+	public void setForceTaintSubFields(boolean forceTaintSubFields) {
+		this.forceTaintSubFields = forceTaintSubFields;
+	}
 }

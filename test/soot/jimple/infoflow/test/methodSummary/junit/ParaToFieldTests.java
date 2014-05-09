@@ -1,6 +1,6 @@
 package soot.jimple.infoflow.test.methodSummary.junit;
 
-import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.*;
 import static soot.jimple.infoflow.methodSummary.data.SourceSinkType.Field;
 import static soot.jimple.infoflow.methodSummary.data.SourceSinkType.Return;
 import static soot.jimple.infoflow.methodSummary.data.SourceSinkType.Parameter;
@@ -36,9 +36,7 @@ public class ParaToFieldTests extends TestHelper {
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: soot.jimple.infoflow.test.methodSummary.Data dataField>", DATACLASS_INT_FIELD}));
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: int[] intArray>"}));
 		
-		//assertTrue(containsParaToFieldFlow(flow,0, INT_TYPE,NO_ACCESS_PATH,"<soot.jimple.infoflow.test.methodSummary.ParaToField: int intField>",NO_ACCESS_PATH));
-		//assertTrue(containsParaToFieldFlow(flow,0, INT_TYPE,NO_ACCESS_PATH,"<soot.jimple.infoflow.test.methodSummary.ParaToField: soot.jimple.infoflow.test.methodSummary.Data dataField>",DATACLASS_INT_FIELD));
-		//assertTrue(containsParaToFieldFlow(flow,0, INT_TYPE,NO_ACCESS_PATH,"<soot.jimple.infoflow.test.methodSummary.ParaToField: int[] intArray>",NO_ACCESS_PATH));
+		assertEquals(3,flow.size());
 		
 	}
 
@@ -51,10 +49,7 @@ public class ParaToFieldTests extends TestHelper {
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: soot.jimple.infoflow.test.methodSummary.Data dataField>",DATACLASS_INT_FIELD}));
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: int[] intArray>"}));
 		
-		//assertTrue(containsParaToFieldFlow(flow,0, INT_TYPE,NO_ACCESS_PATH,"<soot.jimple.infoflow.test.methodSummary.ParaToField: int intField>",NO_ACCESS_PATH));
-		//assertTrue(containsParaToFieldFlow(flow,0, INT_TYPE,NO_ACCESS_PATH,"<soot.jimple.infoflow.test.methodSummary.ParaToField: soot.jimple.infoflow.test.methodSummary.Data dataField>",DATACLASS_INT_FIELD));
-		//assertTrue(containsParaToFieldFlow(flow,0, INT_TYPE,NO_ACCESS_PATH,"<soot.jimple.infoflow.test.methodSummary.ParaToField: int[] intArray>",NO_ACCESS_PATH));
-		assertTrue(flow.size() == 3);
+		assertEquals(3,flow.size());
 	}
 
 	@Test(timeout = 100000)
@@ -66,9 +61,6 @@ public class ParaToFieldTests extends TestHelper {
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.lang.Object obField>"}));
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.lang.Object[] arrayField>"}));
 		
-		
-//		assertTrue(containsParaToFieldFlow(flow,0,OBJECT_TYPE,NO_ACCESS_PATH,"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.lang.Object obField>",NO_ACCESS_PATH));
-//		assertTrue(containsParaToFieldFlow(flow,0,OBJECT_TYPE,NO_ACCESS_PATH,"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.lang.Object[] arrayField>",NO_ACCESS_PATH));
 	}
 
 	@Test(timeout = 100000)
@@ -80,10 +72,7 @@ public class ParaToFieldTests extends TestHelper {
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: soot.jimple.infoflow.test.methodSummary.Data dataField>",DATACLASS_OBJECT_FIELD}));
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,LIST_ITEM));
 		
-		
-//		assertTrue(containsParaToFieldFlow(flow,0, OBJECT_TYPE,NO_ACCESS_PATH,"<soot.jimple.infoflow.test.methodSummary.ParaToField: soot.jimple.infoflow.test.methodSummary.Data dataField>",DATACLASS_OBJECT_FIELD));
-//		assertTrue(containsParaToFieldFlow(flow,0, OBJECT_TYPE,NO_ACCESS_PATH,"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.util.List listField>",LINKEDLIST_LAST));
-		assertTrue(flow.size() == 6);
+		assertEquals(6,flow.size());
 	}
 
 	@Test(timeout = 100000)
@@ -97,12 +86,7 @@ public class ParaToFieldTests extends TestHelper {
 		assertTrue(containsFlow(flow, Parameter,1,new String[] {}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.lang.Object[] arrayField>"}));
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: int[] intArray>"}));
 		
-		
-//		assertTrue(containsParaToFieldFlow(flow,0, INT,NO_ACCESS_PATH,"<soot.jimple.infoflow.test.methodSummary.ParaToField: int intField>",NO_ACCESS_PATH));
-//		assertTrue(containsParaToFieldFlow(flow,1, OBJECT_TYPE,NO_ACCESS_PATH,"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.lang.Object obField>",NO_ACCESS_PATH));
-//		assertTrue(containsParaToFieldFlow(flow,1, OBJECT_TYPE,NO_ACCESS_PATH,"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.lang.Object[] arrayField>",NO_ACCESS_PATH));
-//		assertTrue(containsParaToFieldFlow(flow,0, INT,NO_ACCESS_PATH,"<soot.jimple.infoflow.test.methodSummary.ParaToField: int[] intArray>",NO_ACCESS_PATH));
-
+		assertEquals(9,flow.size());
 	}
 
 	@Test(timeout = 100000)
@@ -119,14 +103,7 @@ public class ParaToFieldTests extends TestHelper {
 		assertTrue(containsFlow(flow, Parameter,1,new String[] {}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.lang.Object[] arrayField>"}));
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: int[] intArray>"}));
 		
-//		assertTrue(containsParaToFieldFlow(flow,1,OBJECT_TYPE,NO_ACCESS_PATH,"<soot.jimple.infoflow.test.methodSummary.ParaToField: soot.jimple.infoflow.test.methodSummary.Data dataField>",DATACLASS_OBJECT_FIELD));
-//		assertTrue(containsParaToFieldFlow(flow,0, INT_TYPE,NO_ACCESS_PATH,"<soot.jimple.infoflow.test.methodSummary.ParaToField: int intField>",NO_ACCESS_PATH));
-//		assertTrue(containsParaToFieldFlow(flow,1,OBJECT_TYPE,NO_ACCESS_PATH,"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.lang.Object obField>",NO_ACCESS_PATH));
-//		assertTrue(containsParaToFieldFlow(flow,1,OBJECT_TYPE,NO_ACCESS_PATH,"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.util.List listField>",LINKEDLIST_LAST));
-//		assertTrue(containsParaToFieldFlow(flow,0, INT_TYPE,NO_ACCESS_PATH,"<soot.jimple.infoflow.test.methodSummary.ParaToField: soot.jimple.infoflow.test.methodSummary.Data dataField>",DATACLASS_INT_FIELD));
-//		assertTrue(containsParaToFieldFlow(flow,1,OBJECT_TYPE,NO_ACCESS_PATH,"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.lang.Object[] arrayField>",NO_ACCESS_PATH));
-//		assertTrue(containsParaToFieldFlow(flow,0, INT_TYPE,NO_ACCESS_PATH,"<soot.jimple.infoflow.test.methodSummary.ParaToField: int[] intArray>",NO_ACCESS_PATH));
-		assertTrue(flow.size() == 9);
+		assertEquals(9,flow.size());
 	}
 
 	@Test(timeout = 100000)
@@ -141,11 +118,7 @@ public class ParaToFieldTests extends TestHelper {
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: int[] intArray>"}));
 		assertTrue(containsFlow(flow, Parameter,1,new String[] {}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.util.List listField>","<java.util.LinkedList: java.util.LinkedList$Node first>","<java.util.LinkedList$Node: java.lang.Object item>"}));
 		assertTrue(containsFlow(flow, Parameter,1,new String[] {}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: soot.jimple.infoflow.test.methodSummary.Data dataField>","<soot.jimple.infoflow.test.methodSummary.Data: java.lang.Object data>"}));	
-		assertTrue(flow.size() == 9);
-//		assertTrue(containsParaToFieldFlow(flow,0,INT_ARRAY,NO_ACCESS_PATH,"<soot.jimple.infoflow.test.methodSummary.ParaToField: int intField>",NO_ACCESS_PATH));
-//		assertTrue(containsParaToFieldFlow(flow,1,OBJECT_ARRAY,NO_ACCESS_PATH,"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.lang.Object obField>",NO_ACCESS_PATH));
-//		assertTrue(containsParaToFieldFlow(flow,1,OBJECT_ARRAY,NO_ACCESS_PATH,"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.lang.Object[] arrayField>",NO_ACCESS_PATH));
-//		assertTrue(containsParaToFieldFlow(flow,0,INT_ARRAY,NO_ACCESS_PATH,"<soot.jimple.infoflow.test.methodSummary.ParaToField: int[] intArray>",NO_ACCESS_PATH));
+		assertEquals(9,flow.size());
 	}
 
 	@Test(timeout = 300000)
@@ -161,17 +134,7 @@ public class ParaToFieldTests extends TestHelper {
 		assertTrue(containsFlow(flow, Parameter,1,new String[] {}, Field,LIST_ITEM));
 		assertTrue(containsFlow(flow, Parameter,1,new String[] {}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.lang.Object[] arrayField>"}));
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: int[] intArray>"}));
-		
-//
-//		assertTrue(containsParaToFieldFlow(flow,0,INT_ARRAY,NO_ACCESS_PATH,"<soot.jimple.infoflow.test.methodSummary.ParaToField: int intField>",NO_ACCESS_PATH));
-//		assertTrue(containsParaToFieldFlow(flow,0,INT_ARRAY,NO_ACCESS_PATH,"<soot.jimple.infoflow.test.methodSummary.ParaToField: soot.jimple.infoflow.test.methodSummary.Data dataField>",DATACLASS_INT_FIELD));
-//		assertTrue(containsParaToFieldFlow(flow,1,OBJECT_ARRAY,NO_ACCESS_PATH,"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.lang.Object obField>",NO_ACCESS_PATH));
-//		assertTrue(containsParaToFieldFlow(flow,1,OBJECT_ARRAY,NO_ACCESS_PATH,"<soot.jimple.infoflow.test.methodSummary.ParaToField: soot.jimple.infoflow.test.methodSummary.Data dataField>",DATACLASS_OBJECT_FIELD));
-//		assertTrue(containsParaToFieldFlow(flow,1,OBJECT_ARRAY,NO_ACCESS_PATH,"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.util.List listField>",LINKEDLIST_LAST));
-//		assertTrue(containsParaToFieldFlow(flow,1,OBJECT_ARRAY,NO_ACCESS_PATH,"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.util.List listField>",LINKEDLIST_LAST));
-//		assertTrue(containsParaToFieldFlow(flow,1,OBJECT_ARRAY,NO_ACCESS_PATH,"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.lang.Object[] arrayField>",NO_ACCESS_PATH));
-//		assertTrue(containsParaToFieldFlow(flow,0,INT_ARRAY,NO_ACCESS_PATH,"<soot.jimple.infoflow.test.methodSummary.ParaToField: int[] intArray>",NO_ACCESS_PATH));
-		assertTrue(flow.size() == 9);
+		assertEquals(9,flow.size());
 	}
 
 	@Test(timeout = 300000)
@@ -186,14 +149,9 @@ public class ParaToFieldTests extends TestHelper {
 		//assertTrue(containsFlow(flow, Parameter,1,new String[] {LINKEDLIST_FIRST}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.lang.Object obField>"}));
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {DATACLASS_OBJECT_FIELD}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.lang.Object[] arrayField>"}));
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {DATACLASS_INT_FIELD}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: int[] intArray>"}));	
-		assertTrue(flow.size() == 6);
-//		assertTrue(containsParaToFieldFlow(flow,0,DATA,DATACLASS_INT_FIELD,"<soot.jimple.infoflow.test.methodSummary.ParaToField: int intField>",NO_ACCESS_PATH));
-//		assertTrue(containsParaToFieldFlow(flow,0,DATA,DATACLASS_OBJECT_FIELD,"<soot.jimple.infoflow.test.methodSummary.ParaToField: soot.jimple.infoflow.test.methodSummary.Data dataField>",DATACLASS_OBJECT_FIELD));
-//		assertTrue(containsParaToFieldFlow(flow,1,LIST,LINKEDLIST_FIRST,"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.lang.Object obField>",NO_ACCESS_PATH));
-//		assertTrue(containsParaToFieldFlow(flow,0,DATA,DATACLASS_OBJECT_FIELD,"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.lang.Object[] arrayField>",NO_ACCESS_PATH));
-//		assertTrue(containsParaToFieldFlow(flow,0,DATA,DATACLASS_INT_FIELD,"<soot.jimple.infoflow.test.methodSummary.ParaToField: int[] intArray>",NO_ACCESS_PATH));
+		assertEquals(6,flow.size());
 	}
-	@Ignore //List is not working
+	@Ignore //We dont identify list.first.item as a source. that is because first = null
 	@Test(timeout = 300000)
 	public void dataAndListParameter() {
 		SummaryGenerator s = summaryGenerator();
@@ -206,12 +164,7 @@ public class ParaToFieldTests extends TestHelper {
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {DATACLASS_OBJECT_FIELD}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.lang.Object[] arrayField>"}));
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {DATACLASS_INT_FIELD}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: int[] intArray>"}));
 		assertTrue(containsFlow(flow, Parameter,1,new String[] {LINKEDLIST_FIRST}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.lang.Object obField>"}));
-		assertTrue(flow.size() == 6);
-//		assertTrue(containsParaToFieldFlow(flow,0,DATA,DATACLASS_INT_FIELD,"<soot.jimple.infoflow.test.methodSummary.ParaToField: int intField>",NO_ACCESS_PATH));
-//		assertTrue(containsParaToFieldFlow(flow,0,DATA,DATACLASS_OBJECT_FIELD,"<soot.jimple.infoflow.test.methodSummary.ParaToField: soot.jimple.infoflow.test.methodSummary.Data dataField>",DATACLASS_OBJECT_FIELD));
-//		assertTrue(containsParaToFieldFlow(flow,1,LIST,LINKEDLIST_FIRST,"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.lang.Object obField>",NO_ACCESS_PATH));
-//		assertTrue(containsParaToFieldFlow(flow,0,DATA,DATACLASS_OBJECT_FIELD,"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.lang.Object[] arrayField>",NO_ACCESS_PATH));
-//		assertTrue(containsParaToFieldFlow(flow,0,DATA,DATACLASS_INT_FIELD,"<soot.jimple.infoflow.test.methodSummary.ParaToField: int[] intArray>",NO_ACCESS_PATH));
+		assertEquals(6,flow.size());
 	}
 
 	@Test(timeout = 400000)
@@ -227,18 +180,9 @@ public class ParaToFieldTests extends TestHelper {
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {DATACLASS_OBJECT_FIELD}, Field,new String[] {DATA_FIELD, DATACLASS_OBJECT_FIELD}));
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {DATACLASS_OBJECT_FIELD}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.lang.Object[] arrayField>"}));
 		
-		
-		//assertTrue(containsFlow(flow, Parameter,1,new String[] {LINKEDLIST_FIRST}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.lang.Object obField>"}));
-		//assertTrue(containsFlow(flow, Parameter,1,new String[] {LINKEDLIST_FIRST}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.util.List listField>"}));
-//		assertTrue(containsParaToFieldFlow(flow,0,DATA,DATACLASS_INT_FIELD,"<soot.jimple.infoflow.test.methodSummary.ParaToField: int intField>",NO_ACCESS_PATH));
-//		assertTrue(containsParaToFieldFlow(flow,0,DATA,DATACLASS_OBJECT_FIELD,"<soot.jimple.infoflow.test.methodSummary.ParaToField: soot.jimple.infoflow.test.methodSummary.Data dataField>",NO_ACCESS_PATH));
-//		assertTrue(containsParaToFieldFlow(flow,1,LIST,LINKEDLIST_FIRST,"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.lang.Object obField>",NO_ACCESS_PATH));
-//		assertTrue(containsParaToFieldFlow(flow,1,LIST,LINKEDLIST_FIRST,"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.util.List listField>",NO_ACCESS_PATH));
-//		assertTrue(containsParaToFieldFlow(flow,0,DATA,DATACLASS_OBJECT_FIELD,"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.lang.Object[] arrayField>",NO_ACCESS_PATH));
-//		assertTrue(containsParaToFieldFlow(flow,0,DATA,DATACLASS_INT_FIELD,"<soot.jimple.infoflow.test.methodSummary.ParaToField: int[] intArray>",NO_ACCESS_PATH));
-		assertTrue(flow.size() == 6);
-	}
-	@Ignore
+		assertEquals(6,flow.size());
+		}
+	@Ignore //LinkedList works that as parameter source because we have list.null.null and then the points to doesnt work correctly
 	@Test(timeout = 400000)
 	public void dataAndListParameter2() {
 		
@@ -255,13 +199,7 @@ public class ParaToFieldTests extends TestHelper {
 		
 		assertTrue(containsFlow(flow, Parameter,1,new String[] {LINKEDLIST_FIRST,LINKEDLIST_ITEM}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.lang.Object obField>"}));
 		assertTrue(containsFlow(flow, Parameter,1,new String[] {LINKEDLIST_FIRST,LINKEDLIST_ITEM}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.util.List listField>"}));
-//		assertTrue(containsParaToFieldFlow(flow,0,DATA,DATACLASS_INT_FIELD,"<soot.jimple.infoflow.test.methodSummary.ParaToField: int intField>",NO_ACCESS_PATH));
-//		assertTrue(containsParaToFieldFlow(flow,0,DATA,DATACLASS_OBJECT_FIELD,"<soot.jimple.infoflow.test.methodSummary.ParaToField: soot.jimple.infoflow.test.methodSummary.Data dataField>",NO_ACCESS_PATH));
-//		assertTrue(containsParaToFieldFlow(flow,1,LIST,LINKEDLIST_FIRST,"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.lang.Object obField>",NO_ACCESS_PATH));
-//		assertTrue(containsParaToFieldFlow(flow,1,LIST,LINKEDLIST_FIRST,"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.util.List listField>",NO_ACCESS_PATH));
-//		assertTrue(containsParaToFieldFlow(flow,0,DATA,DATACLASS_OBJECT_FIELD,"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.lang.Object[] arrayField>",NO_ACCESS_PATH));
-//		assertTrue(containsParaToFieldFlow(flow,0,DATA,DATACLASS_INT_FIELD,"<soot.jimple.infoflow.test.methodSummary.ParaToField: int[] intArray>",NO_ACCESS_PATH));
-		assertTrue(flow.size() == 6);
+		assertEquals(6,flow.size());
 	}
 	
 	@Override

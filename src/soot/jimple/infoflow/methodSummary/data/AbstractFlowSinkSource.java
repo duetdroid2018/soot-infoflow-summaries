@@ -3,8 +3,10 @@ package soot.jimple.infoflow.methodSummary.data;
 import java.util.List;
 import java.util.Map;
 
-import soot.jimple.infoflow.data.Abstraction;
-
+/**
+ * Data class which stores the data assosiation to a Sink or a Source of a method flow.
+ * 
+ */
 public abstract class AbstractFlowSinkSource {
 	protected final SourceSinkType type;
 	protected final int parameterIdx;
@@ -48,12 +50,6 @@ public abstract class AbstractFlowSinkSource {
 	public boolean hasAccessPath(){
 		return accessPath != null && accessPath.hasAP();
 	}
-	
-	
-	//public String getParaType();
-
-	
-	
 	public SummaryAccessPath getAccessPath(){
 		return accessPath;
 	}

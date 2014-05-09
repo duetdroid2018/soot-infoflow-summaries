@@ -7,8 +7,8 @@ import java.util.Map;
 import soot.jimple.infoflow.methodSummary.data.DefaultFlowSink;
 import soot.jimple.infoflow.methodSummary.data.DefaultFlowSource;
 import soot.jimple.infoflow.methodSummary.data.IFlowSink;
+import soot.jimple.infoflow.methodSummary.data.IFlowSource;
 import soot.jimple.infoflow.methodSummary.data.SourceSinkType;
-import soot.jimple.infoflow.methodSummary.sourceSink.IFlowSource;
 import soot.jimple.infoflow.methodSummary.xml.XMLConstants;
 
 public class XMLSourceSinkFactory {

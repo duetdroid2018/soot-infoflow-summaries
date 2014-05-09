@@ -39,8 +39,8 @@ public class SummaryTaintWrapperTests {
 	private String sink = "<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void sink(java.lang.Object)>";
 	private SummaryTaintWrapper summaryWrapper;
 
-	@BeforeClass
-	public static void init() throws FileNotFoundException, XMLStreamException {
+//	@BeforeClass
+//	public static void init() throws FileNotFoundException, XMLStreamException {
 //		String mSig = "";
 //		for (Method m : ApiClass.class.getDeclaredMethods()) {
 //			mSig = mSig + ClassFileInformation.getMethodSig(m) + ";";
@@ -49,7 +49,7 @@ public class SummaryTaintWrapperTests {
 //		List<String> runArgs = new ArrayList<String>();
 //		runArgs.add("-m " + mSig);
 //		cmdSummary.main(runArgs.toArray(new String[runArgs.size()]));
-	}
+//	}
 
 	@Before
 	public void resetSootAndStream() throws IOException {
@@ -133,8 +133,8 @@ public class SummaryTaintWrapperTests {
 		try {
 			iFlow = initInfoflow();
 			Infoflow.setAccessPathLength(3);
-			iFlow.computeInfoflow(appPath, libPath, new DefaultEntryPointCreator(),
-					java.util.Collections.singletonList(m), Arrays.asList(source),
+			iFlow.computeInfoflow(appPath, libPath, new DefaultEntryPointCreator(java.util.Collections.singletonList(m)),
+					Arrays.asList(source),
 					java.util.Collections.singletonList(sink));
 		} catch (Exception e) {
 			fail("failed to calc path for test" + e.toString());
@@ -147,8 +147,8 @@ public class SummaryTaintWrapperTests {
 
 		try {
 			iFlow = initInfoflow();
-			iFlow.computeInfoflow(appPath, libPath, new DefaultEntryPointCreator(),
-					java.util.Collections.singletonList(m), Arrays.asList(source),
+			iFlow.computeInfoflow(appPath, libPath, new DefaultEntryPointCreator(java.util.Collections.singletonList(m)),
+					 Arrays.asList(source),
 					java.util.Collections.singletonList(sink));
 		} catch (Exception e) {
 			fail("failed to calc path for test" + e.toString());

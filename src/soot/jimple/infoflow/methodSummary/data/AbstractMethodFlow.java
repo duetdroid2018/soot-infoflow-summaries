@@ -1,7 +1,14 @@
 package soot.jimple.infoflow.methodSummary.data;
 
-import soot.jimple.infoflow.methodSummary.sourceSink.IFlowSource;
-
+/**
+ * This class saves one method flow
+ *  that is 
+ *  	- the source
+ *  	- the sink
+ *  	- method sig
+ *  	- class sig
+ *
+ */
 public abstract class AbstractMethodFlow {
 
 	abstract public IFlowSource source();

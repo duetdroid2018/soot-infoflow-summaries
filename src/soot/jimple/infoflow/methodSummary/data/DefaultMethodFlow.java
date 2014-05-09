@@ -1,6 +1,5 @@
 package soot.jimple.infoflow.methodSummary.data;
 
-import soot.jimple.infoflow.methodSummary.sourceSink.IFlowSource;
 
 
 public class DefaultMethodFlow extends AbstractMethodFlow {

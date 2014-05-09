@@ -2,6 +2,7 @@ package soot.jimple.infoflow.methodSummary;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -27,20 +28,25 @@ import soot.jimple.infoflow.taintWrappers.ITaintPropagationWrapper;
  */
 public class SummaryGenerator {
 
+	public static final String DUMMY_MAIN_SIG = "<dummyMainClass: void dummyMainMethod()>";
+	
+	//the access path length that is used in infoflow
 	protected int accessPathLength = 5;
+	
+	//the access path length that is used in the summaries. 
 	protected int summaryAPLength = accessPathLength - 1;
+	
 	protected boolean ignoreFlowsInSystemPackages = false;
 	protected boolean enableImplicitFlows = false;
 	protected boolean enableExceptionTracking = false;
 	protected boolean enableStaticFieldTracking = false;
-	protected boolean flowSensitiveAliasing = false;
+	protected boolean flowSensitiveAliasing = true;
 	protected CallgraphAlgorithm cfgAlgo = CallgraphAlgorithm.SPARK;
 	protected boolean debug = false;
 	protected ITaintPropagationWrapper taintWrapper;
 	protected IInfoflowConfig config;
 	protected String path;
 	protected List<String> substitutedWith = new LinkedList<String>();
-	private boolean disableFlowOverMain = true;
 	private boolean analyseMethodsTogether = true;
 
 	public SummaryGenerator() {
@@ -50,10 +56,32 @@ public class SummaryGenerator {
 		initDefPath();
 	}
 
+	/**
+	 * Creates a summary for the method m of a class c.
+	 * It is assumed that only the default constructor of c is executed before 
+	 * m is called.
+	 * 
+	 * The result of that assumption is that some fields of c may be null. A null field
+	 * is not identified as a source and there for will not create a Field -> X flow.
+	 *  
+	 * @param m method for which a summary will be created
+	 * @return summary of method m
+	 */
 	public MethodSummaries createMethodSummary(final String m) {
 		return createMethodSummary(m, null, new SummarySourceSinkManager(m, summaryAPLength));
 	}
 
+	/**
+	 * Creates a summary for the method m.
+	 * It is assumed that all method in mDependencies and the default constructor of c is executed before
+	 * m is executed. 
+	 * 
+	 * That allows e.g. to call a setter before a getter method is analyzed and there the getter field is not null. 
+	 *   
+	 * @param m method for which a summary will be created
+	 * @param mDependencies all methods which will be "executed" before m
+	 * @return summary of method m
+	 */
 	public MethodSummaries createMethodSummary(final String m, List<String> mDependencies) {
 		return createMethodSummary(m, mDependencies, new SummarySourceSinkManager(m,summaryAPLength));
 	}
@@ -85,12 +113,12 @@ public class SummaryGenerator {
 			}
 		}
 		ms.add(sig);
-		infoflow.computeInfoflow(null, path, createEntryPoint(), ms, manager);
+		infoflow.computeInfoflow(null, path, createEntryPoint(ms), manager);
 		return summaries;
 	}
 
-	private BaseEntryPointCreator createEntryPoint() {
-		DefaultEntryPointCreator dEntryPointCreater = new DefaultEntryPointCreator();
+	private BaseEntryPointCreator createEntryPoint(Collection<String> entryPoints) {
+		DefaultEntryPointCreator dEntryPointCreater = new DefaultEntryPointCreator(entryPoints);
 		dEntryPointCreater.setSubstituteClasses(substitutedWith);
 		dEntryPointCreater.setSubstituteCallParams(true);
 		return dEntryPointCreater;
@@ -106,7 +134,7 @@ public class SummaryGenerator {
 		iFlow.setFlowSensitiveAliasing(flowSensitiveAliasing);
 		iFlow.setTaintWrapper(taintWrapper);
 		iFlow.setCallgraphAlgorithm(cfgAlgo);
-		iFlow.setDisableFlowOverDummyMain(disableFlowOverMain);
+		iFlow.setMethodsExcludedFromFlowPropagation(java.util.Collections.singletonList(DUMMY_MAIN_SIG));
 		iFlow.setIgnoreFlowsInSystemPackages(ignoreFlowsInSystemPackages);
 		
 		if (config == null) {

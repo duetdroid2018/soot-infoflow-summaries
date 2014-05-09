@@ -1,9 +1,9 @@
 package soot.jimple.infoflow.test.methodSummary.junit;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static soot.jimple.infoflow.methodSummary.data.SourceSinkType.Field;
 import static soot.jimple.infoflow.methodSummary.data.SourceSinkType.Parameter;
-
 
 import java.util.LinkedList;
 import java.util.List;
@@ -28,8 +28,7 @@ public class ParaToParaTest extends TestHelper {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToParaFlows: void array(java.lang.Object,java.lang.Object[])>";
 		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Parameter,1,new String[] {}));
-		//assertTrue(containsParaToParaFlow(flow,0,OBJECT,NO_ACCESS_PATH,1,OBJECT_ARRAY,NO_ACCESS_PATH));
-		assertTrue(flow.size() == 1);
+		assertEquals(1,flow.size());
 	}
 
 	@Test(timeout = 100000)
@@ -38,8 +37,7 @@ public class ParaToParaTest extends TestHelper {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToParaFlows: void arrayRec(java.lang.Object,java.lang.Object[],int)>";
 		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Parameter,1,new String[] {}));
-		//assertTrue(containsParaToParaFlow(flow,0,OBJECT,NO_ACCESS_PATH,1,OBJECT_ARRAY,NO_ACCESS_PATH));
-		assertTrue(flow.size() == 1);
+		assertEquals(1,flow.size());
 	}
 
 	@Test(timeout = 100000)
@@ -50,10 +48,7 @@ public class ParaToParaTest extends TestHelper {
 
 		assertTrue(containsFlow(flow, Parameter,1,new String[] {}, Parameter,0,new String[] {LINKEDLIST_FIRST,LINKEDLIST_ITEM}));
 		assertTrue(containsFlow(flow, Parameter,1,new String[] {}, Parameter,0,new String[] {LINKEDLIST_LAST,LINKEDLIST_ITEM}));
-		
-//		assertTrue(containsParaToParaFlow(flow,1,OBJECT,NO_ACCESS_PATH,0,LIST,LINKEDLIST_LAST));
-//		assertTrue(containsParaToParaFlow(flow,1,OBJECT,NO_ACCESS_PATH,0,LIST,LINKEDLIST_FIRST));
-		
+		assertEquals(3,flow.size());
 	}
 
 	@Ignore
@@ -64,9 +59,6 @@ public class ParaToParaTest extends TestHelper {
 		
 		assertTrue(containsFlow(flow, Parameter,1,new String[] {}, Parameter,1,new String[] {LINKEDLIST_FIRST,LINKEDLIST_ITEM}));
 		assertTrue(containsFlow(flow, Parameter,1,new String[] {}, Parameter,1,new String[] {LINKEDLIST_LAST,LINKEDLIST_ITEM}));
-
-//		assertTrue(containsParaToParaFlow(flow,1,OBJECT,NO_ACCESS_PATH,0,LIST,LINKEDLIST_LAST));
-//		assertTrue(containsParaToParaFlow(flow,1,OBJECT,NO_ACCESS_PATH,0,LIST,LINKEDLIST_FIRST));
 		assertTrue(flow.size() ==2);
 	}
 	@Test(timeout = 100000)
@@ -76,10 +68,7 @@ public class ParaToParaTest extends TestHelper {
 		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Parameter,1,new String[] {DATACLASS_STRING_FIELD}));
-		
-		
-//		assertTrue(containsParaToParaFlow(flow,0,STRING,NO_ACCESS_PATH,1,DATA,DATACLASS_STRING_FIELD));
-		assertTrue(flow.size() == 1);
+		assertEquals(1,flow.size());
 	}
 
 	@Test(timeout = 100000)
@@ -89,9 +78,7 @@ public class ParaToParaTest extends TestHelper {
 		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Parameter,1,new String[] {DATACLASS_INT_FIELD}));
-		
-		//assertTrue(containsParaToParaFlow(flow,0,INT,NO_ACCESS_PATH,1,DATA,DATACLASS_INT_FIELD));
-		assertTrue(flow.size() == 1);
+		assertEquals(1,flow.size());
 	}
 
 	@Test(timeout = 100000)
@@ -101,8 +88,7 @@ public class ParaToParaTest extends TestHelper {
 		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Parameter,1,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToParaFlows$InnerClass: java.lang.Object o>"}));
-		//assertTrue(containsParaToParaFlow(flow,0,OBJECT,NO_ACCESS_PATH,1,"soot.jimple.infoflow.test.methodSummary.ParaToParaFlows$InnerClass","<soot.jimple.infoflow.test.methodSummary.ParaToParaFlows$InnerClass: java.lang.Object o>"));
-		assertTrue(flow.size() == 1);
+		assertEquals(1,flow.size());
 	}
 	@Override
 	Class getClazz() {

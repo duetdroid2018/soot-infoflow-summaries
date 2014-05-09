@@ -33,8 +33,8 @@ import soot.jimple.infoflow.data.pathBuilders.IAbstractionPathBuilder;
 import soot.jimple.infoflow.methodSummary.data.AbstractMethodFlow;
 import soot.jimple.infoflow.methodSummary.data.DefaultMethodFlow;
 import soot.jimple.infoflow.methodSummary.data.IFlowSink;
+import soot.jimple.infoflow.methodSummary.data.IFlowSource;
 import soot.jimple.infoflow.methodSummary.data.MethodSummaries;
-import soot.jimple.infoflow.methodSummary.sourceSink.IFlowSource;
 import soot.jimple.infoflow.methodSummary.sourceSinkManager.SummarySourceSinkManager;
 
 public class InfoflowResultProcessor {
@@ -93,7 +93,7 @@ public class InfoflowResultProcessor {
 						// Get the sink
 						IFlowSink sink = null;
 
-						PointsToSet basePT = pTa.reachingObjects(a.getAccessPath().getPlainValue());
+ 						PointsToSet basePT = pTa.reachingObjects(a.getAccessPath().getPlainValue());
 						// The sink may be a parameter
 						for (int i = 0; i < m.getParameterCount(); i++) {
 							Local p = m.getActiveBody().getParameterLocal(i);

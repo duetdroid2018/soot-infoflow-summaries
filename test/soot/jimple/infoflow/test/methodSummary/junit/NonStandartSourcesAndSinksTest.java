@@ -32,8 +32,8 @@ public class NonStandartSourcesAndSinksTest {
 		String mSig = "<soot.jimple.infoflow.test.NonStandartSourcesAndSinks: int intMultiTest3(int,int)>";
     	List<String> epoints = new ArrayList<String>();
     	epoints.add(mSig);
-    	DefaultEntryPointCreator dEntryPointCreater = new DefaultEntryPointCreator();
-		infoflow.computeInfoflow(appPath, libPath, dEntryPointCreater, epoints, createSourceSinkManger(mSig,NON_STANDART_SOURCES_AND_SINKS));
+    	DefaultEntryPointCreator dEntryPointCreater = new DefaultEntryPointCreator(epoints);
+		infoflow.computeInfoflow(appPath, libPath, dEntryPointCreater, createSourceSinkManger(mSig,NON_STANDART_SOURCES_AND_SINKS));
 		System.out.println(infoflow.getResults().toString());
 		System.out.println(infoflow.getResults().size());
 		
@@ -47,9 +47,9 @@ public class NonStandartSourcesAndSinksTest {
 		infoflow.addTaintPropagationHandler(new SummaryTaintPropagationHandler(mSig));
     	List<String> epoints = new ArrayList<String>();
     	epoints.add(mSig);
-    	DefaultEntryPointCreator dEntryPointCreater = new DefaultEntryPointCreator();
+    	DefaultEntryPointCreator dEntryPointCreater = new DefaultEntryPointCreator(epoints);
     	
-		infoflow.computeInfoflow(appPath, libPath, dEntryPointCreater, epoints, createSourceSinkManger(mSig,NON_STANDART_SOURCES_AND_SINKS));
+		infoflow.computeInfoflow(appPath, libPath, dEntryPointCreater, createSourceSinkManger(mSig,NON_STANDART_SOURCES_AND_SINKS));
 		System.out.println(infoflow.getResults().toString());
 		System.out.println(infoflow.getResults().size());
 	}
@@ -62,9 +62,9 @@ public class NonStandartSourcesAndSinksTest {
 		infoflow.addTaintPropagationHandler(new SummaryTaintPropagationHandler(mSig));
     	List<String> epoints = new ArrayList<String>();
     	epoints.add(mSig);
-    	DefaultEntryPointCreator dEntryPointCreater = new DefaultEntryPointCreator();
+    	DefaultEntryPointCreator dEntryPointCreater = new DefaultEntryPointCreator(epoints);
     	
-		infoflow.computeInfoflow(appPath, libPath, dEntryPointCreater, epoints, createSourceSinkManger(mSig,APICLASS));
+		infoflow.computeInfoflow(appPath, libPath, dEntryPointCreater, createSourceSinkManger(mSig,APICLASS));
 		System.out.println(infoflow.getResults().toString());
 		System.out.println(infoflow.getResults().size());
 	}

@@ -1,4 +1,4 @@
-package soot.jimple.infoflow.methodSummary.sourceSink;
+package soot.jimple.infoflow.methodSummary.data;
 
 import java.io.File;
 import java.util.Arrays;
@@ -8,8 +8,6 @@ import java.util.List;
 import java.util.Set;
 
 import soot.SootMethod;
-import soot.jimple.infoflow.methodSummary.data.AbstractMethodFlow;
-import soot.jimple.infoflow.methodSummary.data.MethodSummaries;
 import soot.jimple.infoflow.methodSummary.xml.ISummaryReader;
 import soot.jimple.infoflow.methodSummary.xml.XMLReader;
 

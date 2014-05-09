@@ -7,6 +7,6 @@ import org.junit.runners.Suite;
 @RunWith(Suite.class)
 @Suite.SuiteClasses({ /*GetPathsTest.class,*/ApiTests.class,ArbitraryAccessPathTest.class,FieldToParaTests.class, FieldToReturnTest.class, ParaToFieldTests.class,
 		ParaToReturnTests.class, ParaToParaTest.class ,SummaryTaintWrapperTests.class, WrapperListTests.class,ApiTestNotWorking.class,
-		SimpleListTest.class})
+		})
 public class AllTests {
 }

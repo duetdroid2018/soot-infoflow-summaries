@@ -17,8 +17,8 @@ import soot.jimple.Stmt;
 import soot.jimple.infoflow.data.AccessPath;
 import soot.jimple.infoflow.methodSummary.data.AbstractMethodFlow;
 import soot.jimple.infoflow.methodSummary.data.IFlowSink;
-import soot.jimple.infoflow.methodSummary.sourceSink.IFlowSource;
-import soot.jimple.infoflow.methodSummary.sourceSink.LazySummary;
+import soot.jimple.infoflow.methodSummary.data.IFlowSource;
+import soot.jimple.infoflow.methodSummary.data.LazySummary;
 import soot.jimple.infoflow.solver.IInfoflowCFG;
 import soot.jimple.infoflow.taintWrappers.AbstractTaintWrapper;
 

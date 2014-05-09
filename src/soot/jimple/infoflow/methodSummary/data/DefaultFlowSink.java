@@ -1,24 +1,15 @@
 package soot.jimple.infoflow.methodSummary.data;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import soot.SootField;
-import soot.SootMethod;
 import soot.jimple.infoflow.methodSummary.xml.XMLConstants;
+
 
 public class DefaultFlowSink extends IFlowSink {
 	
 
-	/**
-	 * creates a parameter sink
-	 * @param m
-	 * @param paraIdx2
-	 * @param ap
-	 * @param taintSubFields
-	 */
 	public DefaultFlowSink(SourceSinkType type, int paraIdx, List<String> fields, boolean taintSubFields) {
 		super(type,paraIdx,new SummaryAccessPath(fields),taintSubFields);
 	}

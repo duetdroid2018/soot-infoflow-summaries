@@ -1,24 +1,16 @@
 package soot.jimple.infoflow.methodSummary.data;
 
-import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import soot.SootField;
-import soot.SootMethod;
-import soot.jimple.infoflow.methodSummary.sourceSink.IFlowSource;
 import soot.jimple.infoflow.methodSummary.xml.XMLConstants;
 
 public class DefaultFlowSource extends IFlowSource {
 
 
-	/**
-	 * creates a parameter source
-	 * @param m
-	 * @param parameterIdx2
-	 * @param fields
-	 */
+
 	public DefaultFlowSource(SourceSinkType tpye, int parameterIdx2, List<String> fields) {
 		super(tpye,parameterIdx2,new SummaryAccessPath(fields));
 	}

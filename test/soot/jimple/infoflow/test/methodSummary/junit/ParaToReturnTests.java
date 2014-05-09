@@ -1,5 +1,6 @@
 package soot.jimple.infoflow.test.methodSummary.junit;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static soot.jimple.infoflow.methodSummary.data.SourceSinkType.Parameter;
 import static soot.jimple.infoflow.methodSummary.data.SourceSinkType.Return;
@@ -29,10 +30,8 @@ public class ParaToReturnTests extends TestHelper {
 		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 
 		assertTrue(containsFlow(flow, Parameter, 0, new String[] {}, Return, new String[] {}));
-
-		// assertTrue(containsParaToReturn(flow,0,INT,NO_ACCESS_PATH,NO_ACCESS_PATH));
-		assertTrue(flow.size() == 1);
-	}
+		assertEquals(1,flow.size());
+		}
 
 	@Test(timeout = 100000)
 	public void primitivRec() {
@@ -41,9 +40,7 @@ public class ParaToReturnTests extends TestHelper {
 		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 
 		assertTrue(containsFlow(flow, Parameter, 0, new String[] {}, Return, new String[] {}));
-
-		// assertTrue(containsParaToReturn(flow,0,INT,NO_ACCESS_PATH,NO_ACCESS_PATH));
-		assertTrue(flow.size() == 1);
+		assertEquals(1,flow.size());
 	}
 
 	@Test(timeout = 100000)
@@ -54,9 +51,7 @@ public class ParaToReturnTests extends TestHelper {
 		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 
 		assertTrue(containsFlow(flow, Parameter, 0, new String[] {}, Return, new String[] {}));
-
-		// assertTrue(containsParaToReturn(flow,0,OBJECT,NO_ACCESS_PATH,NO_ACCESS_PATH));
-		assertTrue(flow.size() == 1);
+		assertEquals(1,flow.size());
 	}
 
 	@Test(timeout = 100000)
@@ -67,9 +62,7 @@ public class ParaToReturnTests extends TestHelper {
 		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 
 		assertTrue(containsFlow(flow, Parameter, 0, new String[] {}, Return, new String[] {}));
-
-		// assertTrue(containsParaToReturn(flow,0,LIST,NO_ACCESS_PATH,NO_ACCESS_PATH));
-		assertTrue(flow.size() == 1);
+		assertEquals(1,flow.size());
 	}
 
 	@Ignore //list.node.item is not identified as source
@@ -77,12 +70,10 @@ public class ParaToReturnTests extends TestHelper {
 	public void list2() {
 		SummaryGenerator s = summaryGenerator();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToReturn: java.lang.Object return31(java.util.List)>";
-		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig,methods()).getFlowsForMethod(mSig);
 
 		assertTrue(containsFlow(flow, Parameter, 0, new String[] {LINKEDLIST_FIRST,LINKEDLIST_ITEM}, Return, new String[] {}));
-
-		// assertTrue(containsParaToReturn(flow,0,LIST,LINKEDLIST_FIRST,NO_ACCESS_PATH));
-		assertTrue(flow.size() == 1);
+		assertEquals(1,flow.size());
 	}
 
 	@Test(timeout = 100000)
@@ -92,9 +83,7 @@ public class ParaToReturnTests extends TestHelper {
 		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 
 		assertTrue(containsFlow(flow, Parameter, 0, new String[] {}, Return, new String[] {}));
-
-		// assertTrue(containsParaToReturn(flow,0,OBJECT_ARRAY,NO_ACCESS_PATH,NO_ACCESS_PATH));
-		assertTrue(flow.size() == 1);
+		assertEquals(1,flow.size());
 	}
 
 	@Test(timeout = 100000)
@@ -104,9 +93,7 @@ public class ParaToReturnTests extends TestHelper {
 		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 
 		assertTrue(containsFlow(flow, Parameter, 0, new String[] {}, Return, new String[] {}));
-
-		// assertTrue(containsParaToReturn(flow,0,OBJECT_ARRAY,NO_ACCESS_PATH,NO_ACCESS_PATH));
-		assertTrue(flow.size() == 1);
+		assertEquals(1,flow.size());
 	}
 
 	@Test(timeout = 100000)
@@ -116,9 +103,7 @@ public class ParaToReturnTests extends TestHelper {
 		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 
 		assertTrue(containsFlow(flow, Parameter, 0, new String[] { DATACLASS_OBJECT_FIELD }, Return, new String[] {}));
-
-		// assertTrue(containsParaToReturn(flow,0,DATA,DATACLASS_OBJECT_FIELD,NO_ACCESS_PATH));
-		// assertTrue(flow.size() == 1);
+		assertEquals(1,flow.size());
 	}
 
 	@Test(timeout = 100000)
@@ -128,9 +113,7 @@ public class ParaToReturnTests extends TestHelper {
 		Set<AbstractMethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 
 		assertTrue(containsFlow(flow, Parameter, 0, new String[] { DATACLASS_OBJECT_FIELD }, Return, new String[] {}));
-		//
-		// assertTrue(containsParaToReturn(flow,0,DATA,DATACLASS_OBJECT_FIELD,NO_ACCESS_PATH));
-		// assertTrue(flow.size() == 1);
+		assertEquals(1,flow.size());
 	}
 
 	@Override

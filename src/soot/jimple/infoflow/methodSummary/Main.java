@@ -31,7 +31,6 @@ import soot.jimple.infoflow.methodSummary.util.ClassFileInformation;
 import soot.jimple.infoflow.test.methodSummary.ApiClass;
 import soot.jimple.infoflow.test.methodSummary.ArbitraryAccessPath;
 import soot.jimple.infoflow.test.methodSummary.FieldToPara;
-import soot.jimple.infoflow.test.methodSummary.SimpleList;
 
 
 @SuppressWarnings("unused")
@@ -55,7 +54,7 @@ class Main {
 
 		Class<?>[] javaCollection = {LinkedList.class}; //{FieldToPara.class};
 		int runOption = 0;
-		boolean useOutPutFolder = true;
+		boolean useOutPutFolder = false;
 		String outFolder = "jdkSummaries";
 		boolean overWriteFile = true;
 		
