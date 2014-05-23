@@ -9,14 +9,11 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import junit.framework.Assert;
-
 import org.junit.Ignore;
 import org.junit.Test;
 
 import soot.jimple.infoflow.methodSummary.SummaryGenerator;
 import soot.jimple.infoflow.methodSummary.data.MethodFlow;
-import soot.jimple.infoflow.test.methodSummary.ArbitraryAccessPath;
 import soot.jimple.infoflow.test.methodSummary.FieldToPara;
 
 public class FieldToParaTests extends TestHelper {
@@ -274,7 +271,7 @@ public class FieldToParaTests extends TestHelper {
 	}
 
 	@Override
-	Class getClazz() {
+	Class<?> getClazz() {
 		return FieldToPara.class;
 	}
 

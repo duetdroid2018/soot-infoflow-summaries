@@ -15,7 +15,6 @@ import org.junit.Test;
 
 import soot.jimple.infoflow.methodSummary.SummaryGenerator;
 import soot.jimple.infoflow.methodSummary.data.MethodFlow;
-import soot.jimple.infoflow.methodSummary.data.SourceSinkType;
 import soot.jimple.infoflow.test.methodSummary.ArbitraryAccessPath;
 
 public class ParaToReturnTests extends TestHelper {
@@ -117,7 +116,7 @@ public class ParaToReturnTests extends TestHelper {
 	}
 
 	@Override
-	Class getClazz() {
+	Class<?> getClazz() {
 		return ArbitraryAccessPath.class;
 	}
 

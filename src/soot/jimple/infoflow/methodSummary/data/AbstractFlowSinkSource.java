@@ -35,24 +35,19 @@ public abstract class AbstractFlowSinkSource {
 		return type().equals(SourceSinkType.Field);
 	};
 	
-	//TODO could be removed 
-	public boolean isThis()
-	{
-		return type().equals(SourceSinkType.Field) && !hasAccessPath();
-	}
 
 	public List<String> getFields(){
-		return accessPath.getAP();
+		return accessPath.getFields();
 	}
 	public String getField(int idx){
-		return accessPath.getAP().get(idx);
+		return accessPath.getFields().get(idx);
 	}
 	public int getFieldCount(){
 		return accessPath.getAPLength();
 	}
 
 	public boolean hasAccessPath(){
-		return accessPath != null && accessPath.hasAP();
+		return accessPath != null && accessPath.notEmpty();
 	}
 	public SummaryAccessPath getAccessPath(){
 		return accessPath;

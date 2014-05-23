@@ -52,7 +52,7 @@ class Main {
 				TreeMap.class, ConcurrentHashMap.class, /*String.class,*/ StringBuilder.class,
 				RuntimeException.class };
 
-		Class<?>[] javaCollection = {LinkedList.class}; //{FieldToPara.class};
+		Class<?>[] javaCollection = {ArbitraryAccessPath.class}; //{FieldToPara.class};
 		int runOption = 0;
 		boolean useOutPutFolder = false;
 		String outFolder = "jdkSummaries";
@@ -62,17 +62,17 @@ class Main {
 		if (mSig.length() == 0) {
 			for (Class<?> c : javaCollection) {
 				for (Constructor<?> cons : c.getDeclaredConstructors())
-					mSig = mSig + ClassFileInformation.getMethodSig(cons) + ";";
+					mSig = mSig + ClassFileInformation.getConstructorSignature(cons) + ";";
 				for (Method m : c.getDeclaredMethods()) {
 					//if (!m.toString().contains("$"))
-						mSig = mSig + ClassFileInformation.getMethodSig(m) + ";";
+						mSig = mSig + ClassFileInformation.getMethodSignature(m) + ";";
 				}
 			}
 			
 			mSig = mSig.substring(0, mSig.length() - 1).trim();
 
 		} 
-		String filter = "";
+		String filter = "getDataViaParameter";
 		if(filter != "")
 			filter = filter.substring(0, filter.length() - 1);
 		

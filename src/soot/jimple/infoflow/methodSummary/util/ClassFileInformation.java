@@ -6,22 +6,27 @@ import java.lang.reflect.Method;
 import java.util.LinkedList;
 import java.util.List;
 
+/**
+ * Helper class that extract soot fields and methods signatures from java.lang.class. 
+ * @author meD
+ *
+ */
 public class ClassFileInformation {
 	/**
 	 * 
 	 * @return all method signatures of class clazz in a soot processable format
 	 */
-	public static List<String> getMethodSignature(Class<?> clazz) {
+	public static List<String> getMethodSignatures(Class<?> clazz) {
 		List<String> res = new LinkedList<String>();
 		for (Class<?> c : clazz.getDeclaredClasses()) {
-			res.addAll(getMethodSignature(c));
+			res.addAll(getMethodSignatures(c));
 		}
 		Method[] methods = clazz.getDeclaredMethods();
 
 		//String className = clazz.getName(); // clazz.getCanonicalName();
 		for (Method m : methods) {
 
-			res.add(getMethodSig(m, clazz));
+			res.add(getMethodSignatures(m, clazz));
 		}
 
 		Constructor<?>[] constructors = clazz.getConstructors();
@@ -31,11 +36,11 @@ public class ClassFileInformation {
 		return res;
 	}
 
-	public static String getMethodSig(Method m) {
-		return getMethodSig(m, m.getDeclaringClass());
+	public static String getMethodSignature(Method m) {
+		return getMethodSignatures(m, m.getDeclaringClass());
 	}
 
-	public static String getMethodSig(Method m, Class<?> c) {
+	public static String getMethodSignatures(Method m, Class<?> c) {
 		String className = c.getName(); // clazz.getCanonicalName();
 
 		String para = "";
@@ -52,11 +57,11 @@ public class ClassFileInformation {
 		return "<" + className + ": " + method + ">";
 	}
 
-	public static String getMethodSig(Constructor<?> cons) {
-		return getMethodSig(cons, cons.getDeclaringClass());
+	public static String getConstructorSignature(Constructor<?> cons) {
+		return getConstructorSignature(cons, cons.getDeclaringClass());
 	}
 
-	public static String getMethodSig(Constructor<?> cons, Class<?> c) {
+	public static String getConstructorSignature(Constructor<?> cons, Class<?> c) {
 		String className = c.getName(); // clazz.getCanonicalName();
 
 		String para = "";
@@ -73,18 +78,18 @@ public class ClassFileInformation {
 		return "<" + className + ": " + method + ">";
 	}
 
-	public static String getType(Class<?> para) {
+	public static String getType(Class<?> parameter) {
 		String res = "";
-		if (para.isPrimitive())
-			res = para.getSimpleName();
-		else if (para.isArray()) {
+		if (parameter.isPrimitive())
+			res = parameter.getSimpleName();
+		else if (parameter.isArray()) {
 			//quick hack
-			if(para.getName().replaceAll(";|L|\\[", "").length() < 2)
-				res = para.getSimpleName();
+			if(parameter.getName().replaceAll(";|L|\\[", "").length() < 2)
+				res = parameter.getSimpleName();
 			else
-				res = para.getName().replaceAll(";|L|\\[", "") + "[]";
+				res = parameter.getName().replaceAll(";|L|\\[", "") + "[]";
 		} else {
-			res = para.getName();
+			res = parameter.getName();
 		}
 		return res;
 	}
@@ -104,9 +109,9 @@ public class ClassFileInformation {
 
 	/**
 	 * 
-	 * @return all global vars of class clazz
+	 * @return The field signature of all Fields in a clazz.
 	 */
-	public static List<String> getGlobalVars(Class<?> clazz) {
+	public static List<String> getFields(Class<?> clazz) {
 		List<String> res = new LinkedList<String>();
 		Field[] vars = clazz.getDeclaredFields();
 		for (Field f : vars) {

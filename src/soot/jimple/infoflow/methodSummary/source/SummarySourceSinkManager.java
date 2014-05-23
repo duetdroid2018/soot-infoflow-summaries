@@ -82,7 +82,8 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 	public SourceInfo getSourceInfo(Stmt sCallSite, InterproceduralCFG<Unit, SootMethod> cfg) {
 		if(method == null && sModel == null){
 			method = Scene.v().getMethod(methodSig);
-			sModel = new SourceModel(method, summaryAccessPathLength, getClassFields());
+			BuildSourceModel builder = new BuildSourceModel(method, summaryAccessPathLength, getClassFields());
+			sModel = builder.getModel();
 			System.out.println(sModel.toString());
 		}
 		

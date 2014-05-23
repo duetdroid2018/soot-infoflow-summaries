@@ -7,7 +7,7 @@ import org.junit.Test;
 public class ApiTestNotWorking extends ApiTestHelper{
 
 	@Override
-	Class getClazz() {
+	Class<?> getClazz() {
 		return null;
 	}
 	

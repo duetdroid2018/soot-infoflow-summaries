@@ -7,10 +7,7 @@ import static org.junit.Assert.fail;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 
 import javax.xml.stream.XMLStreamException;
 
@@ -23,11 +20,8 @@ import soot.jimple.infoflow.Infoflow;
 import soot.jimple.infoflow.InfoflowResults;
 import soot.jimple.infoflow.config.ConfigForTest;
 import soot.jimple.infoflow.entryPointCreators.DefaultEntryPointCreator;
-import soot.jimple.infoflow.methodSummary.cmdSummary;
 import soot.jimple.infoflow.methodSummary.taintWrappers.SummaryTaintWrapper;
 import soot.jimple.infoflow.methodSummary.taintWrappers.TaintWrapperFactory;
-import soot.jimple.infoflow.methodSummary.util.ClassFileInformation;
-import soot.jimple.infoflow.test.methodSummary.ApiClass;
 
 public class SummaryTaintWrapperTests {
 	private static String appPath, libPath;

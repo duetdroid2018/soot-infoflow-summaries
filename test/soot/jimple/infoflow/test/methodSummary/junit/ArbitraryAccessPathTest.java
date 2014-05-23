@@ -15,8 +15,10 @@ import soot.jimple.infoflow.test.methodSummary.ArbitraryAccessPath;
 public class ArbitraryAccessPathTest  extends TestHelper{
 	private static final String CLASS_NAME = "soot.jimple.infoflow.test.methodSummary.ArbitraryAccessPath";
 	private static final String NULL_FIELD = "<soot.jimple.infoflow.test.methodSummary.ArbitraryAccessPath: soot.jimple.infoflow.test.methodSummary.Data nullData>";
+	//private static final String NULL_FIELD2 = "<soot.jimple.infoflow.test.methodSummary.ArbitraryAccessPath: soot.jimple.infoflow.test.methodSummary.Data nullData2>";
 	private static final String _D = "<soot.jimple.infoflow.test.methodSummary.Data: soot.jimple.infoflow.test.methodSummary.Data d>";
 	private static final String DATA_FIELD = "<soot.jimple.infoflow.test.methodSummary.ArbitraryAccessPath: soot.jimple.infoflow.test.methodSummary.Data data>";
+	private static final String DATA_FIELD2 = "<soot.jimple.infoflow.test.methodSummary.ArbitraryAccessPath: soot.jimple.infoflow.test.methodSummary.Data data2>";
 	
 	
 	@Test(timeout = 100000)
@@ -85,8 +87,67 @@ public class ArbitraryAccessPathTest  extends TestHelper{
 		assertEquals(1,res.size());
 	}
 	
-	private String mSig(String rTyp, String mName, String pTyps){
-		return "<" + CLASS_NAME + ": "+rTyp+" "+mName+"("+pTyps+")>";
+	@Test(timeout = 100000)
+	public void getDataViaParameter() {
+		SummaryGenerator s = getSummary();
+		String mSig = mSig("void","getDataViaParameter",DATA_TYPE);
+		Set<MethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		assertTrue(containsFlow(res, Field,new String[] {DATA_FIELD,_D,_D,_D}, Parameter,0,new String[] {_D,_D,_D}));
+		assertEquals(1,res.size());
+	}
+	@Test(timeout = 100000)
+	public void getNullDataViaParameter() {
+		SummaryGenerator s = getSummary();
+		String mSig = mSig("void","getNullDataViaParameter",DATA_TYPE);
+		Set<MethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		assertTrue(containsFlow(res, Field,new String[] {NULL_FIELD,_D,_D,_D}, Parameter,0,new String[] {_D,_D,_D}));
+		assertEquals(1,res.size());
+	}
+	
+	@Test//(timeout = 100000)
+	public void fieldToField() {
+		SummaryGenerator s = getSummary();
+		String mSig = mSig("void","fieldToField");
+		Set<MethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		assertTrue(containsFlow(res, Field,new String[] {DATA_FIELD,_D,_D,_D}, Field,new String[] {DATA_FIELD2,_D,_D,_D}));
+		assertEquals(1,res.size());
+	}
+	
+	@Test(timeout = 100000)
+	public void nullFieldToField() {
+		SummaryGenerator s = getSummary();
+		String mSig = mSig("void","nullFieldToField");
+		Set<MethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		assertTrue(containsFlow(res, Field,new String[] {NULL_FIELD,_D,_D,_D}, Field,new String[] {NULL_FIELD,_D,_D,_D}));
+		assertEquals(1,res.size());
+	}
+	
+	@Test(timeout = 100000)
+	public void parameterToParameter() {
+		SummaryGenerator s = getSummary();
+		String mSig = mSig("void","parameterToParameter",DATA_TYPE,DATA_TYPE);
+		Set<MethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		assertTrue(containsFlow(res, Parameter,0,new String[] {_D,_D,_D}, Parameter,0,new String[] {_D,_D}));
+		assertEquals(1,res.size());
+	}
+	
+	@Test(timeout = 100000)
+	public void parameterToReturn() {
+		SummaryGenerator s = getSummary();
+		String mSig = mSig(DATA_TYPE,"parameterToReturn",DATA_TYPE);
+		Set<MethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		assertTrue(containsFlow(res, Parameter,0,new String[] {_D,_D,_D}, SourceSinkType.Return,new String[] {_D,_D}));
+		assertEquals(1,res.size());
+	}
+	
+	private String mSig(String rTyp, String mName){
+		return "<" + CLASS_NAME + ": "+rTyp+" "+mName+"()>";
+	}
+	private String mSig(String rTyp, String mName, String pTyp){
+		return "<" + CLASS_NAME + ": "+rTyp+" "+mName+"("+pTyp+")>";
+	}
+	private String mSig(String rTyp, String mName, String pTyp, String pTyp2){
+		return "<" + CLASS_NAME + ": "+rTyp+" "+mName+"("+pTyp+","+pTyp2+")>";
 	}
 	
 	@Override

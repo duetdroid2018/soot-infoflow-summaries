@@ -2,7 +2,6 @@ package soot.jimple.infoflow.test.methodSummary.junit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static soot.jimple.infoflow.methodSummary.data.SourceSinkType.Field;
 import static soot.jimple.infoflow.methodSummary.data.SourceSinkType.Parameter;
 
 import java.util.LinkedList;
@@ -15,7 +14,6 @@ import org.junit.Test;
 
 import soot.jimple.infoflow.methodSummary.SummaryGenerator;
 import soot.jimple.infoflow.methodSummary.data.MethodFlow;
-import soot.jimple.infoflow.test.methodSummary.ArbitraryAccessPath;
 
 public class ParaToParaTest extends TestHelper {
 	protected static Map<String, Set<MethodFlow>> flows;
@@ -91,7 +89,7 @@ public class ParaToParaTest extends TestHelper {
 		assertEquals(1,flow.size());
 	}
 	@Override
-	Class getClazz() {
+	Class<?> getClazz() {
 		return ParaToParaTest.class;
 	}
 	private SummaryGenerator summaryGenerator() {

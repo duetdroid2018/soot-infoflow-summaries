@@ -2,9 +2,18 @@ package soot.jimple.infoflow.test.methodSummary;
 
 public class ArbitraryAccessPath {
 	Data nullData ;
+	Data nullData2 ;
 	Data data = new Data();
+	Data data2 = new Data();
 	
-	
+	public ArbitraryAccessPath(){
+		data.d = new Data();
+		data.d.d = new Data();
+		data.d.d.d = new Data();
+		data2.d = new Data();
+		data2.d.d = new Data();
+		data2.d.d.d = new Data();
+	}
 	
 	public Data getNullData() {
 		return nullData;
@@ -54,5 +63,30 @@ public class ArbitraryAccessPath {
 		this.data = data;
 	}
 	
+	public void getDataViaParameter(Data pdata){
+		pdata.d.d.d = data.d.d.d;
+	}
 	
+	public void getNullDataViaParameter(Data data){
+		data.d.d.d = nullData.d.d.d;
+	}
+	
+	public void fieldToField(){
+		data2.d.d.d = data.d.d.d;
+	}
+	
+	public void nullFieldToField(){
+		nullData2.d.d.d = nullData.d.d.d;
+	}
+	
+	public void parameterToParameter(Data p1, Data p2){
+		p2.d.d  = p1.d.d.d;
+	}
+
+	public Data parameterToReturn(Data p1){
+		Data resD = new Data();
+		resD.d = new Data();
+		resD.d.d = p1.d.d.d;
+		return resD;
+	}
 }

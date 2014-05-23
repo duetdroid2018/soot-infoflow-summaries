@@ -11,4 +11,9 @@ public abstract class FlowSource extends AbstractFlowSinkSource {
 	}
 
 
+	//TODO could be removed. A This sources is just a field source with
+	public boolean isThis()
+	{
+		return type().equals(SourceSinkType.Field) && !hasAccessPath();
+	}
 }

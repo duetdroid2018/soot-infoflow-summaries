@@ -1,7 +1,6 @@
 package soot.jimple.infoflow.methodSummary.data.impl;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import soot.SootField;
@@ -28,7 +27,8 @@ public class SummaryAccessPath {
 	public int getAPLength(){
 		return taintedField.size();
 	}
-	public String fieldIdx(int index){
+	
+	public String getField(int index){
 		if(taintedField.size() > index)
 			return taintedField.get(index);
 		return null;
@@ -44,10 +44,10 @@ public class SummaryAccessPath {
 	
 	
 	
-	public boolean hasAP(){
+	public boolean notEmpty(){
 		return taintedField.size() > 0;
 	}
-	public List<String> getAP(){
+	public List<String> getFields(){
 		return taintedField;
 	}
 	public String toString(){

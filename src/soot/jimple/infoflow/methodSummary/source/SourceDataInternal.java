@@ -8,18 +8,18 @@ import soot.jimple.infoflow.methodSummary.data.impl.DefaultFlowSource;
 /**
  * Source data class which save the information
  * which are needed for the Summaries (sourceInfo) 
- * and additional contains the information to identify
+ * and additional contains information to identify
  * sources which contains this sources as base.
  */
 class SourceDataInternal {
 	
 	private DefaultFlowSource sourceInfo;
 	//points to set of x where x.field
-	private PointsToSet pts;
-	private Local leftOp;
-	private Local fieldBase;
-	private SootField field;
-	private boolean taintSubFields;
+	private final PointsToSet pts;
+	private final Local leftOp;
+	private final Local fieldBase;
+	private final SootField field;
+	private final boolean taintSubFields;
 	
 	public SourceDataInternal(DefaultFlowSource sourceInfo,Local base, Local leftOp, SootField f,PointsToSet pts, boolean s) {
 		super();

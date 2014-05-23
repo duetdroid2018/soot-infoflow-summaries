@@ -1,7 +1,6 @@
 package soot.jimple.infoflow.test.methodSummary;
 
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
 
 public class FieldToPara {
@@ -115,7 +114,7 @@ public class FieldToPara {
 		list.add(dataField.data);
 	}
 
-	public void setListField(ArrayList listField) {
+	public void setListField(@SuppressWarnings("rawtypes") ArrayList listField) {
 		this.listField = listField;
 	}
 	

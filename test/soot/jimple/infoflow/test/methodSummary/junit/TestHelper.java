@@ -95,7 +95,7 @@ public abstract class TestHelper {
 	}
 
 	protected List<String> methods() {
-		return ClassFileInformation.getMethodSignature(getClazz());
+		return ClassFileInformation.getMethodSignatures(getClazz());
 	}
 
 	abstract Class<?> getClazz();
