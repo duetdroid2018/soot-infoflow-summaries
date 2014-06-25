@@ -72,7 +72,7 @@ class Main {
 			mSig = mSig.substring(0, mSig.length() - 1).trim();
 
 		} 
-		String filter = "getDataViaParameter";
+		String filter = "fieldToField2(";
 		if(filter != "")
 			filter = filter.substring(0, filter.length() - 1);
 		
@@ -91,5 +91,6 @@ class Main {
 			System.out.println(s);
 		}
 		cmdSummary.main(runArgs.toArray(new String[runArgs.size()]));
+		System.exit(0);
 	}
 }

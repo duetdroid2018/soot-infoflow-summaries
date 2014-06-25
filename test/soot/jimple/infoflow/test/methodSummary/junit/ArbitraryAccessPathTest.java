@@ -4,6 +4,8 @@ import static org.junit.Assert.*;
 import static soot.jimple.infoflow.methodSummary.data.SourceSinkType.Field;
 import static soot.jimple.infoflow.methodSummary.data.SourceSinkType.Parameter;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 import org.junit.Test;
@@ -15,6 +17,7 @@ import soot.jimple.infoflow.test.methodSummary.ArbitraryAccessPath;
 public class ArbitraryAccessPathTest  extends TestHelper{
 	private static final String CLASS_NAME = "soot.jimple.infoflow.test.methodSummary.ArbitraryAccessPath";
 	private static final String NULL_FIELD = "<soot.jimple.infoflow.test.methodSummary.ArbitraryAccessPath: soot.jimple.infoflow.test.methodSummary.Data nullData>";
+	private static final String NULL_FIELD2 = "<soot.jimple.infoflow.test.methodSummary.ArbitraryAccessPath: soot.jimple.infoflow.test.methodSummary.Data nullData2>";
 	//private static final String NULL_FIELD2 = "<soot.jimple.infoflow.test.methodSummary.ArbitraryAccessPath: soot.jimple.infoflow.test.methodSummary.Data nullData2>";
 	private static final String _D = "<soot.jimple.infoflow.test.methodSummary.Data: soot.jimple.infoflow.test.methodSummary.Data d>";
 	private static final String DATA_FIELD = "<soot.jimple.infoflow.test.methodSummary.ArbitraryAccessPath: soot.jimple.infoflow.test.methodSummary.Data data>";
@@ -75,7 +78,7 @@ public class ArbitraryAccessPathTest  extends TestHelper{
 		SummaryGenerator s = getSummary();
 		String mSig = mSig("void","setData2",DATA_TYPE);
 		Set<MethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
-		assertTrue(containsFlow(res, Parameter,0,new String[] {_D}, Field,new String[] {DATA_FIELD}));
+		assertTrue(containsFlow(res, Parameter,0,new String[] {_D}, Field,new String[] {DATA_FIELD, _D}));
 		assertEquals(1,res.size());
 	}
 	@Test(timeout = 100000)
@@ -83,7 +86,7 @@ public class ArbitraryAccessPathTest  extends TestHelper{
 		SummaryGenerator s = getSummary();
 		String mSig = mSig("void","setData3",DATA_TYPE);
 		Set<MethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
-		assertTrue(containsFlow(res, Parameter,0,new String[] {_D,_D}, Field,new String[] {DATA_FIELD}));
+		assertTrue(containsFlow(res, Parameter,0,new String[] {_D,_D}, Field,new String[] {DATA_FIELD,_D,_D}));
 		assertEquals(1,res.size());
 	}
 	
@@ -118,7 +121,7 @@ public class ArbitraryAccessPathTest  extends TestHelper{
 		SummaryGenerator s = getSummary();
 		String mSig = mSig("void","nullFieldToField");
 		Set<MethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
-		assertTrue(containsFlow(res, Field,new String[] {NULL_FIELD,_D,_D,_D}, Field,new String[] {NULL_FIELD,_D,_D,_D}));
+		assertTrue(containsFlow(res, Field,new String[] {NULL_FIELD,_D,_D,_D}, Field,new String[] {NULL_FIELD2,_D,_D,_D}));
 		assertEquals(1,res.size());
 	}
 	
@@ -127,7 +130,7 @@ public class ArbitraryAccessPathTest  extends TestHelper{
 		SummaryGenerator s = getSummary();
 		String mSig = mSig("void","parameterToParameter",DATA_TYPE,DATA_TYPE);
 		Set<MethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
-		assertTrue(containsFlow(res, Parameter,0,new String[] {_D,_D,_D}, Parameter,0,new String[] {_D,_D}));
+		assertTrue(containsFlow(res, Parameter,0,new String[] {_D,_D,_D}, Parameter,1,new String[] {_D,_D}));
 		assertEquals(1,res.size());
 	}
 	
@@ -155,5 +158,16 @@ public class ArbitraryAccessPathTest  extends TestHelper{
 		return ArbitraryAccessPath.class;
 	}
 	
-	
+	@Override
+	SummaryGenerator getSummary() {
+		SummaryGenerator sg = new SummaryGenerator();
+		List<String> sub = new LinkedList<String>();
+		sub.add("java.util.ArrayList");
+		sg.setSubstitutedWith(sub);
+		sg.setUseRecursiveAccessPaths(true);
+		sg.setAnalyseMethodsTogether(true);
+		sg.setAccessPathLength(3);
+		sg.setIgnoreFlowsInSystemPackages(false);
+		return sg;
+	}
 }

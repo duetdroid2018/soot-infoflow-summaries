@@ -28,7 +28,7 @@ public class FieldToParaTests extends TestHelper {
 
 	@Test(timeout = 100000)
 	public void fieldToPara1() {
-		SummaryGenerator s = summeryGenerator();
+		SummaryGenerator s = getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void dataParameter(soot.jimple.infoflow.test.methodSummary.Data)>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig, methods()).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Field, new String[] { OBJ_FIELD }, Parameter, 0, new String[] { DATACLASS_OBJECT_FIELD }));
@@ -37,7 +37,7 @@ public class FieldToParaTests extends TestHelper {
 
 	@Test(timeout = 100000)
 	public void fieldToPara2() {
-		SummaryGenerator s = summeryGenerator();
+		SummaryGenerator s = getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void dataParameter2(soot.jimple.infoflow.test.methodSummary.Data)>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig, methods()).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Field, new String[] { OBJ_ARRAY }, Parameter, 0, new String[] { DATACLASS_OBJECT_FIELD }));
@@ -47,7 +47,7 @@ public class FieldToParaTests extends TestHelper {
 	@Ignore
 	@Test(timeout = 100000)
 	public void fieldToPara2NoFalsePositive() {
-		SummaryGenerator s = summeryGenerator();
+		SummaryGenerator s = getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void dataParameter2(soot.jimple.infoflow.test.methodSummary.Data)>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig, methods()).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Field, new String[] { OBJ_ARRAY }, Parameter, 0, new String[] { DATACLASS_OBJECT_FIELD }));
@@ -56,7 +56,7 @@ public class FieldToParaTests extends TestHelper {
 
 	@Test(timeout = 100000)
 	public void fieldToPara3() {
-		SummaryGenerator s = summeryGenerator();
+		SummaryGenerator s = getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void dataParameter3(soot.jimple.infoflow.test.methodSummary.Data)>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig, methods()).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Field, new String[] { LIST_FIELD, ALIST_DATA }, Parameter, 0, new String[] { DATACLASS_OBJECT_FIELD }));
@@ -66,7 +66,7 @@ public class FieldToParaTests extends TestHelper {
 	// bug in infoflow related to the sink -> source path construction
 	@Test(timeout = 100000)
 	public void fieldToPara3NoFalePositive() {
-		SummaryGenerator s = summeryGenerator();
+		SummaryGenerator s = getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void dataParameter3(soot.jimple.infoflow.test.methodSummary.Data)>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig, methods()).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Field, new String[] { LIST_FIELD, ALIST_DATA }, Parameter, 0, new String[] { DATACLASS_OBJECT_FIELD }));
@@ -75,7 +75,7 @@ public class FieldToParaTests extends TestHelper {
 
 	@Test(timeout = 100000)
 	public void fieldToPara4() {
-		SummaryGenerator s = summeryGenerator();
+		SummaryGenerator s = getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void dataParameter4(soot.jimple.infoflow.test.methodSummary.Data)>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig, methods()).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Field, new String[] { DATA_FIELD, DATACLASS_OBJECT_FIELD }, Parameter, 0,
@@ -86,7 +86,7 @@ public class FieldToParaTests extends TestHelper {
 	// bug in infoflow related to the sink -> source path construction
 	@Test(timeout = 100000)
 	public void fieldToPara4NoFalsePositive() {
-		SummaryGenerator s = summeryGenerator();
+		SummaryGenerator s = getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void dataParameter4(soot.jimple.infoflow.test.methodSummary.Data)>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig, methods()).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Field, new String[] { DATA_FIELD, DATACLASS_OBJECT_FIELD }, Parameter, 0,
@@ -96,7 +96,7 @@ public class FieldToParaTests extends TestHelper {
 
 	@Test(timeout = 100000)
 	public void fieldToPara5() {
-		SummaryGenerator s = summeryGenerator();
+		SummaryGenerator s = getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void dataParameter5(soot.jimple.infoflow.test.methodSummary.Data)>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig, methods()).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Field, new String[] { DATA_FIELD, DATACLASS_OBJECT_FIELD }, Parameter, 0,
@@ -107,7 +107,7 @@ public class FieldToParaTests extends TestHelper {
 
 	@Test(timeout = 100000)
 	public void fieldToParaRec1() {
-		SummaryGenerator s = summeryGenerator();
+		SummaryGenerator s = getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void dataParameterRec(soot.jimple.infoflow.test.methodSummary.Data,int)>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig, methods()).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Field, new String[] { OBJ_FIELD }, Parameter, 0, new String[] { DATACLASS_OBJECT_FIELD }));
@@ -116,7 +116,7 @@ public class FieldToParaTests extends TestHelper {
 
 	@Test(timeout = 100000)
 	public void fieldToArrayParameter() {
-		SummaryGenerator s = summeryGenerator();
+		SummaryGenerator s = getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void objArrayParameter(java.lang.Object[])>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig, methods()).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Field, new String[] { OBJ_FIELD }, Parameter, 0, new String[] {}));
@@ -125,7 +125,7 @@ public class FieldToParaTests extends TestHelper {
 
 	@Test(timeout = 100000)
 	public void fieldToArrayParameter2() {
-		SummaryGenerator s = summeryGenerator();
+		SummaryGenerator s = getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void objArrayParameter2(java.lang.Object[])>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig, methods()).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Field, new String[] { OBJ_ARRAY }, Parameter, 0, new String[] {}));
@@ -134,7 +134,7 @@ public class FieldToParaTests extends TestHelper {
 
 	@Test(timeout = 250000)
 	public void fieldToArrayParameter3() {
-		SummaryGenerator s = summeryGenerator();
+		SummaryGenerator s = getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void objArrayParameter3(java.lang.Object[])>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig, methods()).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Field, new String[] { LIST_FIELD, ALIST_DATA }, Parameter, 0, new String[] {}));
@@ -143,7 +143,7 @@ public class FieldToParaTests extends TestHelper {
 
 	@Test(timeout = 100000)
 	public void fieldToArrayParameter4() {
-		SummaryGenerator s = summeryGenerator();
+		SummaryGenerator s = getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void objArrayParameter4(java.lang.Object[])>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig, methods()).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Field, new String[] { DATA_FIELD, DATACLASS_OBJECT_FIELD }, Parameter, 0, new String[] {}));
@@ -153,7 +153,7 @@ public class FieldToParaTests extends TestHelper {
 
 	@Test(timeout = 100000)
 	public void fieldToArrayParameter5() {
-		SummaryGenerator s = summeryGenerator();
+		SummaryGenerator s = getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void objArrayParameter5(java.lang.Object[])>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig, methods()).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Field, new String[] { DATA_FIELD, DATACLASS_OBJECT_FIELD }, Parameter, 0, new String[] {}));
@@ -162,7 +162,7 @@ public class FieldToParaTests extends TestHelper {
 
 	@Test(timeout = 100000)
 	public void listFieldToParameter1() {
-		SummaryGenerator s = summeryGenerator();
+		SummaryGenerator s = getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter(java.util.List)>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig, methods()).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Field, new String[] { LIST_FIELD, ALIST_DATA }, Parameter, 0, new String[] { ALIST_DATA }));
@@ -171,7 +171,7 @@ public class FieldToParaTests extends TestHelper {
 	@Ignore
 	@Test(timeout = 100000)
 	public void listFieldToParameter1NoFalsePositive() {
-		SummaryGenerator s = summeryGenerator();
+		SummaryGenerator s = getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter(java.util.List)>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig, methods()).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Field, new String[] { LIST_FIELD, ALIST_DATA }, Parameter, 0, new String[] { ALIST_DATA }));
@@ -180,7 +180,7 @@ public class FieldToParaTests extends TestHelper {
 
 	@Test(timeout = 100000)
 	public void listFieldToParameter2() {
-		SummaryGenerator s = summeryGenerator();
+		SummaryGenerator s = getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter2(java.util.List)>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig, methods()).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Field, new String[] { DATA_FIELD, DATACLASS_OBJECT_FIELD }, Parameter, 0, new String[] { ALIST_DATA }));
@@ -190,7 +190,7 @@ public class FieldToParaTests extends TestHelper {
 	// bug in infoflow related to the sink -> source path construction
 	@Test(timeout = 100000)
 	public void listFieldToParameter2NoFalsePositive() {
-		SummaryGenerator s = summeryGenerator();
+		SummaryGenerator s = getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter2(java.util.List)>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig, methods()).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Field, new String[] { DATA_FIELD, DATACLASS_OBJECT_FIELD }, Parameter, 0, new String[] { ALIST_DATA }));
@@ -200,7 +200,7 @@ public class FieldToParaTests extends TestHelper {
 
 	@Test(timeout = 100000)
 	public void listFieldToParameter3() {
-		SummaryGenerator s = summeryGenerator();
+		SummaryGenerator s = getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter3(java.util.List)>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig, methods()).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Field, new String[] { DATA_FIELD, DATACLASS_OBJECT_FIELD }, Parameter, 0, new String[] { ALIST_DATA }));
@@ -209,7 +209,7 @@ public class FieldToParaTests extends TestHelper {
 	@Ignore
 	@Test(timeout = 100000)
 	public void listFieldToParameter3NoFalsePositive() {
-		SummaryGenerator s = summeryGenerator();
+		SummaryGenerator s = getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter3(java.util.List)>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig, methods()).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Field, new String[] { DATA_FIELD, DATACLASS_OBJECT_FIELD }, Parameter, 0, new String[] { ALIST_DATA }));
@@ -218,7 +218,7 @@ public class FieldToParaTests extends TestHelper {
 
 	@Test(timeout = 100000)
 	public void listFieldToParameter4() {
-		SummaryGenerator s = summeryGenerator();
+		SummaryGenerator s = getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter4(java.util.List)>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig, methods()).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Field, new String[] { DATA_FIELD, DATACLASS_OBJECT_FIELD }, Parameter, 0, new String[] { ALIST_DATA }));
@@ -227,7 +227,7 @@ public class FieldToParaTests extends TestHelper {
 
 	@Test(timeout = 100000)
 	public void listFieldToParameter4NoFalsePositive() {
-		SummaryGenerator s = summeryGenerator();
+		SummaryGenerator s = getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter4(java.util.List)>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig, methods()).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Field, new String[] { DATA_FIELD, DATACLASS_OBJECT_FIELD }, Parameter, 0, new String[] { ALIST_DATA }));
@@ -235,7 +235,7 @@ public class FieldToParaTests extends TestHelper {
 
 	@Test(timeout = 100000)
 	public void listFieldToParameter5() {
-		SummaryGenerator s = summeryGenerator();
+		SummaryGenerator s = getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig, methods()).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Field, new String[] { INT_ARRAY }, Parameter, 0, new String[] { ALIST_DATA, "<java.lang.Integer: int value>" }));
@@ -244,7 +244,7 @@ public class FieldToParaTests extends TestHelper {
 	@Ignore
 	@Test(timeout = 100000)
 	public void listFieldToParameter5NoFalsePositive() {
-		SummaryGenerator s = summeryGenerator();
+		SummaryGenerator s = getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig, methods()).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Field, new String[] { INT_ARRAY }, Parameter, 0, new String[] { ALIST_DATA, "<java.lang.Integer: int value>" }));
@@ -253,7 +253,7 @@ public class FieldToParaTests extends TestHelper {
 
 	@Test(timeout = 100000)
 	public void listFieldToParameter6() {
-		SummaryGenerator s = summeryGenerator();
+		SummaryGenerator s = getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter6(java.util.List)>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig, methods()).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Field, new String[] { DATA_FIELD, DATACLASS_OBJECT_FIELD }, Parameter, 0, new String[] { ALIST_DATA }));
@@ -263,7 +263,7 @@ public class FieldToParaTests extends TestHelper {
 	@Ignore
 	@Test(timeout = 100000)
 	public void listFieldToParameter6NoFalsePositive() {
-		SummaryGenerator s = summeryGenerator();
+		SummaryGenerator s = getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter6(java.util.List)>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig, methods()).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Field, new String[] { DATA_FIELD, DATACLASS_OBJECT_FIELD }, Parameter, 0, new String[] { ALIST_DATA }));
@@ -275,12 +275,16 @@ public class FieldToParaTests extends TestHelper {
 		return FieldToPara.class;
 	}
 
-	private SummaryGenerator summeryGenerator() {
+	@Override
+	SummaryGenerator getSummary() {
 		SummaryGenerator sg = new SummaryGenerator();
-
 		List<String> sub = new LinkedList<String>();
 		sub.add("java.util.ArrayList");
 		sg.setSubstitutedWith(sub);
+		sg.setUseRecursiveAccessPaths(false);
+		sg.setAnalyseMethodsTogether(false);
+		sg.setAccessPathLength(3);
+		sg.setIgnoreFlowsInSystemPackages(false);
 		return sg;
 	}
 }

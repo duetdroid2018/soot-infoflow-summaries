@@ -4,6 +4,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import org.junit.Assert;
+
 import soot.jimple.infoflow.methodSummary.SummaryGenerator;
 import soot.jimple.infoflow.methodSummary.data.AbstractFlowSinkSource;
 import soot.jimple.infoflow.methodSummary.data.MethodFlow;
@@ -55,7 +57,7 @@ public abstract class TestHelper {
 				}
 			}
 		}
-
+		
 		return false;
 
 	}
@@ -86,13 +88,7 @@ public abstract class TestHelper {
 		return true;
 	}
 
-	protected SummaryGenerator getSummary() {
-		SummaryGenerator sg = new SummaryGenerator();
-		List<String> sub = new LinkedList<String>();
-		sub.add("java.util.ArrayList");
-		sg.setSubstitutedWith(sub);
-		return sg;
-	}
+	abstract SummaryGenerator getSummary() ;
 
 	protected List<String> methods() {
 		return ClassFileInformation.getMethodSignatures(getClazz());

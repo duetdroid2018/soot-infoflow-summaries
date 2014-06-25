@@ -25,7 +25,7 @@ public class ParaToFieldTests extends TestHelper {
 
 	@Test(timeout = 100000)
 	public void intParameter() {
-		SummaryGenerator s =  summaryGenerator();
+		SummaryGenerator s =  getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToField: void intPara(int)>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 
@@ -39,7 +39,7 @@ public class ParaToFieldTests extends TestHelper {
 
 	@Test(timeout = 100000)
 	public void intParameterRec() {
-		SummaryGenerator s =  summaryGenerator();
+		SummaryGenerator s =  getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToField: void intParaRec(int,int)>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToField: int intField>"}));
@@ -51,7 +51,7 @@ public class ParaToFieldTests extends TestHelper {
 
 	@Test(timeout = 100000)
 	public void objectParameter() {
-		SummaryGenerator s =  summaryGenerator();
+		SummaryGenerator s =  getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToField: void objPara(java.lang.Object)>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		
@@ -62,7 +62,7 @@ public class ParaToFieldTests extends TestHelper {
 
 	@Test(timeout = 100000)
 	public void objectParameter2() {
-		SummaryGenerator s =  summaryGenerator();
+		SummaryGenerator s =  getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToField: void objPara(java.lang.Object)>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		
@@ -74,7 +74,7 @@ public class ParaToFieldTests extends TestHelper {
 
 	@Test(timeout = 100000)
 	public void intAndObjectParameter() {
-		SummaryGenerator s =  summaryGenerator();
+		SummaryGenerator s =  getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToField: void intAndObj(int,java.lang.Object)>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		
@@ -88,7 +88,7 @@ public class ParaToFieldTests extends TestHelper {
 
 	@Test(timeout = 100000)
 	public void intAndObjectParameter2() {
-		SummaryGenerator s =  summaryGenerator();
+		SummaryGenerator s =  getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToField: void intAndObj(int,java.lang.Object)>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		
@@ -105,7 +105,7 @@ public class ParaToFieldTests extends TestHelper {
 
 	@Test(timeout = 100000)
 	public void arrayParas() {
-		SummaryGenerator s =  summaryGenerator();
+		SummaryGenerator s =  getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToField: void arrayParas(int[],java.lang.Object[])>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		
@@ -120,7 +120,7 @@ public class ParaToFieldTests extends TestHelper {
 
 	@Test(timeout = 300000)
 	public void arrayParas2() {
-		SummaryGenerator s =  summaryGenerator();
+		SummaryGenerator s =  getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToField: void arrayParas(int[],java.lang.Object[])>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		
@@ -136,7 +136,7 @@ public class ParaToFieldTests extends TestHelper {
 
 	@Test(timeout = 300000)
 	public void dataAndListParameterNotCompled() {
-		SummaryGenerator s = summaryGenerator();
+		SummaryGenerator s = getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToField: void dataAndList(soot.jimple.infoflow.test.methodSummary.Data,java.util.List)>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		
@@ -151,7 +151,7 @@ public class ParaToFieldTests extends TestHelper {
 	@Ignore //We dont identify list.first.item as a source. that is because first = null
 	@Test(timeout = 300000)
 	public void dataAndListParameter() {
-		SummaryGenerator s = summaryGenerator();
+		SummaryGenerator s = getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToField: void dataAndList(soot.jimple.infoflow.test.methodSummary.Data,java.util.List)>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		
@@ -167,7 +167,7 @@ public class ParaToFieldTests extends TestHelper {
 	@Test(timeout = 400000)
 	public void dataAndListParameter2NotComplet() {
 		
-		SummaryGenerator s =  summaryGenerator();
+		SummaryGenerator s =  getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToField: void dataAndList(soot.jimple.infoflow.test.methodSummary.Data,java.util.List)>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		
@@ -183,7 +183,7 @@ public class ParaToFieldTests extends TestHelper {
 	@Test(timeout = 400000)
 	public void dataAndListParameter2() {
 		
-		SummaryGenerator s =  summaryGenerator();
+		SummaryGenerator s =  getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToField: void dataAndList(soot.jimple.infoflow.test.methodSummary.Data,java.util.List)>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 		
@@ -203,13 +203,17 @@ public class ParaToFieldTests extends TestHelper {
 	Class<?> getClazz() {
 		return ParaToFieldTests.class;
 	}
-	
-	private SummaryGenerator summaryGenerator() {
-		SummaryGenerator sg = new SummaryGenerator() ;
-		
+	@Override
+	SummaryGenerator getSummary() {
+		SummaryGenerator sg = new SummaryGenerator();
 		List<String> sub = new LinkedList<String>();
 		sub.add("java.util.LinkedList");
 		sg.setSubstitutedWith(sub);
-		return sg;  
+		sg.setUseRecursiveAccessPaths(true);
+		sg.setAnalyseMethodsTogether(false);
+		sg.setAccessPathLength(3);
+		sg.setIgnoreFlowsInSystemPackages(false);
+		return sg;
 	}
+
 }

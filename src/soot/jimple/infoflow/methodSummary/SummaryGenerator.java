@@ -40,7 +40,9 @@ public class SummaryGenerator {
 	protected boolean enableImplicitFlows = false;
 	protected boolean enableExceptionTracking = false;
 	protected boolean enableStaticFieldTracking = false;
-	protected boolean flowSensitiveAliasing = true;
+	protected boolean flowSensitiveAliasing = false;
+	protected boolean useRecursiveAccessPaths = false;
+	
 	protected CallgraphAlgorithm cfgAlgo = CallgraphAlgorithm.SPARK;
 	protected boolean debug = false;
 	protected ITaintPropagationWrapper taintWrapper;
@@ -55,6 +57,8 @@ public class SummaryGenerator {
 		// substitutedWith.add("java.util.TreeMap");
 		initDefPath();
 	}
+
+
 
 	/**
 	 * Creates a summary for the method m of a class c.
@@ -136,6 +140,7 @@ public class SummaryGenerator {
 		iFlow.setCallgraphAlgorithm(cfgAlgo);
 		iFlow.setMethodsExcludedFromFlowPropagation(java.util.Collections.singletonList(DUMMY_MAIN_SIG));
 		iFlow.setIgnoreFlowsInSystemPackages(ignoreFlowsInSystemPackages);
+		Infoflow.setUseRecursiveAccessPaths(useRecursiveAccessPaths);
 		
 		if (config == null) {
 			iFlow.setSootConfig(new DefaultSummaryConfig());
@@ -223,6 +228,21 @@ public class SummaryGenerator {
 
 	public void setFlowSensitiveAliasing(boolean flowSensitiveAliasing) {
 		this.flowSensitiveAliasing = flowSensitiveAliasing;
+	}
+	public void setSummaryAPLength(int summaryAPLength) {
+		this.summaryAPLength = summaryAPLength;
+	}
+
+	public void setIgnoreFlowsInSystemPackages(boolean ignoreFlowsInSystemPackages) {
+		this.ignoreFlowsInSystemPackages = ignoreFlowsInSystemPackages;
+	}
+
+	public void setUseRecursiveAccessPaths(boolean useRecursiveAccessPaths) {
+		this.useRecursiveAccessPaths = useRecursiveAccessPaths;
+	}
+
+	public void setAnalyseMethodsTogether(boolean analyseMethodsTogether) {
+		this.analyseMethodsTogether = analyseMethodsTogether;
 	}
 
 }

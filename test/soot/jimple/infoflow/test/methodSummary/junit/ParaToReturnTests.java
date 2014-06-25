@@ -24,7 +24,7 @@ public class ParaToReturnTests extends TestHelper {
 
 	@Test(timeout = 100000)
 	public void primitiv() {
-		SummaryGenerator s = summaryGenerator();
+		SummaryGenerator s = getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToReturn: int return1(int)>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 
@@ -34,7 +34,7 @@ public class ParaToReturnTests extends TestHelper {
 
 	@Test(timeout = 100000)
 	public void primitivRec() {
-		SummaryGenerator s = summaryGenerator();
+		SummaryGenerator s = getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToReturn: int returnRec(int,int)>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 
@@ -45,7 +45,7 @@ public class ParaToReturnTests extends TestHelper {
 	@Test(timeout = 100000)
 	public void object() {
 
-		SummaryGenerator s = summaryGenerator();
+		SummaryGenerator s = getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToReturn: java.lang.Object return2(java.lang.Object)>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 
@@ -56,7 +56,7 @@ public class ParaToReturnTests extends TestHelper {
 	@Test(timeout = 100000)
 	public void list() {
 
-		SummaryGenerator s = summaryGenerator();
+		SummaryGenerator s = getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToReturn: java.util.List return3(java.util.List)>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 
@@ -67,7 +67,7 @@ public class ParaToReturnTests extends TestHelper {
 	@Ignore //list.node.item is not identified as source
 	@Test(timeout = 100000)
 	public void list2() {
-		SummaryGenerator s = summaryGenerator();
+		SummaryGenerator s = getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToReturn: java.lang.Object return31(java.util.List)>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig,methods()).getFlowsForMethod(mSig);
 
@@ -77,7 +77,7 @@ public class ParaToReturnTests extends TestHelper {
 
 	@Test(timeout = 100000)
 	public void array1() {
-		SummaryGenerator s = summaryGenerator();
+		SummaryGenerator s = getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToReturn: java.lang.Object return4(java.lang.Object[])>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 
@@ -87,7 +87,7 @@ public class ParaToReturnTests extends TestHelper {
 
 	@Test(timeout = 100000)
 	public void array2() {
-		SummaryGenerator s = summaryGenerator();
+		SummaryGenerator s = getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToReturn: java.lang.Object[] return5(java.lang.Object[])>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 
@@ -97,7 +97,7 @@ public class ParaToReturnTests extends TestHelper {
 
 	@Test(timeout = 100000)
 	public void data1() {
-		SummaryGenerator s = summaryGenerator();
+		SummaryGenerator s = getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToReturn: java.lang.Object return6(soot.jimple.infoflow.test.methodSummary.Data)>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 
@@ -107,7 +107,7 @@ public class ParaToReturnTests extends TestHelper {
 
 	@Test(timeout = 100000)
 	public void data2() {
-		SummaryGenerator s = summaryGenerator();
+		SummaryGenerator s = getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToReturn: java.lang.Object return7(soot.jimple.infoflow.test.methodSummary.Data)>";
 		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
 
@@ -119,13 +119,17 @@ public class ParaToReturnTests extends TestHelper {
 	Class<?> getClazz() {
 		return ArbitraryAccessPath.class;
 	}
-
-	private SummaryGenerator summaryGenerator() {
+	
+	@Override
+	SummaryGenerator getSummary() {
 		SummaryGenerator sg = new SummaryGenerator();
-
 		List<String> sub = new LinkedList<String>();
 		sub.add("java.util.LinkedList");
 		sg.setSubstitutedWith(sub);
+		sg.setUseRecursiveAccessPaths(true);
+		sg.setAnalyseMethodsTogether(false);
+		sg.setAccessPathLength(3);
+		sg.setIgnoreFlowsInSystemPackages(false);
 		return sg;
 	}
 }

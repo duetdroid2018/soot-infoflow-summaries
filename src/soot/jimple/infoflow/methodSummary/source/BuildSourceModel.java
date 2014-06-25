@@ -52,6 +52,8 @@ public class BuildSourceModel {
 		
 		boolean skip = !(method.hasActiveBody() && method.isConcrete() && !method.isStatic());
 		if (!skip) {
+			System.out.println("Bulding Source Model for: " + method.getSignature());
+			System.out.println(method.getActiveBody().toString());
 			buildModel();
 		}
 	}

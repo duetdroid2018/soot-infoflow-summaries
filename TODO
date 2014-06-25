@@ -19,6 +19,8 @@ TODOs:
 			- run infoflow with l1* and do the identification of sources with an apl > 1 in a post processing step.
 			
 	- False positives
+		if we have different flows through a method which have the same taint infoflow merges the flows. Later infoflow is not able 
+		to reconstruct both path correctly again. 
 		(infoflow bug)
 	
 	- for class linkedlist we get as sources for linkedlist.get()
@@ -27,3 +29,14 @@ TODOs:
 		- node.next.next.item
 		...
 		up to our apl
+		
+	- backwards reconstruction of local.field is incomplete for some cases
+		- e.g. if we have a method with a flow from this.f1 -> this.f1' 
+		m() {
+			this = @this
+			l0' = this.f1'
+			l1' = l0'.f2'
+			l0 = this.f1
+			l1 = l0.f2
+			
+		}

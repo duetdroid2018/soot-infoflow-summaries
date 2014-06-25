@@ -6,6 +6,8 @@ import static soot.jimple.infoflow.methodSummary.data.SourceSinkType.Field;
 import static soot.jimple.infoflow.methodSummary.data.SourceSinkType.Parameter;
 import static soot.jimple.infoflow.methodSummary.data.SourceSinkType.Return;
 
+import java.util.LinkedList;
+import java.util.List;
 import java.util.Set;
 
 import org.junit.Ignore;
@@ -398,7 +400,9 @@ public class ApiTests extends ApiTestHelper {
 		SummaryGenerator s = getSummary();
 		String mSig = "<" + className + ": int intInDataToReturn2()>";
 		Set<MethodFlow> res = s.createMethodSummary(mSig,methods()).getFlowsForMethod(mSig);
-		
+		for(MethodFlow f : res){
+			System.out.println(f.toString());
+		}
 		assertTrue(containsFlow(res, Field,new String[] {NON_PRIMITIVE_VAR1,DATACLASS_INT_FIELD}, Return,new String[] {}));
 	}
 
@@ -447,7 +451,7 @@ public class ApiTests extends ApiTestHelper {
 	}
 
 	@Test(timeout = 100000)
-	public void fieldToField1() {
+	public void data1ToDate2() {
 		SummaryGenerator s = getSummary();
 		String mSig = "<" + className + ": void data1ToDate2()>";
 		Set<MethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
@@ -471,9 +475,63 @@ public class ApiTests extends ApiTestHelper {
 				"<soot.jimple.infoflow.test.methodSummary.ApiClass$Node: java.lang.Object item>"}, Return,new String[] {}));
 	}
 
+	@Test(timeout = 100000)
+	public void fieldToField1() {
+		SummaryGenerator s = getSummary();
+		String mSig = "<" + className + ": void fieldToField1()>";
+		Set<MethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		assertTrue(containsFlow(res, Field,new String[] {NON_PRIMITIVE_VAR1}, Field,new String[] {NON_PRIMITIVE_VAR2}));
+	}
+	
+	@Test//(timeout = 100000)
+	public void fieldToField2() {
+		SummaryGenerator s = getSummary();
+		String mSig = "<" + className + ": void fieldToField2()>";
+		Set<MethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		assertTrue(containsFlow(res, Field,new String[] {NON_PRIMITIVE_VAR1, DATACLASS_OBJECT_FIELD}, Field,new String[] {OBJECT_FIELD}));
+	}
+
+	
+	@Test(timeout = 100000)
+	public void fieldToField3() {
+		SummaryGenerator s = getSummary();
+		String mSig = "<" + className + ": void fieldToField3()>";
+		Set<MethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		assertTrue(containsFlow(res, Field,new String[] {NON_PRIMITIVE_VAR2, DATACLASS_INT_FIELD}, Field,new String[] {PRIMITIVE_VAR}));
+	}
+
+	@Test(timeout = 100000)
+	public void fieldToField4() {
+		SummaryGenerator s = getSummary();
+		String mSig = "<" + className + ": void fieldToField4()>";
+		Set<MethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		assertTrue(containsFlow(res, Field,new String[] {OBJECT_FIELD}, Field,new String[] {NON_PRIMITIVE_VAR2, DATACLASS_OBJECT_FIELD}));
+	}
+
+	@Test(timeout = 100000)
+	public void fieldToField5() {
+		SummaryGenerator s = getSummary();
+		String mSig = "<" + className + ": void fieldToField5()>";
+		Set<MethodFlow> res = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		assertTrue(containsFlow(res, Field,new String[] {NON_PRIMITIVE_VAR1,DATACLASS_OBJECT_FIELD}, Field,new String[] {NON_PRIMITIVE_VAR2, DATACLASS_OBJECT_FIELD}));
+	}
+	
 	@Override
 	Class<?> getClazz() {
 		return ApiClass.class;
+	}
+
+	@Override
+	SummaryGenerator getSummary() {
+		SummaryGenerator sg = new SummaryGenerator();
+		List<String> sub = new LinkedList<String>();
+		sub.add("java.util.ArrayList");
+		sg.setSubstitutedWith(sub);
+		sg.setUseRecursiveAccessPaths(false);
+		sg.setAnalyseMethodsTogether(true);
+		sg.setAccessPathLength(3);
+		sg.setIgnoreFlowsInSystemPackages(false);
+		return sg;
 	}
 
 

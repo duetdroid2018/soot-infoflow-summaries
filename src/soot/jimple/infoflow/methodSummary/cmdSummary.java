@@ -80,6 +80,7 @@ public class cmdSummary {
 			}
 		} else
 			System.out.println("it's necessary to provide at least one method signature");
+		return;
 	}
 	
 	private static String programMAN() {

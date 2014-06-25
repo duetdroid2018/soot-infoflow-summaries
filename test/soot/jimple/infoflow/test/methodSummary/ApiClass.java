@@ -431,5 +431,23 @@ public class ApiClass implements IApiClass {
 	public Object getNonPrimitiveData1APL3(){
 		return nonPrimitiveVariable.d.data;
 	}
+
+	
+	public void fieldToField1(){
+		nonPrimitive2Variable = nonPrimitiveVariable;
+	}
+	public void fieldToField2(){
+		aObject = nonPrimitiveVariable.data;
+	}
+	public void fieldToField3(){
+		primitiveVariable = nonPrimitive2Variable.value;
+	}
+	public void fieldToField4(){
+		nonPrimitive2Variable.data= aObject;
+	}
+	
+	public void fieldToField5(){
+		nonPrimitive2Variable.data= nonPrimitiveVariable.data;
+	}
 	
 }

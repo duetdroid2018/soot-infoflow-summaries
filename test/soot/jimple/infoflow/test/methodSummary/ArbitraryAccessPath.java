@@ -5,6 +5,24 @@ public class ArbitraryAccessPath {
 	Data nullData2 ;
 	Data data = new Data();
 	Data data2 = new Data();
+	Test1 sourceT1 = new Test1();
+	Test1 sinkT1 = new Test1();
+	class Test1{
+		Test2 t2 = new Test2();
+		Object o = new Object();
+	}
+	class Test2{
+		Test3 t3 = new Test3();
+		Object o = new Object();
+	}
+	class Test3{
+		Object o = new Object();
+		Test4 t4 = new Test4();
+	}
+	class Test4{
+		Object o  = new Object();
+	}
+	
 	
 	public ArbitraryAccessPath(){
 		data.d = new Data();
@@ -73,6 +91,10 @@ public class ArbitraryAccessPath {
 	
 	public void fieldToField(){
 		data2.d.d.d = data.d.d.d;
+	}
+	public void fieldToField2(){
+		//sinkT1.t2.o = sourceT1.t2.o;
+		data2.d = data;
 	}
 	
 	public void nullFieldToField(){
