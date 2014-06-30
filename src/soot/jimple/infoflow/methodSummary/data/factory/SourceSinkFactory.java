@@ -6,7 +6,6 @@ import java.util.List;
 
 import soot.SootField;
 import soot.SootMethod;
-import soot.Type;
 import soot.jimple.infoflow.methodSummary.data.FlowSink;
 import soot.jimple.infoflow.methodSummary.data.SourceSinkType;
 import soot.jimple.infoflow.methodSummary.data.impl.DefaultFlowSink;
@@ -23,7 +22,7 @@ public class SourceSinkFactory {
 		return new DefaultFlowSource(SourceSinkType.Field, -1, sootFieldsToString(f));
 	}
 
-	
+	 
 	public static DefaultFlowSource createThisSource() {
 		return new DefaultFlowSource(SourceSinkType.Field,-1,null);
 	}

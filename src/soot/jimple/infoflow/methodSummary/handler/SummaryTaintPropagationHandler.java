@@ -12,8 +12,12 @@ import soot.jimple.infoflow.handlers.TaintPropagationHandler;
 import soot.jimple.infoflow.util.ConcurrentHashSet;
 import soot.jimple.toolkits.ide.icfg.BiDiInterproceduralCFG;
 
+/**
+ * The SummaryTaintPropagationHandler collects all abstraction that reach the return statement of a specified method.
+ * 
+ */
 public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
-	private String methodSig;
+	private final String methodSig;
 	private SootMethod method = null;
 	private Set<Abstraction> result = new ConcurrentHashSet<Abstraction>();
 

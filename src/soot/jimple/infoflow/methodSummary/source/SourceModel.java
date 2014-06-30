@@ -16,8 +16,8 @@ public class SourceModel {
 	private List<Set<SourceDataInternal>> sources;
 
 	public SourceModel(int apLength) {
-		sources = new ArrayList<Set<SourceDataInternal>>(apLength +1);
-		for (int i = 0; i < apLength +1; i++) {
+		sources = new ArrayList<Set<SourceDataInternal>>(apLength);
+		for (int i = 0; i < apLength; i++) {
 			sources.add(i, new HashSet<SourceDataInternal>());
 		}
 	}
@@ -27,19 +27,21 @@ public class SourceModel {
 	}
 
 	/**
-	 * checks for a x.f if it is a source
-	 * 
+	 * Checks for a local with an optional field if it is a source
 	 * Since source identification works with points to it can happen that we identify multiple sources with x.f
+	 * @param local
+	 * @param field 
+	 * @return
 	 */
-	public SourceData isSource(Local x, SootField f) {
+	public SourceData isSource(Local local, SootField field) {
 		boolean matchedLocal = false;
 		List<DefaultFlowSource> res = new LinkedList<DefaultFlowSource>();
 		boolean taintSubFields = false;
 		for (int i = 1; i < sources.size(); i++) {
 			for (SourceDataInternal s : sources.get(i)) {
-				if (x.equals(s.getFieldBase())) {
+				if (local.equals(s.getFieldBase())) {
 					matchedLocal = true;
-					if ((f == null && s.getField() == null) || (f != null && f.equals(s.getField()))) {
+					if ((field == null && s.getField() == null) || (field != null && field.equals(s.getField()))) {
 						res.add(s.getSourceInfo());
 						taintSubFields |= s.isTaintSubFields();
 						// return s;
@@ -50,7 +52,7 @@ public class SourceModel {
 			}
 		}
 		if (matchedLocal && res.size() == 0) {
-			throw new RuntimeException("the local: " + x + " is a source but we dont have it in our source model");
+			throw new RuntimeException("the local: " + local + " is a source but we dont have it in our source model");
 		}
 		if (res.size() == 0)
 			return null;

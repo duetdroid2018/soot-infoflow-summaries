@@ -100,9 +100,6 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 			if(rightOp instanceof InstanceFieldRef){
 				SourceData si = sModel.isSource((Local) ((InstanceFieldRef) rightOp).getBase(),((InstanceFieldRef) rightOp).getField());
 				if(si!=null){
-					if(jstmt.toString().contains("soot.jimple.infoflow.test.methodSummary.FieldToPara: java.lang.Object[] arrayField")){
-						System.out.println();
-					}
 					System.out.println("source: " + sCallSite + " " + currentMethod.getSignature());
 					return new SourceInfo(si.isTaintSubFields()|| forceTaintSubFields, si.getSourceInfo());
 				}
@@ -110,7 +107,7 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 			}
 		}
 	
-		//check if we have  asource with apl = 0 (this or paramter source)
+		//check if we have a source with apl = 0 (this or parameter source)
 		if (sCallSite instanceof DefinitionStmt) {
 			DefinitionStmt jstmt = (DefinitionStmt) sCallSite;
 			Value rightOp = jstmt.getRightOp();
@@ -119,11 +116,11 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 				ParameterRef pref = (ParameterRef) rightOp;
 				logger.debug("source: " + sCallSite + " " + currentMethod.getSignature());
 				System.out.println("source: " + sCallSite + " " + currentMethod.getSignature());
-				return new SourceInfo(false || forceTaintSubFields, SourceSinkFactory.createParamterSource(method, pref.getIndex(), null));
+				return new SourceInfo(false || forceTaintSubFields, java.util.Collections.singletonList(SourceSinkFactory.createParamterSource(method, pref.getIndex(), null)));
 			}
 			else if (currentMethod == method && rightOp instanceof ThisRef) {
 				System.out.println("source: (this)" + sCallSite + " " + currentMethod.getSignature());				
-				return new SourceInfo(false|| forceTaintSubFields, SourceSinkFactory.createThisSource());
+				return new SourceInfo(false|| forceTaintSubFields, java.util.Collections.singletonList(SourceSinkFactory.createThisSource()));
 			}
 		}
 		return null;

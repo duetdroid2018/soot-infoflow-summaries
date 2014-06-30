@@ -5,8 +5,8 @@ import java.util.List;
 import soot.jimple.infoflow.methodSummary.data.impl.DefaultFlowSource;
 
 public class SourceData {
-	List<DefaultFlowSource> sourceInfo;
-	boolean taintSubFields;
+	private final List<DefaultFlowSource> sourceInfo;
+	private final boolean taintSubFields;
 	
 	public SourceData(List<DefaultFlowSource> sourceInfo, boolean taintSubFields){
 		this.sourceInfo = sourceInfo;

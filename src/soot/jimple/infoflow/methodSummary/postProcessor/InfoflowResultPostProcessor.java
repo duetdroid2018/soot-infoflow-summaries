@@ -34,27 +34,30 @@ import soot.jimple.infoflow.methodSummary.data.FlowSource;
 import soot.jimple.infoflow.methodSummary.data.MethodFlow;
 import soot.jimple.infoflow.methodSummary.data.impl.DefaultMethodFlow;
 import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
-import soot.jimple.infoflow.methodSummary.source.SummarySourceSinkManager;
 
-public class InfoflowResultProcessor {
-	private final Logger logger = LoggerFactory.getLogger(InfoflowResultProcessor.class);
+public class InfoflowResultPostProcessor {
+	private final Logger logger = LoggerFactory.getLogger(InfoflowResultPostProcessor.class);
 
-	private InterproceduralCFG<Unit, SootMethod> cfg;
-	private Set<Abstraction> collectedAbstractions;
-	private boolean DEBUG = true;
-	private String method;
-	private int summaryAPLength;
+	private final InterproceduralCFG<Unit, SootMethod> cfg;
+	private final Set<Abstraction> collectedAbstractions;
+	private final boolean DEBUG = true;
+	private final String method;
+	private final int summaryAPLength;
 	final PointsToAnalysis pTa = Scene.v().getPointsToAnalysis();
 
-	public InfoflowResultProcessor(Set<Abstraction> collectedAbstractions, InterproceduralCFG<Unit, SootMethod> cfg,
-			String m, SummarySourceSinkManager manager, int sAPL) {
+	public InfoflowResultPostProcessor(Set<Abstraction> collectedAbstractions, InterproceduralCFG<Unit, SootMethod> cfg,
+			String m, int sAPL) {
 		this.collectedAbstractions = collectedAbstractions;
 		this.cfg = cfg;
 		this.method = m;
 		this.summaryAPLength = sAPL;
 	}
 
-	public MethodSummaries process() {
+	/**
+	 * Post process the information collected during a Infoflow analyse.
+	 * Extract all summary flow from collectedAbstractions.
+	 */
+	public MethodSummaries postProcess() {
 		MethodSummaries flows = new MethodSummaries();
 		System.out.println();
 		logger.info("start processing infoflow abstractions");
@@ -69,27 +72,18 @@ public class InfoflowResultProcessor {
 			pathBuilder.computeTaintSources(Collections.singleton(new AbstractionAtSink(a, NullConstant.v(), Jimple.v()
 					.newNopStmt())));
 			for (Set<SourceInfo> sourceInfos : pathBuilder.getResults().getResults().values()) {
-				// since we use 'points to' to identify sources with an apl > 0 it can happen
-				// that we get more then one possible source
 				for (SourceInfo si : sourceInfos) {
 					if (si.getContext() == null || si.getSource() == null)
 						continue;
 
-					// Get the source
+					// Get the source data
 					List<FlowSource> sources = new LinkedList<FlowSource>();
-					if (si.getUserData() instanceof FlowSource) {
-						FlowSource source = (FlowSource) si.getUserData();
-						sources.add(source);
-					} else if (si.getUserData() instanceof List<?>) {
-						@SuppressWarnings("unchecked")
-						List<FlowSource> userData = (List<FlowSource>) si.getUserData();
-						sources = userData;
-					}
-
+					//safe to do since we control all use data
+					sources = ((List<FlowSource>) si.getUserData());
 					if (sources.size() == 0)
 						throw new RuntimeException("Link to source missing");
 					for (FlowSource source : sources) {
-						processSourceToAbstractionFlow(flows, a, m, source);
+						processSourceAbstraction(flows, a, m, source);
 					}
 				}
 			}
@@ -99,7 +93,7 @@ public class InfoflowResultProcessor {
 		return flows;
 	}
 
-	private void processSourceToAbstractionFlow(MethodSummaries flows, Abstraction a, SootMethod m, FlowSource source) {
+	private void processSourceAbstraction(MethodSummaries flows, Abstraction a, SootMethod m, FlowSource source) {
 		// Get the sink
 		FlowSink sink = null;
 
@@ -107,13 +101,13 @@ public class InfoflowResultProcessor {
 		// The sink may be a parameter
 		for (int i = 0; i < m.getParameterCount(); i++) {
 			Local p = m.getActiveBody().getParameterLocal(i);
-			//an array can be a sink (normaly only parameter.field can be a sink)
-			boolean isArrayType = m.getParameterType(i) instanceof ArrayType;
+
 			PointsToSet pPT = pTa.reachingObjects(p);
 			
 			if (pPT.hasNonEmptyIntersection(basePT)) {
 				if (a.getAccessPath().isLocal()) {
-					if (isArrayType)
+					//an array can be a sink (normally only parameter.field+ can be sinks)
+					if ( m.getParameterType(i) instanceof ArrayType)
 						sink = createParamterSink(m, i, java.util.Collections.<SootField> emptyList(), a
 								.getAccessPath().getTaintSubFields());
 				} else if (a.getAccessPath().getFieldCount() < summaryAPLength)
@@ -190,10 +184,6 @@ public class InfoflowResultProcessor {
 			if (source.isField() || source.isThis())
 				return false;
 		}
-		// if (sink.isThis()) {
-		// if (source.isParameter())
-		// return false;
-		// }
 		if (sink.getParameterIndex() != source.getParameterIndex())
 			return false;
 		if (sink.getFieldCount() != source.getFieldCount())
@@ -203,33 +193,6 @@ public class InfoflowResultProcessor {
 				return false;
 		}
 		return true;
-
-		// if (source.isParamter() != sink.isParamter())
-		// return false;
-		// if (source.isField() != sink.isField())
-		// return false;
-		// if (source.isThis() != sink.isThis())
-		// return false;
-		//
-		// if (source.getParamterIndex() != sink.getParamterIndex())
-		// return false;
-		// if (!safeEquals(source.getParaType(), sink.getParaType()))
-		// return false;
-		//
-		// if (!safeEquals(source.getField(), sink.getField()))
-		// return false;
-		//
-		// if (source.hasAccessPath() != sink.hasAccessPath())
-		// return false;
-		// if(source.getAccessPath() == null && sink.getAccessPath() != null ||
-		// source.getAccessPath() != null && sink.getAccessPath() == null)
-		// return false;
-		//
-		// if (source.getAccessPath() != null && sink.getAccessPath() != null &&
-		// !safeEquals(source.getAccessPath().toString(), sink.getAccessPath().toString()))
-		// return false;
-		//
-		// return true;
 	}
 
 	private void addFlow(FlowSource source, FlowSink sink, MethodSummaries summaries) {
@@ -242,13 +205,6 @@ public class InfoflowResultProcessor {
 			debugMSG(source, sink);
 	}
 
-	private boolean safeEquals(String accessPath, String accessPath2) {
-		if (accessPath == accessPath2)
-			return true;
-		if (accessPath == null || accessPath2 == null)
-			return false;
-		return accessPath.equals(accessPath2);
-	}
 
 	private void debugMSG(FlowSource source, FlowSink sink) {
 		if (DEBUG) {

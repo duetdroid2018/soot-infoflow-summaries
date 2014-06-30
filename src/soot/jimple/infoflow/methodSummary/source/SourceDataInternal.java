@@ -6,10 +6,7 @@ import soot.SootField;
 import soot.jimple.infoflow.methodSummary.data.impl.DefaultFlowSource;
 
 /**
- * Source data class which save the information
- * which are needed for the Summaries (sourceInfo) 
- * and additional contains information to identify
- * sources which contains this sources as base.
+ * Source data which is internally used to create the source model
  */
 class SourceDataInternal {
 	

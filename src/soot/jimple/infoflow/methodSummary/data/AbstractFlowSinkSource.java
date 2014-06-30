@@ -7,7 +7,6 @@ import soot.jimple.infoflow.methodSummary.data.impl.SummaryAccessPath;
 
 /**
  * Data class which stores the data associated to a Sink or a Source of a method flow.
- * 
  */
 public abstract class AbstractFlowSinkSource {
 	protected final SourceSinkType type;

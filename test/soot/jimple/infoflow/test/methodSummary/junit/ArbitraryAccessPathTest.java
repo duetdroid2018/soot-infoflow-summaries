@@ -166,7 +166,8 @@ public class ArbitraryAccessPathTest  extends TestHelper{
 		sg.setSubstitutedWith(sub);
 		sg.setUseRecursiveAccessPaths(false);
 		sg.setAnalyseMethodsTogether(true);
-		sg.setAccessPathLength(5);
+		sg.setAccessPathLength(6);
+		sg.setSummaryAPLength(5);
 		sg.setIgnoreFlowsInSystemPackages(false);
 		return sg;
 	}

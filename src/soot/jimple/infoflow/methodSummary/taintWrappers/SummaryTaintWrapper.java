@@ -86,21 +86,6 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 		}
 		
 		return true;
-
-//		// If we have at least one field, the first field must always match
-//		if (!flowSource.isField() || !flowSource.getFirstField().equals(taintedPath.getFirstField().toString()))
-//			return false;
-//		// If we have only one field, that's it
-//		if (taintedPath.getFieldCount() == 1)
-//			return true;
-//
-//		// If we have more fields, they must match as well
-//		if (taintedPath.getTaintSubFields())
-//			return true;
-//		// If we have source f and taint f.f2
-//		if(!flowSource.hasAccessPath())
-//			return true;
-//		return taintedPath.getFieldCount() > 1 && flowSource.hasAccessPath() && flowSource.getFields().get(2).equals(taintedPath.getFields()[1].toString());
 	}
 
 	/**
@@ -150,12 +135,7 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 						taintSubFields = true;
 					res.add(new AccessPath(defStmt.getLeftOp(), fields, taintSubFields));
 				} else{
-					//if (taintedPath.getFieldCount() > 1){
-					//	res.add(new AccessPath(defStmt.getLeftOp(), taintedPath.getFields()[1], taintSubFields));
-					//}else{
 						res.add(new AccessPath(defStmt.getLeftOp(), taintSubFields));
-					//}
-					
 				}
 			}
 		}

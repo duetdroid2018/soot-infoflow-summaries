@@ -529,7 +529,7 @@ public class ApiTests extends ApiTestHelper {
 		sg.setSubstitutedWith(sub);
 		sg.setUseRecursiveAccessPaths(false);
 		sg.setAnalyseMethodsTogether(true);
-		sg.setAccessPathLength(3);
+		sg.setAccessPathLength(5);
 		sg.setIgnoreFlowsInSystemPackages(false);
 		return sg;
 	}

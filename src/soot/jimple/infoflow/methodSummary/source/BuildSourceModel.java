@@ -32,7 +32,7 @@ import soot.jimple.toolkits.callgraph.ReachableMethods;
  * l = x.f is a source with access path length n if:
  * 	x points to a local x' and x' is a source with apl n-1		
  * 
- * Requirement: Soot must be live
+ * Requirement: Soot is running
  */
 public class BuildSourceModel {
 	private final int summaryAccessPathLength;
@@ -45,7 +45,7 @@ public class BuildSourceModel {
 	private SourceModel sourceModel;
 	
 	public BuildSourceModel(SootMethod method, int apLength, Collection<SootField> fields) {
-		summaryAccessPathLength = apLength +1;
+		summaryAccessPathLength = apLength;
 		sourceModel = new SourceModel(apLength);
 		this.method = method;
 		//this.fields = fields;
@@ -55,37 +55,45 @@ public class BuildSourceModel {
 			System.out.println("Bulding Source Model for: " + method.getSignature());
 			System.out.println(method.getActiveBody().toString());
 			buildModel();
+		}else{
+			System.err.println("The methods: " + method.toString() + " was skipped");
 		}
+	}
+	
+
+
+	public SourceModel getModel(){
+		return sourceModel;
 	}
 	
 	private SourceModel buildModel(){
 		pta = Scene.v().getPointsToAnalysis();
 		thisLocal = method.getActiveBody().getThisLocal();
 		thisPt = pta.reachingObjects(thisLocal);
+		
+		//create parameter sources
 		for (int i = 0; i < method.getParameterCount(); i++) {
 			Local p = method.getActiveBody().getParameterLocal(i);
 			PointsToSet ptp = pta.reachingObjects(p);
 			sourceModel.addSource(0,new SourceDataInternal(SourceSinkFactory.createParamterSource(method, i, null),p, p,null, ptp, false));
 		}
+		//create this source
 		sourceModel.addSource(0,new SourceDataInternal(SourceSinkFactory.createThisSource(), thisLocal, thisLocal, null,thisPt, false));
-		buildSourceModel();
+		
+		//create the recursive sources
+		handelAPLBiggerZeroCases();
 		return sourceModel;
 	}
-
-	public SourceModel getModel(){
-		return sourceModel;
-	}
-	
 	
 	/**
-	 * Builds a model of all sources up to the limited access path
+	 * Handles the creation of the source model for the apl > 0 cases
 	 * 
 	 * (1) Iterate over all reachable methods.
 	 * 		(1a) identify all sources in methods
 	 * (2) if a new sources was found: 
 	 * 		repeat (1) 
 	 */
-	private void buildSourceModel() {
+	private void handelAPLBiggerZeroCases() {
 		List<MethodOrMethodContext> eps = new ArrayList<MethodOrMethodContext>(Scene.v().getEntryPoints());
 		ReachableMethods reachableMethods = new ReachableMethods(Scene.v().getCallGraph(), eps.iterator(), null);
 		reachableMethods.update();

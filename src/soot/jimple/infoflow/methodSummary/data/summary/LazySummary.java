@@ -12,6 +12,11 @@ import soot.jimple.infoflow.methodSummary.data.MethodFlow;
 import soot.jimple.infoflow.methodSummary.xml.ISummaryReader;
 import soot.jimple.infoflow.methodSummary.xml.XMLReader;
 
+
+/**
+ * This class loads method summary xml files on demand.
+ *
+ */
 public class LazySummary {
 
 	private ISummaryReader reader;
@@ -20,6 +25,10 @@ public class LazySummary {
 	private Set<String> loadableClasses = new HashSet<String>();
 	private List<File> files;
 
+	/**
+	 * Loads a file or all files in a dir (not recursively)
+	 * @param source
+	 */
 	public LazySummary(File source) {
 		if (source.isFile()) {
 			files = java.util.Collections.singletonList(source);
