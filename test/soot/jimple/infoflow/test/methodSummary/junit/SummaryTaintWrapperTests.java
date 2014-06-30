@@ -33,18 +33,6 @@ public class SummaryTaintWrapperTests {
 	private String sink = "<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void sink(java.lang.Object)>";
 	private SummaryTaintWrapper summaryWrapper;
 
-//	@BeforeClass
-//	public static void init() throws FileNotFoundException, XMLStreamException {
-//		String mSig = "";
-//		for (Method m : ApiClass.class.getDeclaredMethods()) {
-//			mSig = mSig + ClassFileInformation.getMethodSig(m) + ";";
-//		}
-//		mSig = mSig.substring(0, mSig.length() - 1).trim();
-//		List<String> runArgs = new ArrayList<String>();
-//		runArgs.add("-m " + mSig);
-//		cmdSummary.main(runArgs.toArray(new String[runArgs.size()]));
-//	}
-
 	@Before
 	public void resetSootAndStream() throws IOException {
 		soot.G.reset();
