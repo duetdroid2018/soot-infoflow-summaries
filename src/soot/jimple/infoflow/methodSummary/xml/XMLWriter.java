@@ -40,12 +40,18 @@ public class XMLWriter implements ISummaryWriter {
 			for (MethodFlow data : m.getValue()) {
 				writer.writeStartElement("flow");
 				writer.writeStartElement("from");
+				writer.writeAttribute(XMLConstants.ATTRIBUTE_FLOWTYPE, data.source().xmlAttributes().get(XMLConstants.ATTRIBUTE_FLOWTYPE));
 				for (Entry<String, String> t : data.source().xmlAttributes().entrySet()) {
+					if (t.getKey().contains(XMLConstants.ATTRIBUTE_FLOWTYPE))
+						continue;
 					writer.writeAttribute(t.getKey(), t.getValue());
 				}
 				writer.writeEndElement(); // end from
 				writer.writeStartElement("to");
+				writer.writeAttribute(XMLConstants.ATTRIBUTE_FLOWTYPE, data.sink().xmlAttributes().get(XMLConstants.ATTRIBUTE_FLOWTYPE));
 				for (Entry<String, String> t : data.sink().xmlAttributes().entrySet()) {
+					if (t.getKey().contains(XMLConstants.ATTRIBUTE_FLOWTYPE))
+						continue;
 					writer.writeAttribute(t.getKey(), t.getValue());
 				}
 				// writer.writeCharacters(data.flowSink().xmlString());
