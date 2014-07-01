@@ -37,7 +37,7 @@ public class ParaToField {
 
 	void objPara(Object o) {
 		obField = o;
-		dataField.data = o;
+		dataField.objectField = o;
 		arrayField[3] = o;
 		listField.add(o);
 	}
@@ -47,7 +47,7 @@ public class ParaToField {
 		dataField.value = i;
 		intArray[3] = i;
 		obField = o;
-		dataField.data = o;
+		dataField.objectField = o;
 		arrayField[3] = o;
 		listField.add(o);
 	}
@@ -67,8 +67,8 @@ public class ParaToField {
 		dataField.setValue(d.value);
 		intArray[5] = d.value;
 		obField = list.get(0);
-		dataField.data = d.getO();
-		arrayField[3] = d.data;
+		dataField.objectField = d.getO();
+		arrayField[3] = d.objectField;
 		listField.add(list.get(0));
 	}
 	

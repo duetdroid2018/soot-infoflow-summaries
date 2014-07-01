@@ -68,7 +68,7 @@ public class FieldToReturn {
 	}
 	
 	String fieldToReturn11(){
-		return dataField.i;
+		return dataField.stringField;
 	}
 	Data fieldToReturn12(){
 		Data d = new Data();

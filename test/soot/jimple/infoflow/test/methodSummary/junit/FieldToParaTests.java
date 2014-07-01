@@ -12,8 +12,8 @@ import java.util.Set;
 import org.junit.Ignore;
 import org.junit.Test;
 
-import soot.jimple.infoflow.methodSummary.SummaryGenerator;
 import soot.jimple.infoflow.methodSummary.data.MethodFlow;
+import soot.jimple.infoflow.methodSummary.generator.SummaryGenerator;
 import soot.jimple.infoflow.test.methodSummary.FieldToPara;
 
 public class FieldToParaTests extends TestHelper {

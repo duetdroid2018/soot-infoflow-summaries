@@ -31,7 +31,7 @@ public class ParaToReturn {
 		return i;
 	}
 	public Object return6(Data i){
-		return i.data;
+		return i.objectField;
 	}
 	public Object return7(Data i){
 		return i.getO();

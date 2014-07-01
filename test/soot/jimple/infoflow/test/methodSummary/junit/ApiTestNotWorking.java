@@ -5,7 +5,7 @@ import java.util.List;
 
 import org.junit.Test;
 
-import soot.jimple.infoflow.methodSummary.SummaryGenerator;
+import soot.jimple.infoflow.methodSummary.generator.SummaryGenerator;
 
 
 

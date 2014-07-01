@@ -1,17 +1,14 @@
 package soot.jimple.infoflow.test.methodSummary.junit;
 
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import org.junit.Assert;
-
-import soot.jimple.infoflow.methodSummary.SummaryGenerator;
 import soot.jimple.infoflow.methodSummary.data.AbstractFlowSinkSource;
-import soot.jimple.infoflow.methodSummary.data.MethodFlow;
 import soot.jimple.infoflow.methodSummary.data.FlowSink;
 import soot.jimple.infoflow.methodSummary.data.FlowSource;
+import soot.jimple.infoflow.methodSummary.data.MethodFlow;
 import soot.jimple.infoflow.methodSummary.data.SourceSinkType;
+import soot.jimple.infoflow.methodSummary.generator.SummaryGenerator;
 import soot.jimple.infoflow.methodSummary.util.ClassFileInformation;
 
 public abstract class TestHelper {
@@ -25,8 +22,8 @@ public abstract class TestHelper {
 	protected static final String DATA_TYPE = "soot.jimple.infoflow.test.methodSummary.Data";
 	protected final static String DATACLASS_SIG = DATA_TYPE;
 	protected final static String DATACLASS_INT_FIELD = "<" + DATACLASS_SIG + ": int value>";
-	protected final static String DATACLASS_OBJECT_FIELD = "<" + DATACLASS_SIG + ": " + OBJECT_TYPE + " data>";
-	protected final static String DATACLASS_STRING_FIELD = "<" + DATACLASS_SIG + ": " + STRING_TYPE + " i>";
+	protected final static String DATACLASS_OBJECT_FIELD = "<" + DATACLASS_SIG + ": " + OBJECT_TYPE + " objectField>";
+	protected final static String DATACLASS_STRING_FIELD = "<" + DATACLASS_SIG + ": " + STRING_TYPE + " stringField>";
 	protected final static String LINKEDLIST_FIRST = "<java.util.LinkedList: java.util.LinkedList$Node first>";
 	protected final static String LINKEDLIST_LAST = "<java.util.LinkedList: java.util.LinkedList$Node last>";
 	protected final static String LINKEDLIST_ITEM = "<java.util.LinkedList$Node: java.lang.Object item>";
@@ -91,7 +88,7 @@ public abstract class TestHelper {
 	abstract SummaryGenerator getSummary() ;
 
 	protected List<String> methods() {
-		return ClassFileInformation.getMethodSignatures(getClazz());
+		return ClassFileInformation.getMethodSignatures(getClazz(),true);
 	}
 
 	abstract Class<?> getClazz();

@@ -30,16 +30,16 @@ public class ApiClassClient {
 	public void noFlow1(){
 		ApiClass api = new ApiClass();
 		String s = stringSource();
-		api.setaString(s);
-		api.setaString(null);
-		Object tmp = api.getaString();
+		api.setStringField(s);
+		api.setStringField(null);
+		Object tmp = api.getStringField();
 		sink(tmp);
 	}
 	public void flow1(){
 		ApiClass api = new ApiClass();
 		String s = stringSource();
-		api.setaString(s);
-		Object tmp = api.getaString();
+		api.setStringField(s);
+		Object tmp = api.getStringField();
 		sink(tmp);
 	}
 	public void noFlow2(){

@@ -2,6 +2,7 @@ package soot.jimple.infoflow.test.methodSummary.junit;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -10,7 +11,9 @@ import javax.xml.stream.XMLStreamException;
 import org.junit.Test;
 
 import soot.jimple.infoflow.Infoflow;
+import soot.jimple.infoflow.config.ConfigForTest;
 import soot.jimple.infoflow.methodSummary.taintWrappers.TaintWrapperFactory;
+import soot.jimple.infoflow.taintWrappers.EasyTaintWrapper;
 import soot.jimple.infoflow.taintWrappers.ITaintPropagationWrapper;
 import soot.jimple.infoflow.test.junit.JUnitTests;
 
@@ -171,5 +174,17 @@ public class WrapperListTests extends JUnitTests {
 		infoflow.computeInfoflow(appPath, libPath, epoints, sources, sinks);
 		negativeCheckInfoflow(infoflow);
 	}
+	
+    protected Infoflow initInfoflow(){
+    	return initInfoflow(false);
+    }
+    
+    protected Infoflow initInfoflow(boolean useTaintWrapper){
+    	Infoflow result = new Infoflow();
+    	WrapperListTestConfig testConfig = new WrapperListTestConfig();
+    	result.setSootConfig(testConfig);
+    	result.setTaintWrapper(wrapper);
+    	return result;
+    }
 
 }

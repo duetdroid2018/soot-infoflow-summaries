@@ -6,14 +6,14 @@ import heros.solver.Pair;
 public class ApiClass implements IApiClass {
 	private int primitiveVariable;
 
-	private String aString;
-	private Object aObject;
-	private Data nonPrimitiveVariable = new Data();
-	private Data nonPrimitive2Variable = new Data();
+	private String stringField;
+	private Object objectField;
+	private Data dataField = new Data();
+	private Data dataField2 = new Data();
 	@SuppressWarnings("unused")
-	private static int staticPrimitiveVariable;
+	private static int staticIntField;
 	@SuppressWarnings("unused")
-	private static Data staticNonPrimitiveVariable = new Data();
+	private static Data staticDataField = new Data();
 
 	Node first ;
 	private static class Node {
@@ -29,11 +29,11 @@ public class ApiClass implements IApiClass {
 		first = data;
 	}
 	public Data getNonPrimitiveVariable() {
-		return nonPrimitiveVariable;
+		return dataField;
 	}
 
 	public Object getNonPrimitive1Data() {
-		return getNonPrimitive2Variable().data;
+		return getNonPrimitive2Variable().objectField;
 	}
 
 	// standard flow: Source Paramter -> Sink return X
@@ -69,7 +69,7 @@ public class ApiClass implements IApiClass {
 
 	public Data standardFlow6(Object o) {
 		Data data = new Data();
-		data.data = o;
+		data.objectField = o;
 		return data;
 	}
 
@@ -85,13 +85,13 @@ public class ApiClass implements IApiClass {
 
 	public Data standardFlow8(Data o) {
 		Data data = new Data();
-		data.data = o.data;
+		data.objectField = o.objectField;
 		return data;
 	}
 
 	public Data standardFlow9(Data d, Object o) {
 		Data data = d;
-		data.data = o;
+		data.objectField = o;
 		return data;
 	}
 
@@ -102,7 +102,7 @@ public class ApiClass implements IApiClass {
 
 	public Data standardFlow11(Data d) {
 		Data data = new Data();
-		data.data = d.data;
+		data.objectField = d.objectField;
 		return data;
 	}
 
@@ -159,21 +159,21 @@ public class ApiClass implements IApiClass {
 		if (i > 3)
 			return new Data(o, i);
 		if (i == -3)
-			nonPrimitiveVariable = new Data(o, i);
+			dataField = new Data(o, i);
 		return new Data(new Object(), 3);
 	}
 
 	public void paraToField2(int i, Object o) {
-		nonPrimitiveVariable = new Data(o, i);
+		dataField = new Data(o, i);
 
 	}
 
 	public void paraToField(int i) {
-		nonPrimitiveVariable.setValue(i);
+		dataField.setValue(i);
 	}
 
 	public Data paraToVarX(int i, Object o) {
-		nonPrimitiveVariable = new Data(o, i);
+		dataField = new Data(o, i);
 		return new Data(o, i);
 
 	}
@@ -186,7 +186,7 @@ public class ApiClass implements IApiClass {
 
 	// static paraToVar Flow: Source Para -> Sink global Var (static method)
 	public static int staticParaToVar(int i, int j) {
-		staticPrimitiveVariable = i + j;
+		staticIntField = i + j;
 		return 3;
 	}
 
@@ -194,12 +194,12 @@ public class ApiClass implements IApiClass {
 		if (i < 3)
 			return new Data(o, i);
 		if (i == -3)
-			staticNonPrimitiveVariable = new Data(o, i);
+			staticDataField = new Data(o, i);
 		return new Data(new Object(), 3);
 	}
 
 	public int paraToStaticVar1(int i, int j) {
-		staticPrimitiveVariable = i + j;
+		staticIntField = i + j;
 		return 3;
 	}
 
@@ -207,7 +207,7 @@ public class ApiClass implements IApiClass {
 		if (i > 3)
 			return new Data(o, i);
 		if (i == -3)
-			staticNonPrimitiveVariable = new Data(o, i);
+			staticDataField = new Data(o, i);
 		return new Data(new Object(), 3);
 	}
 
@@ -218,7 +218,7 @@ public class ApiClass implements IApiClass {
 
 	public void paraToparaFlow2(int i, Object o, Data data) {
 		data.value = i;
-		data.data = o;
+		data.objectField = o;
 	}
 
 	public void paraToparaFlow3(int i, Object o, Data data, Data data2) {
@@ -249,7 +249,7 @@ public class ApiClass implements IApiClass {
 		if (data.value > 43) {
 			primitiveVariable = data.value;
 		} else {
-			staticPrimitiveVariable = 3;
+			staticIntField = 3;
 		}
 		data.value = i;
 		return data;
@@ -265,7 +265,7 @@ public class ApiClass implements IApiClass {
 	}
 
 	public int intInDataToReturn() {
-		return nonPrimitiveVariable.value;
+		return dataField.value;
 	}
 
 	public int intInDataToReturn2() {
@@ -277,11 +277,11 @@ public class ApiClass implements IApiClass {
 	}
 
 	public Data dataFieldToReturn() {
-		return nonPrimitiveVariable;
+		return dataField;
 	}
 
 	public Object objInDataFieldToReturn() {
-		return nonPrimitiveVariable.getData();
+		return dataField.getData();
 	}
 
 	public Data dataFieldToReturn2() {
@@ -289,30 +289,30 @@ public class ApiClass implements IApiClass {
 	}
 
 	public Data getNonPrimitive2Variable() {
-		return nonPrimitive2Variable;
+		return dataField2;
 	}
 
 	public void swap() {
-		Data t = nonPrimitive2Variable;
-		nonPrimitive2Variable = nonPrimitiveVariable;
-		nonPrimitiveVariable = t;
+		Data t = dataField2;
+		dataField2 = dataField;
+		dataField = t;
 	}
 
 	public void swap2() {
-		Data t = nonPrimitive2Variable;
-		nonPrimitive2Variable.data = nonPrimitiveVariable.data;
-		nonPrimitiveVariable.value = t.value;
+		Data t = dataField2;
+		dataField2.objectField = dataField.objectField;
+		dataField.value = t.value;
 	}
 
 	public void data1ToDate2() {
-		nonPrimitive2Variable = nonPrimitiveVariable;
+		dataField2 = dataField;
 	}
 
 	public void fieldToPara(Data d) {
-		d.value = nonPrimitiveVariable.value;
+		d.value = dataField.value;
 	}
 	public void fieldToPara2(Data d) {
-		d.data = nonPrimitiveVariable.data;
+		d.objectField = dataField.objectField;
 	}
 	
 
@@ -324,20 +324,20 @@ public class ApiClass implements IApiClass {
 		this.primitiveVariable = primitiveVariable;
 	}
 
-	public String getaString() {
-		return aString;
+	public String getStringField() {
+		return stringField;
 	}
 
-	public void setaString(String aString) {
-		this.aString = aString;
+	public void setStringField(String aString) {
+		this.stringField = aString;
 	}
 
-	public Object getaObject() {
-		return aObject;
+	public Object getObjectField() {
+		return objectField;
 	}
 
-	public void setaObject(Object aObject) {
-		this.aObject = aObject;
+	public void setObjectField(Object aObject) {
+		this.objectField = aObject;
 	}
 
 	public int noThisFlow() {
@@ -345,21 +345,21 @@ public class ApiClass implements IApiClass {
 	}
 
 	public Object noThisFlow2(Data d) {
-		d.value = nonPrimitiveVariable.value;
+		d.value = dataField.value;
 		return null;
 	}
 
 	public Object noThisFlow3() {
-		Data t = nonPrimitive2Variable;
-		nonPrimitive2Variable = nonPrimitiveVariable;
-		nonPrimitiveVariable = t;
+		Data t = dataField2;
+		dataField2 = dataField;
+		dataField = t;
 		return new Object();
 	}
 
 	public Object mutipleSources() {
 		Data data = new Data();
-		data.data = nonPrimitiveVariable;
-		return new Pair<Object, Object>(data.data, nonPrimitiveVariable.data);
+		data.objectField = dataField;
+		return new Pair<Object, Object>(data.objectField, dataField.objectField);
 	}
 
 	//TODO write test for the following methods
@@ -369,19 +369,19 @@ public class ApiClass implements IApiClass {
 	}
 	
 	public Pair<ApiClass, Object> thisAndFieldToReturn() {
-		Pair<ApiClass, Object> t = new Pair<ApiClass, Object>(this, nonPrimitiveVariable);
+		Pair<ApiClass, Object> t = new Pair<ApiClass, Object>(this, dataField);
 		return t;
 	}
 	
 	public Pair<Object, Pair<Object, ApiClass>> thisAndFieldToReturn1() {
 		Pair<Object, Pair<Object, ApiClass>> t = new Pair<Object, Pair<Object, ApiClass>>(new Object(),
-				new Pair<Object, ApiClass>(nonPrimitive2Variable.data, this));
+				new Pair<Object, ApiClass>(dataField2.objectField, this));
 		return t;
 	}
 
 	public Pair<Object, Pair<Object, ApiClass>> thisAndFieldToReturn2() {
 		Pair<Object, Pair<Object, ApiClass>> t = new Pair<Object, Pair<Object, ApiClass>>(
-				nonPrimitive2Variable.data, new Pair<Object, ApiClass>(new Object(), this));
+				dataField2.objectField, new Pair<Object, ApiClass>(new Object(), this));
 		return t;
 	}
 	
@@ -392,62 +392,62 @@ public class ApiClass implements IApiClass {
 		d.switchSwitch();
 	}
 	public void paraToParaT(Data d, Object o){
-		d.d.d.d.data = o;
+		d.next.next.next.objectField = o;
 	}
 	public void paraToParaT2(Data d, Data d2){
-		d.d = d2;
+		d.next = d2;
 	}
 	public void paraToParaT3(Data d, Data d2){
-		d.d.d = d2;
+		d.next.next = d2;
 	}
 	public void paraToParaT4(Data d, Object d2){
-		d.d.data = d2;
+		d.next.objectField = d2;
 	}
 	public void paraToFieldT1(Data d){
-		nonPrimitive2Variable.d = d;
+		dataField2.next = d;
 	}
 	public void paraToFieldT2(Data d){
-		nonPrimitive2Variable.d.d = d;
+		dataField2.next.next = d;
 	}
 	public void paraToFieldT22(Data d){
-		nonPrimitive2Variable.d = d.d;
+		dataField2.next = d.next;
 	}
 	public void paraToFieldT3(Data d){
-		nonPrimitive2Variable.d.d.d = d;
+		dataField2.next.next.next = d;
 	}
 	public void paraToFieldT33(Data d){
-		nonPrimitive2Variable.d = d.d.d;
+		dataField2.next = d.next.next;
 	}
 	public void paraToParaArray(Object []o ){
 		o[3] = o[2];
 	}
 	
 	public void setNonPrimitiveData1APL3(Object d){
-		nonPrimitiveVariable.d.data = d;
+		dataField.next.objectField = d;
 	}
 	public Object getNonPrimitiveData2AP3(){
-		return nonPrimitiveVariable.d.data2;
+		return dataField.next.objectField2;
 	}
 	public Object getNonPrimitiveData1APL3(){
-		return nonPrimitiveVariable.d.data;
+		return dataField.next.objectField;
 	}
 
 	
 	public void fieldToField1(){
-		nonPrimitive2Variable = nonPrimitiveVariable;
+		dataField2 = dataField;
 	}
 	public void fieldToField2(){
-		aObject = nonPrimitiveVariable.data;
+		objectField = dataField.objectField;
 	}
 	public void fieldToField3(){
-		primitiveVariable = nonPrimitive2Variable.value;
+		primitiveVariable = dataField2.value;
 	}
 	public void fieldToField4(){
-		nonPrimitive2Variable.data= aObject;
+		dataField2.objectField= objectField;
 	}
 	
 	public void fieldToField5(){
-		nonPrimitive2Variable.data= nonPrimitiveVariable.data;
+		dataField2.objectField= dataField.objectField;
 	}
 	
 }

@@ -29,7 +29,7 @@ public class FieldToPara {
 		o[1] = listField.get(0);
 	}
 	void objArrayParameter4(Object[] o){
-		o[1] = dataField.data;
+		o[1] = dataField.objectField;
 	}
 	void objArrayParameter5(Object[] o){
 		o[1] = dataField.getO();
@@ -43,7 +43,7 @@ public class FieldToPara {
 	
 	
 	void dataParameter(Data d){
-		d.data= obField;
+		d.objectField= obField;
 	}
 	void dataParameter2(Data d){
 		d.setO(arrayField[2]);
@@ -59,14 +59,14 @@ public class FieldToPara {
 		
 	}
 	void dataParameter4(Data d){
-		d.setO(dataField.data);
+		d.setO(dataField.objectField);
 	}
 	public void dataParameter5(Data d){
-		d.data = dataField.getO();
+		d.objectField = dataField.getO();
 	}
 	void dataParameter6(Data d){
 		Test test = new Test();
-		d.data = test.getDataObject();
+		d.objectField = test.getDataObject();
 	}
 	void dataParameter7(Data d){
 		
@@ -76,14 +76,14 @@ public class FieldToPara {
 	class Test{
 
 		public Object getDataObject(){
-			return dataField.data;
+			return dataField.objectField;
 		}
 	}
 	
 	
 	void dataParameterRec(Data d, int i){
 		if(i == 0){
-			d.data = obField;
+			d.objectField = obField;
 			return;
 		}
 		dataParameterRec(d,i-1);
@@ -111,7 +111,7 @@ public class FieldToPara {
 	}
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	void listParameter6(List list){
-		list.add(dataField.data);
+		list.add(dataField.objectField);
 	}
 
 	public void setListField(@SuppressWarnings("rawtypes") ArrayList listField) {

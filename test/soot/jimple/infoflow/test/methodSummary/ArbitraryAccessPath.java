@@ -25,12 +25,12 @@ public class ArbitraryAccessPath {
 	
 	
 	public ArbitraryAccessPath(){
-		data.d = new Data();
-		data.d.d = new Data();
-		data.d.d.d = new Data();
-		data2.d = new Data();
-		data2.d.d = new Data();
-		data2.d.d.d = new Data();
+		data.next = new Data();
+		data.next.next = new Data();
+		data.next.next.next = new Data();
+		data2.next = new Data();
+		data2.next.next = new Data();
+		data2.next.next.next = new Data();
 	}
 	
 	public Data getNullData() {
@@ -42,35 +42,35 @@ public class ArbitraryAccessPath {
 	}
 
 	public Data getNullData2() {
-		return getNullData().d;
+		return getNullData().next;
 	}
 	
 	public void setNullData2(Data nullData) {
-		getNullData().d = nullData.d;
+		getNullData().next = nullData.next;
 	}
 	public Data getData2() {
-		return data.d;
+		return data.next;
 	}
 	public void setData2(Data data) {
-		this.data.d = data.d;
+		this.data.next = data.next;
 	}
 	
 	public Data getNullData3() {
-		return nullData.d.d;
+		return nullData.next.next;
 	}
 	
 	public void setNullData3(Data nullData) {
-		getNullData().d.d = nullData.d.d;
+		getNullData().next.next = nullData.next.next;
 	}
 	public Data getData3() {
-		return data.d.d;
+		return data.next.next;
 	}
 	public void setData3(Data data) {
-		this.data.d.d = data.d.d;
+		this.data.next.next = data.next.next;
 	}
 	
 	public void setObject(Object d) {
-		this.data.d.d.d.data = d;
+		this.data.next.next.next.objectField = d;
 	}
 
 	public void setNullData(Data nullData) {
@@ -82,33 +82,33 @@ public class ArbitraryAccessPath {
 	}
 	
 	public void getDataViaParameter(Data pdata){
-		pdata.d.d.d = data.d.d.d;
+		pdata.next.next.next = data.next.next.next;
 	}
 	
 	public void getNullDataViaParameter(Data data){
-		data.d.d.d = nullData.d.d.d;
+		data.next.next.next = nullData.next.next.next;
 	}
 	
 	public void fieldToField(){
-		data2.d.d.d = data.d.d.d;
+		data2.next.next.next = data.next.next.next;
 	}
 	public void fieldToField2(){
 		//sinkT1.t2.o = sourceT1.t2.o;
-		data2.d = data;
+		data2.next = data;
 	}
 	
 	public void nullFieldToField(){
-		nullData2.d.d.d = nullData.d.d.d;
+		nullData2.next.next.next = nullData.next.next.next;
 	}
 	
 	public void parameterToParameter(Data p1, Data p2){
-		p2.d.d  = p1.d.d.d;
+		p2.next.next  = p1.next.next.next;
 	}
 
 	public Data parameterToReturn(Data p1){
 		Data resD = new Data();
-		resD.d = new Data();
-		resD.d.d = p1.d.d.d;
+		resD.next = new Data();
+		resD.next.next = p1.next.next.next;
 		return resD;
 	}
 }

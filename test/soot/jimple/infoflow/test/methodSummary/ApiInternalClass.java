@@ -14,8 +14,8 @@ public class ApiInternalClass {
 
 	public Data returnData(Data d){
 		Data t = new Data();
-		t.data = d.data;
-		t.i = d.i;
+		t.objectField = d.objectField;
+		t.stringField = d.stringField;
 		t.value = d.value;
 		return t;
 	}

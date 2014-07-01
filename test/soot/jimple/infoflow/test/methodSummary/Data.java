@@ -1,33 +1,33 @@
 package soot.jimple.infoflow.test.methodSummary;
 
 public class Data {
-	Object data = new Integer(3);
-	Object data2 = new Integer(5);
-	Data d = null;
+	Object objectField = new Integer(3);
+	Object objectField2 = new Integer(5);
+	Data next = null;
 	int value;
-	public String i;
+	public String stringField;
 	public Data() {
 		
 	
 	}
 	public void switchData(){
-		Object tmp  = data;
-		data = data2;
-		data2 =tmp;
+		Object tmp  = objectField;
+		objectField = objectField2;
+		objectField2 =tmp;
 	}
 	public void switchSwitch(){
-		d.switchData();
+		next.switchData();
 	}
 	
 	public Data(Object o, int v) {
-		data = o;
+		objectField = o;
 		value = v;
 	}
 	public Object getData() {
-		return data;
+		return objectField;
 	}
 	public void setData(Object data) {
-		this.data = data;
+		this.objectField = data;
 	}
 	public int getValue() {
 		return value;
@@ -36,16 +36,16 @@ public class Data {
 		this.value = value;
 	}
 	public void setO(Object o){
-		data = o;
+		objectField = o;
 	}
 	public Object getO(){
-		return data;
+		return objectField;
 	}
 	public String getI() {
-		return i;
+		return stringField;
 	}
 	public void setI(String i) {
-		this.i = i;
+		this.stringField = i;
 	}
 	
 	
