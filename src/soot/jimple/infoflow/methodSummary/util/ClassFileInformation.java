@@ -7,25 +7,30 @@ import java.util.LinkedList;
 import java.util.List;
 
 /**
- * Helper class that extract soot fields and methods signatures from java.lang.class. 
+ * Helper class that extract soot fields and methods signatures from
+ * java.lang.class.
+ * 
  * @author meD
- *
+ * 
  */
 public class ClassFileInformation {
 	/**
 	 * 
 	 * @return all method signatures of class clazz in a soot processable format
 	 */
-	public static List<String> getMethodSignatures(Class<?> clazz) {
+	public static List<String> getMethodSignatures(Class<?> clazz, boolean includingPrentClasses) {
 		List<String> res = new LinkedList<String>();
-		for (Class<?> c : clazz.getDeclaredClasses()) {
-			res.addAll(getMethodSignatures(c));
+		if (includingPrentClasses) {
+//			for (Class<?> c : clazz.getDeclaredClasses()) {
+//				res.addAll(getMethodSignatures(c, includingPrentClasses));
+//			}
+			if(clazz.getSuperclass() != null && !clazz.getSuperclass().getName().contains("java.lang.Object"))
+				res.addAll(getMethodSignatures(clazz.getSuperclass(), includingPrentClasses));
 		}
 		Method[] methods = clazz.getDeclaredMethods();
 
 		//String className = clazz.getName(); // clazz.getCanonicalName();
 		for (Method m : methods) {
-
 			res.add(getMethodSignatures(m, clazz));
 		}
 
@@ -46,13 +51,13 @@ public class ClassFileInformation {
 		String para = "";
 		for (int i = 0; i < m.getParameterTypes().length; i++) {
 			if (i < m.getParameterTypes().length - 1) {
-					para = para + getType(m.getParameterTypes()[i]) + ",";
-				
+				para = para + getType(m.getParameterTypes()[i]) + ",";
+
 			} else {
 				para = para + getType(m.getParameterTypes()[i]);
 			}
 		}
-		
+
 		String method = getType(m.getReturnType()) + " " + m.getName() + "(" + para + ")";
 		return "<" + className + ": " + method + ">";
 	}
@@ -67,13 +72,13 @@ public class ClassFileInformation {
 		String para = "";
 		for (int i = 0; i < cons.getParameterTypes().length; i++) {
 			if (i < cons.getParameterTypes().length - 1) {
-					para = para + getType(cons.getParameterTypes()[i]) + ",";
-				
+				para = para + getType(cons.getParameterTypes()[i]) + ",";
+
 			} else {
 				para = para + getType(cons.getParameterTypes()[i]);
 			}
 		}
-		
+
 		String method = "void <init>(" + para + ")";
 		return "<" + className + ": " + method + ">";
 	}
@@ -84,7 +89,7 @@ public class ClassFileInformation {
 			res = parameter.getSimpleName();
 		else if (parameter.isArray()) {
 			//quick hack
-			if(parameter.getName().replaceAll(";|L|\\[", "").length() < 2)
+			if (parameter.getName().replaceAll(";|L|\\[", "").length() < 2)
 				res = parameter.getSimpleName();
 			else
 				res = parameter.getName().replaceAll(";|L|\\[", "") + "[]";

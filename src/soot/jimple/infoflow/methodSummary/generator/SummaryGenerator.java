@@ -1,4 +1,4 @@
-package soot.jimple.infoflow.methodSummary;
+package soot.jimple.infoflow.methodSummary.generator;
 
 import java.io.File;
 import java.io.IOException;
@@ -13,6 +13,7 @@ import soot.jimple.infoflow.config.IInfoflowConfig;
 import soot.jimple.infoflow.entryPointCreators.BaseEntryPointCreator;
 import soot.jimple.infoflow.entryPointCreators.DefaultEntryPointCreator;
 import soot.jimple.infoflow.handlers.ResultsAvailableHandler;
+import soot.jimple.infoflow.methodSummary.DefaultSummaryConfig;
 import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
 import soot.jimple.infoflow.methodSummary.handler.SummaryTaintPropagationHandler;
 import soot.jimple.infoflow.methodSummary.postProcessor.InfoflowResultPostProcessor;

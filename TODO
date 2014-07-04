@@ -1,4 +1,7 @@
 TODOs:
+	- Methods of Supper classes are skipped:
+		if you analyze class a and a extends b then the summary of a does not contain any method that is defind in b and not overwritten in a. 
+
 	- Null parameter sources:
 		e.g we have:
 		Object m(LinkedList l1){

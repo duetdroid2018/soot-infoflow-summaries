@@ -1,19 +1,13 @@
 package soot.jimple.infoflow.methodSummary;
 
-import java.io.FileInputStream;
+import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.IOException;
-import java.lang.reflect.Constructor;
-import java.lang.reflect.InvocationTargetException;
-import java.lang.reflect.Method;
-import java.net.HttpURLConnection;
-import java.net.URL;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
+import java.util.List;
 import java.util.PriorityQueue;
 import java.util.Stack;
 import java.util.TreeMap;
@@ -27,77 +21,140 @@ import java.util.concurrent.DelayQueue;
 
 import javax.xml.stream.XMLStreamException;
 
+import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
+import soot.jimple.infoflow.methodSummary.generator.SummaryGenerator;
 import soot.jimple.infoflow.methodSummary.util.ClassFileInformation;
+import soot.jimple.infoflow.methodSummary.util.HandleException;
+import soot.jimple.infoflow.methodSummary.xml.ISummaryWriter;
+import soot.jimple.infoflow.methodSummary.xml.WriterFactory;
 import soot.jimple.infoflow.test.methodSummary.ApiClass;
-import soot.jimple.infoflow.test.methodSummary.ArbitraryAccessPath;
-import soot.jimple.infoflow.test.methodSummary.FieldToPara;
 
-
-@SuppressWarnings("unused")
 class Main {
+
+	/**
+	 * general summary settings
+	 */
+	private final Class<?>[] classesForSummary = {ApiClass.class}; 
+		
+		/*{ HashMap.class, TreeSet.class, ArrayList.class, Stack.class, Vector.class, LinkedList.class,
+			LinkedHashMap.class, ConcurrentLinkedQueue.class, PriorityQueue.class, ArrayBlockingQueue.class, ArrayDeque.class,
+			ConcurrentSkipListMap.class, DelayQueue.class, TreeMap.class, ConcurrentHashMap.class,StringBuilder.class, RuntimeException.class };
+*/
+	private final boolean overrideExistingFiles = true;
+	//if filter is set => only methods that have a sig which matches a filter string are analyzed
+	private final String[] filter = {};
+
+	private final boolean continueOnError = true;
+
+	private final String folder = "jdkSummaries";
+
+	/**
+	 * summary generator settings
+	 */
+	private final int accessPathLength = 5;
+	private final int summaryAPLength = 4;
+	private final boolean ignoreFlowsInSystemPackages = false;
+	private final boolean enableImplicitFlows = false;
+	private final boolean enableExceptionTracking = false;
+	private final boolean flowSensitiveAliasing = false;
+	private final boolean useRecursiveAccessPaths = false;
+	private final boolean analyseMethodsTogether = true;
+
 	public static void main(String[] args) throws FileNotFoundException, XMLStreamException {
-
-		Class<?>[] droitbanchClz = { FileInputStream.class, FileOutputStream.class, IOException.class,
-				HttpURLConnection.class, URL.class, ArrayList.class, InvocationTargetException.class, Method.class };
-
-		/*
-		 * { HashMap.class, FileInputStream.class, FileOutputStream.class,
-		 * LinkedList.class, HashSet.class, IOException.class,
-		 * HttpURLConnection.class, URL.class, ArrayList.class,
-		 * InvocationTargetException.class, Method.class };
-		 */
-		Class<?>[] javaCollection2 = { HashMap.class, TreeSet.class, ArrayList.class, Stack.class, Vector.class,
-				LinkedList.class, LinkedHashMap.class, ConcurrentLinkedQueue.class, PriorityQueue.class,
-				ArrayBlockingQueue.class, ArrayDeque.class, ConcurrentSkipListMap.class, DelayQueue.class,
-				TreeMap.class, ConcurrentHashMap.class, /*String.class,*/ StringBuilder.class,
-				RuntimeException.class };
-		
-		
-
-		Class<?>[] javaCollection = {ApiClass.class}; //{FieldToPara.class};
-		int runOption = 0;
-		boolean useOutPutFolder = false;
-		String outFolder = "jdkSummaries";
-		boolean overWriteFile = true;
-		String filter = "";
-		
-		
-		
-		
-		
-		String mSig = "" ;//"<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>"; //<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>;<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>";
-		if (mSig.length() == 0) {
-			for (Class<?> c : javaCollection) {
-				for (Constructor<?> cons : c.getDeclaredConstructors())
-					mSig = mSig + ClassFileInformation.getConstructorSignature(cons) + ";";
-				for (Method m : c.getDeclaredMethods()) {
-					//if (!m.toString().contains("$"))
-						mSig = mSig + ClassFileInformation.getMethodSignature(m) + ";";
-				}
-			}
-			
-			mSig = mSig.substring(0, mSig.length() - 1).trim();
-
-		} 
-		
-		if(filter != "")
-			filter = filter.substring(0, filter.length() - 1);
-		
-		
-		ArrayList<String> runArgs = new ArrayList<String>();
-		runArgs.add("-m " + mSig);
-		runArgs.add("-o " + runOption);
-		runArgs.add("-mf " + filter);
-		if(overWriteFile)
-			runArgs.add("-ow");
-		if (useOutPutFolder && outFolder != null && outFolder.length() > 0)
-			runArgs.add("-f " + outFolder);
-
-		System.out.println("run SummaryMain with: ");
-		for (String s : runArgs) {
-			System.out.println(s);
-		}
-		cmdSummary.main(runArgs.toArray(new String[runArgs.size()]));
-		System.exit(0);
+		Main main = new Main();
+		main.createSummaries();
 	}
+
+	public void createSummaries() {
+
+		for (Class<?> c : classesForSummary) {
+			createSummaryForClass(c);
+		}
+
+	}
+
+	@SuppressWarnings("unused")
+	private void createSummaryForClass(Class<?> clz) {
+		long beforeSummary = System.nanoTime();
+		System.out.println("create methods summaries for: " + clz + " output to: " + folder);
+		List<String> sigs = ClassFileInformation.getMethodSignatures(clz, false);
+		String file = classToFile(clz);
+		SummaryGenerator s = init();
+		MethodSummaries flows = new MethodSummaries();
+		File f = new File(folder + File.separator + file);
+
+		if (f.exists() && !overrideExistingFiles) {
+			System.out.println("summary for " + clz + " exists => skipped");
+			return;
+		}
+		for (String m : sigs) {
+			if (filterInclude(m)) {
+				printStartSummary(m);
+				try {
+					flows.merge(s.createMethodSummary(m, sigs));
+				} catch (RuntimeException e) {
+					HandleException.handleException(flows, file, folder, e, "createSummary in class: " + clz + " method: " + m);
+					if (!continueOnError)
+						throw e;
+				}
+				printEndSummary(m);
+			} else {
+				System.out.println("Skipped: " + m.toString());
+			}
+		}
+		write(flows, file, folder);
+		System.out.println("Methods summaries for: " + clz + " created in " + (System.nanoTime() - beforeSummary) / 1E9 + " seconds");
+	}
+
+	private SummaryGenerator init() {
+		SummaryGenerator s = new SummaryGenerator();
+		s.setAccessPathLength(accessPathLength);
+		s.setSummaryAPLength(summaryAPLength);
+		s.setIgnoreFlowsInSystemPackages(ignoreFlowsInSystemPackages);
+		s.setEnableExceptionTracking(enableExceptionTracking);
+		s.setEnableImplicitFlows(enableImplicitFlows);
+		s.setFlowSensitiveAliasing(flowSensitiveAliasing);
+		s.setUseRecursiveAccessPaths(useRecursiveAccessPaths);
+		s.setAnalyseMethodsTogether(analyseMethodsTogether);
+		return s;
+	}
+
+	private String classToFile(Class<?> c) {
+		return c.getName() + ".xml";
+	}
+
+	private boolean filterInclude(String m) {
+		if (filter == null || filter.length == 0)
+			return true;
+
+		for (String s : filter) {
+			if (m.contains(s))
+				return true;
+		}
+		return false;
+	}
+
+	private void printStartSummary(String m) {
+		System.out.println("##############################################################");
+		System.out.println("start summary for: " + m);
+		System.out.println("##############################################################");
+	}
+
+	private void printEndSummary(String m) {
+		System.out.println("##############################################################");
+		System.out.println("finish summary for: " + m);
+		System.out.println("##############################################################");
+	}
+
+	private void write(MethodSummaries flows, String fileName, String folder) {
+		ISummaryWriter writer = WriterFactory.createXMLWriter(fileName, folder);
+		try {
+			writer.write(flows);
+		} catch (XMLStreamException e) {
+			e.printStackTrace();
+			if(!continueOnError)
+				throw new RuntimeException(e);
+		}
+	}
+
 }

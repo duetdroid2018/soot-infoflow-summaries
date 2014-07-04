@@ -9,8 +9,8 @@ import javax.xml.stream.XMLStreamException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import soot.jimple.infoflow.methodSummary.SummaryGenerator;
 import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
+import soot.jimple.infoflow.methodSummary.generator.SummaryGenerator;
 import soot.jimple.infoflow.methodSummary.xml.ISummaryWriter;
 import soot.jimple.infoflow.methodSummary.xml.WriterFactory;
 
