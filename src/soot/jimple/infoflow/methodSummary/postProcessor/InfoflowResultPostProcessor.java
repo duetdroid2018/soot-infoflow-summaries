@@ -78,7 +78,7 @@ public class InfoflowResultPostProcessor {
 
 					// Get the source data
 					List<FlowSource> sources = new LinkedList<FlowSource>();
-					//safe to do since we control all use data
+					//save to do since we control all use data
 					sources = ((List<FlowSource>) si.getUserData());
 					if (sources.size() == 0)
 						throw new RuntimeException("Link to source missing");
