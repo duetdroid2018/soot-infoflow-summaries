@@ -103,9 +103,9 @@ public class ClassFileInformation {
 		String para = "";
 		for (int i = 0; i < c.getParameterTypes().length; i++) {
 			if (i < c.getParameterTypes().length - 1) {
-				para = para + c.getParameterTypes()[i].getName() + ",";
+				para = para + getType(c.getParameterTypes()[i]) + ",";
 			} else {
-				para = para + c.getParameterTypes()[i].getName();
+				para = para + getType(c.getParameterTypes()[i]);
 			}
 		}
 		String method = "<init>(" + para + ")";

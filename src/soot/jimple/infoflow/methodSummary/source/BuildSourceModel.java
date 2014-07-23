@@ -53,8 +53,11 @@ public class BuildSourceModel {
 		boolean skip = !(method.hasActiveBody() && method.isConcrete() && !method.isStatic());
 		if (!skip) {
 			System.out.println("Bulding Source Model for: " + method.getSignature());
+			System.out.println(method.getActiveBody().toString());
 			//System.out.println(method.getActiveBody().toString());
 			buildModel();
+			System.out.println(sourceModel.toString());
+			System.out.println("Finished bulding Source Model for: " + method.getSignature());
 		}else{
 			System.err.println("The methods: " + method.toString() + " was skipped");
 		}
@@ -106,7 +109,7 @@ public class BuildSourceModel {
 				SootMethod m = iter.next().method();
 				if (m.hasActiveBody()) {
 					if (buildSourceModelMethod(m)) {
-						if (count < summaryAccessPathLength) {
+						if (count <= summaryAccessPathLength) {
 							count++;
 							repeat = true;
 						}
@@ -147,7 +150,7 @@ public class BuildSourceModel {
 					Local base = (Local) fiedRef.getBase();
 					PointsToSet localPt = pta.reachingObjects((Local) fiedRef.getBase());
 					Local leftOp = (Local) stmt.getLeftOp();
-					for (int i = 0; i < summaryAccessPathLength - 1; i++) {
+					for (int i = 0; i < summaryAccessPathLength ; i++) {
 						isStmtASourceWithAPLN(i, base, localPt, leftOp, fiedRef);
 					}
 					
@@ -172,7 +175,7 @@ public class BuildSourceModel {
 
 	private boolean addNewSource(int apl, SourceDataInternal oldSource, Local base, InstanceFieldRef fieldRef, PointsToSet localPt, Value l) {
 		boolean taintSubFields = apl + 1 >= summaryAccessPathLength;
-		return sourceModel.addSource(apl + 1, 
+		return sourceModel.addSource(apl +1 , 
 				new SourceDataInternal(
 				oldSource.getSourceInfo().createNewSource(fieldRef.getField()), 
 				base,

@@ -2,7 +2,23 @@ package soot.jimple.infoflow.methodSummary;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.PriorityQueue;
+import java.util.Stack;
+import java.util.TreeMap;
+import java.util.TreeSet;
+import java.util.Vector;
+import java.util.concurrent.ArrayBlockingQueue;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ConcurrentSkipListMap;
+import java.util.concurrent.DelayQueue;
+import java.util.regex.Pattern;
 
 import javax.xml.stream.XMLStreamException;
 
@@ -12,34 +28,32 @@ import soot.jimple.infoflow.methodSummary.util.ClassFileInformation;
 import soot.jimple.infoflow.methodSummary.util.HandleException;
 import soot.jimple.infoflow.methodSummary.xml.ISummaryWriter;
 import soot.jimple.infoflow.methodSummary.xml.WriterFactory;
-import soot.jimple.infoflow.test.methodSummary.ApiClass;
 
 class Main {
 
 	/**
 	 * general summary settings
 	 */
-	private final Class<?>[] classesForSummary = {ApiClass.class}; 
-		
-		/*{ HashMap.class, TreeSet.class, ArrayList.class, Stack.class, Vector.class, LinkedList.class,
+	private final Class<?>[] classesForSummary = {Integer.class /*StringBuilder.class Integer.class*/};
+	/*{ HashMap.class, TreeSet.class, ArrayList.class, Stack.class, Vector.class, LinkedList.class,
 			LinkedHashMap.class, ConcurrentLinkedQueue.class, PriorityQueue.class, ArrayBlockingQueue.class, ArrayDeque.class,
-			ConcurrentSkipListMap.class, DelayQueue.class, TreeMap.class, ConcurrentHashMap.class,StringBuilder.class, RuntimeException.class };
-*/
+			ConcurrentSkipListMap.class, DelayQueue.class, TreeMap.class, ConcurrentHashMap.class,StringBuilder.class, RuntimeException.class };*/
+
 	private final boolean overrideExistingFiles = true;
 	//if filter is set => only methods that have a sig which matches a filter string are analyzed
-	private final String[] filter = {};
+	private final String[] filter = {""};
 
 	private final boolean continueOnError = true;
 
-	private final String folder = "jdkSummaries";
+	private final String folder = "";
 
 	/**
 	 * summary generator settings
 	 */
-	private final int accessPathLength = 5;
-	private final int summaryAPLength = 4;
+	private final int accessPathLength =2;
+	private final int summaryAPLength = 1;
 	private final boolean ignoreFlowsInSystemPackages = false;
-	private final boolean enableImplicitFlows = false;
+	private final boolean enableImplicitFlows = true;
 	private final boolean enableExceptionTracking = false;
 	private final boolean flowSensitiveAliasing = false;
 	private final boolean useRecursiveAccessPaths = false;
@@ -74,6 +88,8 @@ class Main {
 		}
 		for (String m : sigs) {
 			if (filterInclude(m)) {
+				if(m.contains("format"))
+					continue;
 				printStartSummary(m);
 				try {
 					flows.merge(s.createMethodSummary(m, sigs));
@@ -133,6 +149,9 @@ class Main {
 
 	private void write(MethodSummaries flows, String fileName, String folder) {
 		ISummaryWriter writer = WriterFactory.createXMLWriter(fileName, folder);
+		File f = new File(folder);
+		if(!f.exists())
+			f.mkdir();
 		try {
 			writer.write(flows);
 		} catch (XMLStreamException e) {

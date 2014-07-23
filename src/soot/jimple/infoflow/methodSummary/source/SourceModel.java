@@ -16,8 +16,8 @@ public class SourceModel {
 	private List<Set<SourceDataInternal>> sources;
 
 	public SourceModel(int apLength) {
-		sources = new ArrayList<Set<SourceDataInternal>>(apLength);
-		for (int i = 0; i < apLength; i++) {
+		sources = new ArrayList<Set<SourceDataInternal>>(apLength+1);
+		for (int i = 0; i <= apLength; i++) {
 			sources.add(i, new HashSet<SourceDataInternal>());
 		}
 	}
@@ -67,7 +67,7 @@ public class SourceModel {
 	@Override
 	public String toString() {
 		StringBuffer buf = new StringBuffer();
-		for (int i = 1; i < sources.size(); i++) {
+		for (int i = 0; i < sources.size(); i++) {
 			buf.append("APL: " + i + "\n");
 			if (sources.size() >= i && sources.get(i) != null) {
 				for (SourceDataInternal s : sources.get(i)) {

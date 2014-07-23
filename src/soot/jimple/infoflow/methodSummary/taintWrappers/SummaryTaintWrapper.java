@@ -6,6 +6,7 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
+import soot.Local;
 import soot.Scene;
 import soot.SootField;
 import soot.SootMethod;
@@ -32,6 +33,7 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 	@Override
 	public Set<AccessPath> getTaintsForMethod(Stmt stmt, AccessPath taintedPath, IInfoflowCFG icfg) {
 		// We always retain the incoming taint
+		
 		Set<AccessPath> res = new HashSet<AccessPath>();
 		res.add(taintedPath);
 
@@ -152,7 +154,12 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 		// Do we need to taint a field of the parameter?
 		else if (flowSink.isParameter()) {
 			Value arg = stmt.getInvokeExpr().getArg(flowSink.getParameterIndex());
-			res.add(new AccessPath(arg, safeGetFields(flowSink.getFields()), taintSubFields));
+			if(arg instanceof Local){
+				res.add(new AccessPath(arg, safeGetFields(flowSink.getFields()), taintSubFields));
+			}else{
+				System.err.println("paramter is not a local " +arg);
+			}
+			
 		}
 		// We dont't know what this is
 		else
@@ -191,10 +198,24 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 
 	@Override
 	protected boolean isExclusiveInternal(Stmt stmt, AccessPath taintedPath, IInfoflowCFG icfg) {
-		for (SootMethod m2 : icfg.getCalleesOfCallAt(stmt))
-			if (!m2.isStatic() && flows.supportsClass(m2.getDeclaringClass().getName()))
-				return true;
-		return false;
+		boolean returnVal = false;
+		for (SootMethod m2 : icfg.getCalleesOfCallAt(stmt)){
+			
+			if(/*m2.toString().contains("String") || */m2.toString().contains("List")){
+				System.out.println();
+				System.out.println();
+			}
+			if (/*!m2.isStatic() && */flows.supportsClass(m2.getDeclaringClass().getName())){
+				System.out.println("wrapper is exclusive for " + m2);
+				//return true;
+				returnVal = true;
+				
+			}else{
+				System.out.println("wrapper: " + m2);
+			}
+			
+		}
+		return returnVal;
 	}
 
 }

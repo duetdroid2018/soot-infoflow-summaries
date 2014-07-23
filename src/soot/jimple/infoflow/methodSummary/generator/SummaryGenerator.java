@@ -174,13 +174,18 @@ public class SummaryGenerator {
 			path = System.getProperty("java.home") + File.separator + "lib" + File.separator + "rt.jar" + pathSep + f.getCanonicalPath()
 					+ File.separator + "bin" + pathSep + f.getCanonicalPath() + File.separator + "build" + File.separator + "testclasses" + pathSep
 					+ f.getCanonicalPath() + File.separator + "lib";
-			/*
-			 * path = "D:\\Temp\\odex-phone\\android-phone.jar" +
-			 * System.getProperty("path.separator") +
-			 * f.getCanonicalPath() + File.separator + "bin" +
-			 * System.getProperty("path.separator") +
-			 * f.getCanonicalPath() + File.separator + "lib";
-			 */
+			path = "D:\\realSDK\\android.jar" +
+					  System.getProperty("path.separator") +
+					  f.getCanonicalPath() + File.separator + "bin" +
+					  System.getProperty("path.separator") +
+					  f.getCanonicalPath() + File.separator + "lib";
+			
+//			  path = "D:\\Temp\\odex-phone\\android-phone.jar" +
+//			  System.getProperty("path.separator") +
+//			  f.getCanonicalPath() + File.separator + "bin" +
+//			 System.getProperty("path.separator") +
+//			 f.getCanonicalPath() + File.separator + "lib";
+//			
 		} catch (IOException e) {
 			e.printStackTrace();
 			path = System.getProperty("java.home") + File.separator + "lib" + File.separator + "rt.jar";
