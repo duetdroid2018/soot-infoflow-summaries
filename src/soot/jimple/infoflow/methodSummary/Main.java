@@ -2,13 +2,18 @@ package soot.jimple.infoflow.methodSummary;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 import java.util.PriorityQueue;
+import java.util.Set;
 import java.util.Stack;
 import java.util.TreeMap;
 import java.util.TreeSet;
@@ -22,30 +27,50 @@ import java.util.regex.Pattern;
 
 import javax.xml.stream.XMLStreamException;
 
+import org.apache.http.entity.StringEntity;
+
+import android.app.Activity;
+import android.content.ContextWrapper;
+import android.content.Intent;
+import android.os.Bundle;
+
+import soot.Scene;
+import soot.SootClass;
+import soot.SootMethod;
+import soot.jimple.infoflow.methodSummary.data.FlowSink;
+import soot.jimple.infoflow.methodSummary.data.FlowSource;
+import soot.jimple.infoflow.methodSummary.data.MethodFlow;
+import soot.jimple.infoflow.methodSummary.data.factory.SourceSinkFactory;
+import soot.jimple.infoflow.methodSummary.data.impl.DefaultMethodFlow;
 import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
 import soot.jimple.infoflow.methodSummary.generator.SummaryGenerator;
+import soot.jimple.infoflow.methodSummary.soot.SootStartup;
 import soot.jimple.infoflow.methodSummary.util.ClassFileInformation;
 import soot.jimple.infoflow.methodSummary.util.HandleException;
 import soot.jimple.infoflow.methodSummary.xml.ISummaryWriter;
 import soot.jimple.infoflow.methodSummary.xml.WriterFactory;
+import soot.jimple.infoflow.taintWrappers.EasyTaintWrapper;
+import soot.util.Chain;
 
 class Main {
 
 	/**
 	 * general summary settings
 	 */
-	private final Class<?>[] classesForSummary = {Integer.class /*StringBuilder.class Integer.class*/};
+	private final Class<?>[] classesForSummary = {Object.class/*String.class/*, ContextWrapper.class,Bundle.class,StringEntity.class ,Arrays.class,StringBuilder.class Integer.class*/};
 	/*{ HashMap.class, TreeSet.class, ArrayList.class, Stack.class, Vector.class, LinkedList.class,
 			LinkedHashMap.class, ConcurrentLinkedQueue.class, PriorityQueue.class, ArrayBlockingQueue.class, ArrayDeque.class,
 			ConcurrentSkipListMap.class, DelayQueue.class, TreeMap.class, ConcurrentHashMap.class,StringBuilder.class, RuntimeException.class };*/
 
 	private final boolean overrideExistingFiles = true;
 	//if filter is set => only methods that have a sig which matches a filter string are analyzed
-	private final String[] filter = {""};
+	private final String[] filter = {"toString"};
 
 	private final boolean continueOnError = true;
 
 	private final String folder = "";
+	
+	final List<String> failedMethos = new LinkedList<>();
 
 	/**
 	 * summary generator settings
@@ -55,13 +80,41 @@ class Main {
 	private final boolean ignoreFlowsInSystemPackages = false;
 	private final boolean enableImplicitFlows = true;
 	private final boolean enableExceptionTracking = false;
-	private final boolean flowSensitiveAliasing = false;
+	private final boolean flowSensitiveAliasing = true;
 	private final boolean useRecursiveAccessPaths = false;
 	private final boolean analyseMethodsTogether = true;
+	private final boolean useTaintWrapper = true;
+	
+	private final List<String> subWith = java.util.Collections.singletonList("java.util.ArrayList");
 
 	public static void main(String[] args) throws FileNotFoundException, XMLStreamException {
 		Main main = new Main();
+		SummaryGenerator sm = new SummaryGenerator();
+		SootStartup s = new SootStartup();
+		s.setSootConfig(new DefaultSummaryConfig());
+		s.startSoot(sm.getPath());
+		Chain<SootClass> classes = Scene.v().getClasses();
+		for(SootClass c : classes){
+			if(c.toString().contains("java.lang.String")){
+				for(SootMethod m : c.getMethods()){
+					System.out.println(m.toString());
+					try{
+						System.out.println(m.getActiveBody().toString());
+					}catch(Exception e){
+						System.out.println("no body");
+						
+					}
+				}
+				System.out.println();
+			}
+		}
+		
+		//Scene.v().getMethod("<android.app.Activity: android.app.Activity getParent()>");
 		main.createSummaries();
+		System.out.println("failed Methods:");
+		for(String m : main.failedMethos)
+			System.out.println(m);
+		System.exit(0);
 	}
 
 	public void createSummaries() {
@@ -94,9 +147,11 @@ class Main {
 				try {
 					flows.merge(s.createMethodSummary(m, sigs));
 				} catch (RuntimeException e) {
+					failedMethos.add(m);
 					HandleException.handleException(flows, file, folder, e, "createSummary in class: " + clz + " method: " + m);
 					if (!continueOnError)
 						throw e;
+					flows.merge(createDummyTaintAllFlow(m));
 				}
 				printEndSummary(m);
 			} else {
@@ -105,6 +160,17 @@ class Main {
 		}
 		write(flows, file, folder);
 		System.out.println("Methods summaries for: " + clz + " created in " + (System.nanoTime() - beforeSummary) / 1E9 + " seconds");
+	}
+
+	private Map<String, Set<MethodFlow>> createDummyTaintAllFlow(String m) {
+		FlowSource source = SourceSinkFactory.createThisSource();
+		FlowSink sink = SourceSinkFactory.createReturnSink(true);
+		MethodFlow flow = new DefaultMethodFlow(m, source, sink);
+		Map<String,Set<MethodFlow>> res = new HashMap<>();
+		Set<MethodFlow> flows = new HashSet<>();
+		flows.add(flow);
+		res.put(m, flows);
+		return res;
 	}
 
 	private SummaryGenerator init() {
@@ -117,6 +183,16 @@ class Main {
 		s.setFlowSensitiveAliasing(flowSensitiveAliasing);
 		s.setUseRecursiveAccessPaths(useRecursiveAccessPaths);
 		s.setAnalyseMethodsTogether(analyseMethodsTogether);
+		
+		if(useTaintWrapper){
+		try {
+			s.setTaintWrapper(new EasyTaintWrapper("EasyTaintWrapperSourceForSummary.txt"));
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+	}
+		s.setSubstitutedWith(subWith);
 		return s;
 	}
 

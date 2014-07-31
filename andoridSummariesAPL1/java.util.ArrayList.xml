@@ -214,4 +214,14 @@
 </flow>
 </flows>
 </method>
+<method id="&lt;java.util.ArrayList: int size()&gt;">
+<flows>
+<flow>
+<from sourceSinkType="Field" AccesPath="&lt;java.util.ArrayList: int size&gt;" FieldSig="(this)">
+</from>
+<to sourceSinkType="Return" TaintSubField="true">
+</to>
+</flow>
+</flows>
+</method>
 </methods>

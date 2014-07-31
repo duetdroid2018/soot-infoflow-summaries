@@ -15,6 +15,8 @@ public class DefaultSummaryConfig implements IInfoflowConfig{
 			List<String> includeList = new LinkedList<String>();
 			includeList.add("java.lang.");
 			includeList.add("java.util.");
+			includeList.add("android.app.");
+			includeList.add("java.nio.charset.");
 //			includeList.add("java.io.");
 //			includeList.add("java.security.");
 //			includeList.add("sun.misc.");
@@ -22,7 +24,8 @@ public class DefaultSummaryConfig implements IInfoflowConfig{
 //			includeList.add("javax.servlet.");
 //			includeList.add("javax.crypto.");
 
-//			includeList.add("android.");
+			includeList.add("android.");
+			includeList.add("android.content.");
 //			includeList.add("org.apache.http.");
 			includeList.add("de.test.");
 			includeList.add("soot.");

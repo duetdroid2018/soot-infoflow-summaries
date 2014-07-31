@@ -191,6 +191,10 @@ public class SummaryGenerator {
 			path = System.getProperty("java.home") + File.separator + "lib" + File.separator + "rt.jar";
 		}
 	}
+	
+	public String getPath(){
+		return path;
+	}
 
 	public void setTaintWrapper(ITaintPropagationWrapper taintWrapper) {
 		this.taintWrapper = taintWrapper;

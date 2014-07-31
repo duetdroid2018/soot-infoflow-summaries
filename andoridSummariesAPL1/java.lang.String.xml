@@ -1588,6 +1588,16 @@
 </flow>
 </flows>
 </method>
+<method id="&lt;java.lang.String: byte[] getBytes()&gt;">
+<flows>
+<flow>
+<from sourceSinkType="Field" FieldSig="(this)">
+</from>
+<to sourceSinkType="Return" TaintSubField="true">
+</to>
+</flow>
+</flows>
+</method>
 <method id="&lt;java.lang.String: void &lt;init&gt;(char[])&gt;">
 <flows>
 <flow>

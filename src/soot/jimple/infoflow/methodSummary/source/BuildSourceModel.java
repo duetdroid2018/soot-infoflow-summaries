@@ -56,7 +56,7 @@ public class BuildSourceModel {
 			System.out.println(method.getActiveBody().toString());
 			//System.out.println(method.getActiveBody().toString());
 			buildModel();
-			System.out.println(sourceModel.toString());
+			//System.out.println(sourceModel.toString());
 			System.out.println("Finished bulding Source Model for: " + method.getSignature());
 		}else{
 			System.err.println("The methods: " + method.toString() + " was skipped");
