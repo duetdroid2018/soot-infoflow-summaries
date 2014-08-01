@@ -3,40 +3,15 @@ package soot.jimple.infoflow.methodSummary;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.ArrayDeque;
-import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
-import java.util.PriorityQueue;
 import java.util.Set;
-import java.util.Stack;
-import java.util.TreeMap;
-import java.util.TreeSet;
-import java.util.Vector;
-import java.util.concurrent.ArrayBlockingQueue;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentLinkedQueue;
-import java.util.concurrent.ConcurrentSkipListMap;
-import java.util.concurrent.DelayQueue;
-import java.util.regex.Pattern;
 
 import javax.xml.stream.XMLStreamException;
 
-import org.apache.http.entity.StringEntity;
-
-import android.app.Activity;
-import android.content.ContextWrapper;
-import android.content.Intent;
-import android.os.Bundle;
-
-import soot.Scene;
-import soot.SootClass;
-import soot.SootMethod;
 import soot.jimple.infoflow.methodSummary.data.FlowSink;
 import soot.jimple.infoflow.methodSummary.data.FlowSource;
 import soot.jimple.infoflow.methodSummary.data.MethodFlow;
@@ -44,27 +19,25 @@ import soot.jimple.infoflow.methodSummary.data.factory.SourceSinkFactory;
 import soot.jimple.infoflow.methodSummary.data.impl.DefaultMethodFlow;
 import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
 import soot.jimple.infoflow.methodSummary.generator.SummaryGenerator;
-import soot.jimple.infoflow.methodSummary.soot.SootStartup;
 import soot.jimple.infoflow.methodSummary.util.ClassFileInformation;
 import soot.jimple.infoflow.methodSummary.util.HandleException;
 import soot.jimple.infoflow.methodSummary.xml.ISummaryWriter;
 import soot.jimple.infoflow.methodSummary.xml.WriterFactory;
 import soot.jimple.infoflow.taintWrappers.EasyTaintWrapper;
-import soot.util.Chain;
 
 class Main {
 
 	/**
 	 * general summary settings
 	 */
-	private final Class<?>[] classesForSummary = {Object.class/*String.class/*, ContextWrapper.class,Bundle.class,StringEntity.class ,Arrays.class,StringBuilder.class Integer.class*/};
+	private final Class<?>[] classesForSummary = {Exception.class, Throwable.class/*Double.class,Integer.class/*String.class/*, ContextWrapper.class,Bundle.class,StringEntity.class ,Arrays.class,StringBuilder.class Integer.class*/};
 	/*{ HashMap.class, TreeSet.class, ArrayList.class, Stack.class, Vector.class, LinkedList.class,
 			LinkedHashMap.class, ConcurrentLinkedQueue.class, PriorityQueue.class, ArrayBlockingQueue.class, ArrayDeque.class,
 			ConcurrentSkipListMap.class, DelayQueue.class, TreeMap.class, ConcurrentHashMap.class,StringBuilder.class, RuntimeException.class };*/
 
 	private final boolean overrideExistingFiles = true;
 	//if filter is set => only methods that have a sig which matches a filter string are analyzed
-	private final String[] filter = {"toString"};
+	private final String[] filter = {""};
 
 	private final boolean continueOnError = true;
 
@@ -79,36 +52,17 @@ class Main {
 	private final int summaryAPLength = 1;
 	private final boolean ignoreFlowsInSystemPackages = false;
 	private final boolean enableImplicitFlows = true;
-	private final boolean enableExceptionTracking = false;
+	private final boolean enableExceptionTracking = true;
 	private final boolean flowSensitiveAliasing = true;
 	private final boolean useRecursiveAccessPaths = false;
 	private final boolean analyseMethodsTogether = true;
-	private final boolean useTaintWrapper = true;
+	private final boolean useTaintWrapper = false;
+	private final boolean forceTaintSubFields = false;
 	
 	private final List<String> subWith = java.util.Collections.singletonList("java.util.ArrayList");
 
 	public static void main(String[] args) throws FileNotFoundException, XMLStreamException {
-		Main main = new Main();
-		SummaryGenerator sm = new SummaryGenerator();
-		SootStartup s = new SootStartup();
-		s.setSootConfig(new DefaultSummaryConfig());
-		s.startSoot(sm.getPath());
-		Chain<SootClass> classes = Scene.v().getClasses();
-		for(SootClass c : classes){
-			if(c.toString().contains("java.lang.String")){
-				for(SootMethod m : c.getMethods()){
-					System.out.println(m.toString());
-					try{
-						System.out.println(m.getActiveBody().toString());
-					}catch(Exception e){
-						System.out.println("no body");
-						
-					}
-				}
-				System.out.println();
-			}
-		}
-		
+		Main main = new Main();	
 		//Scene.v().getMethod("<android.app.Activity: android.app.Activity getParent()>");
 		main.createSummaries();
 		System.out.println("failed Methods:");
@@ -183,10 +137,11 @@ class Main {
 		s.setFlowSensitiveAliasing(flowSensitiveAliasing);
 		s.setUseRecursiveAccessPaths(useRecursiveAccessPaths);
 		s.setAnalyseMethodsTogether(analyseMethodsTogether);
+		s.setForceTaintSubFields(forceTaintSubFields);
 		
 		if(useTaintWrapper){
 		try {
-			s.setTaintWrapper(new EasyTaintWrapper("EasyTaintWrapperSourceForSummary.txt"));
+			s.setTaintWrapper(new EasyTaintWrapper("EasyTaintWrapperSourceComplet.txt"));
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

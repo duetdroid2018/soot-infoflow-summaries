@@ -65,15 +65,17 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 	private final int summaryAccessPathLength;
 	private SourceModel sModel = null;
 	
-	public SummarySourceSinkManager(String mSig, int apl) {
+	public SummarySourceSinkManager(String mSig, int apl, boolean forceTaintSubFields) {
 		this.methodSig = mSig;
 		summaryAccessPathLength = apl;
+		this.forceTaintSubFields = forceTaintSubFields;
 		
 	}
 
-	public SummarySourceSinkManager(String method, MethodSummaries flows,int  apl) {
+	public SummarySourceSinkManager(String method, MethodSummaries flows,int  apl,boolean forceTaintSubFields) {
 		this.methodSig = method;
 		summaryAccessPathLength = apl;
+		this.forceTaintSubFields = forceTaintSubFields;
 	}
 
 

@@ -43,6 +43,7 @@ public class SummaryGenerator {
 	protected boolean enableStaticFieldTracking = false;
 	protected boolean flowSensitiveAliasing = false;
 	protected boolean useRecursiveAccessPaths = false;
+	protected boolean forceTaintSubFields = false;
 
 	protected CallgraphAlgorithm cfgAlgo = CallgraphAlgorithm.SPARK;
 	protected boolean debug = false;
@@ -71,7 +72,7 @@ public class SummaryGenerator {
 	 * @return summary of method m
 	 */
 	public MethodSummaries createMethodSummary(final String m) {
-		return createMethodSummary(m, null, new SummarySourceSinkManager(m, summaryAPLength));
+		return createMethodSummary(m, null, new SummarySourceSinkManager(m, summaryAPLength,forceTaintSubFields));
 	}
 
 	/**
@@ -91,7 +92,7 @@ public class SummaryGenerator {
 	 * @return summary of method m
 	 */
 	public MethodSummaries createMethodSummary(final String m, List<String> mDependencies) {
-		return createMethodSummary(m, mDependencies, new SummarySourceSinkManager(m, summaryAPLength));
+		return createMethodSummary(m, mDependencies, new SummarySourceSinkManager(m, summaryAPLength,forceTaintSubFields));
 	}
 
 	private MethodSummaries createMethodSummary(final String sig, List<String> mDependencies, final SummarySourceSinkManager manager) {
@@ -267,5 +268,14 @@ public class SummaryGenerator {
 	public void setAnalyseMethodsTogether(boolean analyseMethodsTogether) {
 		this.analyseMethodsTogether = analyseMethodsTogether;
 	}
+
+	public boolean isForceTaintSubFields() {
+		return forceTaintSubFields;
+	}
+
+	public void setForceTaintSubFields(boolean forceTaintSubFields) {
+		this.forceTaintSubFields = forceTaintSubFields;
+	}
+	
 
 }

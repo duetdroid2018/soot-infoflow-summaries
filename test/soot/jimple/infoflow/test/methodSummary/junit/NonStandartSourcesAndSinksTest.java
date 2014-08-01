@@ -23,7 +23,7 @@ public class NonStandartSourcesAndSinksTest {
 	public static final String APICLASS ="soot.jimple.infoflow.test.methodSummary.ApiClass";
 	
 	private ISourceSinkManager createSourceSinkManger(String methodSig,String clz){
-		return new SummarySourceSinkManager(methodSig,5);
+		return new SummarySourceSinkManager(methodSig,5,false);
 	}
 	
 	@Test

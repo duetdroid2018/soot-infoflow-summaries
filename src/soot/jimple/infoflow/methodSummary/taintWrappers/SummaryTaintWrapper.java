@@ -1,6 +1,5 @@
 package soot.jimple.infoflow.methodSummary.taintWrappers;
 
-import java.io.File;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedList;
@@ -12,34 +11,32 @@ import soot.Scene;
 import soot.SootClass;
 import soot.SootField;
 import soot.SootMethod;
-import soot.Unit;
 import soot.Value;
 import soot.jimple.DefinitionStmt;
 import soot.jimple.InstanceInvokeExpr;
 import soot.jimple.InvokeExpr;
 import soot.jimple.Stmt;
 import soot.jimple.infoflow.data.AccessPath;
-import soot.jimple.infoflow.methodSummary.data.MethodFlow;
 import soot.jimple.infoflow.methodSummary.data.FlowSink;
 import soot.jimple.infoflow.methodSummary.data.FlowSource;
+import soot.jimple.infoflow.methodSummary.data.MethodFlow;
 import soot.jimple.infoflow.methodSummary.data.summary.LazySummary;
 import soot.jimple.infoflow.solver.IInfoflowCFG;
 import soot.jimple.infoflow.taintWrappers.AbstractTaintWrapper;
-import soot.jimple.infoflow.taintWrappers.EasyTaintWrapper;
 
 public class SummaryTaintWrapper extends AbstractTaintWrapper {
 	private LazySummary flows;
-	private EasyTaintWrapper w;
+//	private EasyTaintWrapper w;
 	private boolean simpleInterfaceHandlying = true;
 	private boolean taintHashAEqualsCode = true;
 
 	public SummaryTaintWrapper(LazySummary flows) {
 		this.flows = flows;
-		try {
-			w = new EasyTaintWrapper(new File("EasyTaintWrapperSourceComplet.txt"));
-		} catch (Exception e) {
-
-		}
+//		try {
+//			w = new EasyTaintWrapper(new File("EasyTaintWrapperSourceComplet.txt"));
+//		} catch (Exception e) {
+//
+//		}
 	}
 
 	@Override
@@ -48,15 +45,22 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 
 		Set<AccessPath> res = new HashSet<AccessPath>();
 		
+//		
+//		if(stmt.toString().contains("Object")){
+//			System.out.print("");
+//		}
 		
-		if(stmt.toString().contains("hash")){
-			System.out.print("");
-		}
-		
-		res.add(taintedPath);
+		//res.add(taintedPath);
 		if(isExclusiveInternal(stmt, taintedPath, icfg)){
 			res.add(taintedPath);
-			System.out.print("");
+//			System.out.print("");
+		}else{
+//			Set<AccessPath> tmpRes = w.getTaintsForMethod(stmt, taintedPath, icfg);
+//			if(! (tmpRes.containsAll(res) && res.containsAll(tmpRes))){
+//				System.out.println("::" +stmt.toString());
+//				w.getTaintsForMethod(stmt, taintedPath, icfg);
+//			}
+			return res;
 		}
 		
 		Set<SootMethod> callees = new HashSet<SootMethod>();
@@ -100,17 +104,12 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 				res.add(new AccessPath(defStmt.getLeftOp(), true));
 			}
 		}
-		//if(w.isExclusive(stmt, taintedPath, icfg) || isExclusive(stmt, taintedPath, icfg)){
-			Set<AccessPath> tmpRes = w.getTaintsForMethod(stmt, taintedPath, icfg);
-			if(! (tmpRes.containsAll(res) && res.containsAll(tmpRes))){
-			//	if(stmt.toString().contains("<java.lang"))
-					System.out.println(stmt.toString());
-				w.getTaintsForMethod(stmt, taintedPath, icfg);
-			//	return tmpRes;
-			}
-			
-			System.out.print("");
-//		}
+//			Set<AccessPath> tmpRes = w.getTaintsForMethod(stmt, taintedPath, icfg);
+//			if(! (tmpRes.containsAll(res) && res.containsAll(tmpRes))){
+//				System.out.println("::" +stmt.toString());
+//				w.getTaintsForMethod(stmt, taintedPath, icfg);
+//			}
+
 		
 
 		return res;
@@ -250,19 +249,22 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 		boolean returnVal = false;
 		
 		SootMethod method = stmt.getInvokeExpr().getMethod();
+		if(method.isConstructor() && method.getParameterCount() == 0)
+			return false;
+		if(method.getDeclaringClass().getName().equals("java.lang.Object") && method.getName().contains("init"))
+			return false;
 		if (checkIsExclusiveForAMethod(method)) {
-			//System.out.println("wrapper is exclusive for " + method);
+		//	System.out.println("wrapper is exclusive for " + method);
 			returnVal = true;
 		}
 		for (SootMethod m2 : icfg.getCalleesOfCallAt(stmt)) {
 			if (checkIsExclusiveForAMethod(m2)) {
 				//System.out.println("wrapper is exclusive for " + m2);
 				returnVal = true;
-
 			} else {
-				if(w.isExclusive(stmt, taintedPath, icfg)){
-					//System.out.println("missed " + m2);
-				}
+//				if(w.isExclusive(stmt, taintedPath, icfg)){
+//					//System.out.println("missed " + m2);
+//				}
 			}
 		}
 		return returnVal;
