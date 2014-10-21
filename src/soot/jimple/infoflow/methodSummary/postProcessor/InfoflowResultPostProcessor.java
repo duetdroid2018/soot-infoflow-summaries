@@ -3,7 +3,6 @@ package soot.jimple.infoflow.methodSummary.postProcessor;
 import static soot.jimple.infoflow.methodSummary.data.factory.SourceSinkFactory.createFieldSink;
 import static soot.jimple.infoflow.methodSummary.data.factory.SourceSinkFactory.createParamterSink;
 import static soot.jimple.infoflow.methodSummary.data.factory.SourceSinkFactory.createReturnSink;
-import heros.InterproceduralCFG;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -28,24 +27,26 @@ import soot.jimple.infoflow.InfoflowResults.SourceInfo;
 import soot.jimple.infoflow.data.Abstraction;
 import soot.jimple.infoflow.data.AbstractionAtSink;
 import soot.jimple.infoflow.data.pathBuilders.DefaultPathBuilderFactory;
+import soot.jimple.infoflow.data.pathBuilders.DefaultPathBuilderFactory.PathBuilder;
 import soot.jimple.infoflow.data.pathBuilders.IAbstractionPathBuilder;
 import soot.jimple.infoflow.methodSummary.data.FlowSink;
 import soot.jimple.infoflow.methodSummary.data.FlowSource;
 import soot.jimple.infoflow.methodSummary.data.MethodFlow;
 import soot.jimple.infoflow.methodSummary.data.impl.DefaultMethodFlow;
 import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
+import soot.jimple.infoflow.solver.IInfoflowCFG;
 
 public class InfoflowResultPostProcessor {
 	private final Logger logger = LoggerFactory.getLogger(InfoflowResultPostProcessor.class);
 
-	private final InterproceduralCFG<Unit, SootMethod> cfg;
+	private final IInfoflowCFG cfg;
 	private final Set<Abstraction> collectedAbstractions;
 	private final boolean DEBUG = true;
 	private final String method;
 	private final int summaryAPLength;
 	final PointsToAnalysis pTa = Scene.v().getPointsToAnalysis();
 
-	public InfoflowResultPostProcessor(Set<Abstraction> collectedAbstractions, InterproceduralCFG<Unit, SootMethod> cfg,
+	public InfoflowResultPostProcessor(Set<Abstraction> collectedAbstractions, IInfoflowCFG cfg,
 			String m, int sAPL) {
 		this.collectedAbstractions = collectedAbstractions;
 		this.cfg = cfg;
@@ -59,17 +60,18 @@ public class InfoflowResultPostProcessor {
 	 */
 	public MethodSummaries postProcess() {
 		MethodSummaries flows = new MethodSummaries();
-		System.out.println();
 		logger.info("start processing infoflow abstractions");
 		final SootMethod m = Scene.v().getMethod(method);
 
-		IAbstractionPathBuilder pathBuilder = new DefaultPathBuilderFactory().createPathBuilder(Runtime.getRuntime()
-				.availableProcessors());
+		IAbstractionPathBuilder pathBuilder = new DefaultPathBuilderFactory(PathBuilder.ContextSensitive,
+				true).createPathBuilder(Runtime.getRuntime().availableProcessors(), cfg);
 
 		for (Abstraction a : collectedAbstractions) {
-			logger.debug("abstraction: " + a.toString());
+			
+			System.out.println(a);
+			
 			pathBuilder.getResults().clear();
-			pathBuilder.computeTaintSources(Collections.singleton(new AbstractionAtSink(a, NullConstant.v(), Jimple.v()
+			pathBuilder.computeTaintPaths(Collections.singleton(new AbstractionAtSink(a, NullConstant.v(), Jimple.v()
 					.newNopStmt())));
 			for (Set<SourceInfo> sourceInfos : pathBuilder.getResults().getResults().values()) {
 				for (SourceInfo si : sourceInfos) {
@@ -88,7 +90,8 @@ public class InfoflowResultPostProcessor {
 				}
 			}
 		}
-
+		
+		pathBuilder.shutdown();
 		logger.info("Result processing finished");
 		return flows;
 	}

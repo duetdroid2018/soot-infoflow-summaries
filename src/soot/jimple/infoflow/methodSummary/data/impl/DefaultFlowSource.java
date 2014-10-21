@@ -47,17 +47,14 @@ public class DefaultFlowSource extends FlowSource {
 
 	@Override
 	public String toString(){
-		StringBuffer buf = new StringBuffer();
-		if(isParameter()){
-			buf.append("Paramter " + getParameterIndex() + " " +  accessPath.toString());
-		}
-		if(isField()){
-			buf.append("Field " + accessPath.toString());
-		}
-		if(isThis()){
-			buf.append("THIS");
-		}
-		return buf.toString();
+		if(isParameter())
+			return "Parameter " + getParameterIndex() + " " +  accessPath.toString();
+		else if(isField())
+			return "Field " + accessPath.toString();
+		else if(isThis())
+			return "THIS";
+		else
+			return "<unknown>";
 	}
 	
 	

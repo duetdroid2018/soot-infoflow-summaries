@@ -2,120 +2,69 @@ package soot.jimple.infoflow.methodSummary;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import javax.xml.stream.XMLStreamException;
 
-import soot.jimple.infoflow.methodSummary.data.FlowSink;
-import soot.jimple.infoflow.methodSummary.data.FlowSource;
-import soot.jimple.infoflow.methodSummary.data.MethodFlow;
-import soot.jimple.infoflow.methodSummary.data.factory.SourceSinkFactory;
-import soot.jimple.infoflow.methodSummary.data.impl.DefaultMethodFlow;
 import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
+import soot.jimple.infoflow.methodSummary.generator.IClassSummaryHandler;
 import soot.jimple.infoflow.methodSummary.generator.SummaryGenerator;
-import soot.jimple.infoflow.methodSummary.util.ClassFileInformation;
-import soot.jimple.infoflow.methodSummary.util.HandleException;
+import soot.jimple.infoflow.methodSummary.generator.SummaryGeneratorFactory;
 import soot.jimple.infoflow.methodSummary.xml.ISummaryWriter;
 import soot.jimple.infoflow.methodSummary.xml.WriterFactory;
-import soot.jimple.infoflow.taintWrappers.EasyTaintWrapper;
 
 class Main {
-
-	/**
-	 * general summary settings
-	 */
-	private final Class<?>[] classesForSummary = {Exception.class, Throwable.class/*Double.class,Integer.class/*String.class/*, ContextWrapper.class,Bundle.class,StringEntity.class ,Arrays.class,StringBuilder.class Integer.class*/};
-	/*{ HashMap.class, TreeSet.class, ArrayList.class, Stack.class, Vector.class, LinkedList.class,
-			LinkedHashMap.class, ConcurrentLinkedQueue.class, PriorityQueue.class, ArrayBlockingQueue.class, ArrayDeque.class,
-			ConcurrentSkipListMap.class, DelayQueue.class, TreeMap.class, ConcurrentHashMap.class,StringBuilder.class, RuntimeException.class };*/
-
-	private final boolean overrideExistingFiles = true;
-	//if filter is set => only methods that have a sig which matches a filter string are analyzed
-	private final String[] filter = {""};
-
-	private final boolean continueOnError = true;
-
-	private final String folder = "";
 	
 	final List<String> failedMethos = new LinkedList<>();
-
-	/**
-	 * summary generator settings
-	 */
-	private final int accessPathLength =2;
-	private final int summaryAPLength = 1;
-	private final boolean ignoreFlowsInSystemPackages = false;
-	private final boolean enableImplicitFlows = true;
-	private final boolean enableExceptionTracking = true;
-	private final boolean flowSensitiveAliasing = true;
-	private final boolean useRecursiveAccessPaths = false;
-	private final boolean analyseMethodsTogether = true;
-	private final boolean useTaintWrapper = false;
-	private final boolean forceTaintSubFields = false;
 	
-	private final List<String> subWith = java.util.Collections.singletonList("java.util.ArrayList");
-
-	public static void main(String[] args) throws FileNotFoundException, XMLStreamException {
-		Main main = new Main();	
-		//Scene.v().getMethod("<android.app.Activity: android.app.Activity getParent()>");
-		main.createSummaries();
-		System.out.println("failed Methods:");
-		for(String m : main.failedMethos)
-			System.out.println(m);
-		System.exit(0);
-	}
-
-	public void createSummaries() {
-
-		for (Class<?> c : classesForSummary) {
-			createSummaryForClass(c);
-		}
-
-	}
-
-	@SuppressWarnings("unused")
-	private void createSummaryForClass(Class<?> clz) {
-		long beforeSummary = System.nanoTime();
-		System.out.println("create methods summaries for: " + clz + " output to: " + folder);
-		List<String> sigs = ClassFileInformation.getMethodSignatures(clz, false);
-		String file = classToFile(clz);
-		SummaryGenerator s = init();
-		MethodSummaries flows = new MethodSummaries();
-		File f = new File(folder + File.separator + file);
-
-		if (f.exists() && !overrideExistingFiles) {
-			System.out.println("summary for " + clz + " exists => skipped");
+	public static void main(final String[] args) throws FileNotFoundException, XMLStreamException {
+		// Check the parameters
+		if (args.length < 3) {
+			printUsage();	
 			return;
 		}
-		for (String m : sigs) {
-			if (filterInclude(m)) {
-				if(m.contains("format"))
-					continue;
-				printStartSummary(m);
-				try {
-					flows.merge(s.createMethodSummary(m, sigs));
-				} catch (RuntimeException e) {
-					failedMethos.add(m);
-					HandleException.handleException(flows, file, folder, e, "createSummary in class: " + clz + " method: " + m);
-					if (!continueOnError)
-						throw e;
-					flows.merge(createDummyTaintAllFlow(m));
-				}
-				printEndSummary(m);
-			} else {
-				System.out.println("Skipped: " + m.toString());
+				
+		// Collect the classes to be analyzed from our command line
+		final int offset = 2;
+		List<String> classesToAnalyze = new ArrayList<String>(args.length - offset);
+		for (int i = offset; i < args.length; i++)
+			classesToAnalyze.add(args[i]);
+		
+		// Run it
+		SummaryGenerator generator = new SummaryGeneratorFactory().initSummaryGenerator();
+		generator.createMethodSummaries(args[0], classesToAnalyze, new IClassSummaryHandler() {
+			
+			@Override
+			public void onMethodFinished(String methodSignature, MethodSummaries summaries) {
+				System.out.println("Method " + methodSignature + " done.");
 			}
-		}
-		write(flows, file, folder);
-		System.out.println("Methods summaries for: " + clz + " created in " + (System.nanoTime() - beforeSummary) / 1E9 + " seconds");
+			
+			@Override
+			public void onClassFinished(String className, MethodSummaries summaries) {
+				// Write out the class
+				String summaryFile = className + ".xml";
+				write(summaries, summaryFile, args[1]);
+				System.out.println("Class " + className + " done.");
+			}
+			
+		});
+		
+		System.out.println("Done.");
 	}
-
+	
+	/**
+	 * Prints information on how the summary generator can be used
+	 */
+	private static void printUsage() {
+		System.out.println("FlowDroid Summary Generator (c) Secure Software Engineering Group @ EC SPRIDE");
+		System.out.println();
+		System.out.println("Incorrect arguments: [0] = JAR File, [1] = output folder "
+				+ "[2] = <list of classes>");
+	}
+	
+	/*
 	private Map<String, Set<MethodFlow>> createDummyTaintAllFlow(String m) {
 		FlowSource source = SourceSinkFactory.createThisSource();
 		FlowSink sink = SourceSinkFactory.createReturnSink(true);
@@ -126,69 +75,26 @@ class Main {
 		res.put(m, flows);
 		return res;
 	}
-
-	private SummaryGenerator init() {
-		SummaryGenerator s = new SummaryGenerator();
-		s.setAccessPathLength(accessPathLength);
-		s.setSummaryAPLength(summaryAPLength);
-		s.setIgnoreFlowsInSystemPackages(ignoreFlowsInSystemPackages);
-		s.setEnableExceptionTracking(enableExceptionTracking);
-		s.setEnableImplicitFlows(enableImplicitFlows);
-		s.setFlowSensitiveAliasing(flowSensitiveAliasing);
-		s.setUseRecursiveAccessPaths(useRecursiveAccessPaths);
-		s.setAnalyseMethodsTogether(analyseMethodsTogether);
-		s.setForceTaintSubFields(forceTaintSubFields);
-		
-		if(useTaintWrapper){
-		try {
-			s.setTaintWrapper(new EasyTaintWrapper("EasyTaintWrapperSourceComplet.txt"));
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
-		s.setSubstitutedWith(subWith);
-		return s;
-	}
-
-	private String classToFile(Class<?> c) {
-		return c.getName() + ".xml";
-	}
-
-	private boolean filterInclude(String m) {
-		if (filter == null || filter.length == 0)
-			return true;
-
-		for (String s : filter) {
-			if (m.contains(s))
-				return true;
-		}
-		return false;
-	}
-
-	private void printStartSummary(String m) {
-		System.out.println("##############################################################");
-		System.out.println("start summary for: " + m);
-		System.out.println("##############################################################");
-	}
-
-	private void printEndSummary(String m) {
-		System.out.println("##############################################################");
-		System.out.println("finish summary for: " + m);
-		System.out.println("##############################################################");
-	}
-
-	private void write(MethodSummaries flows, String fileName, String folder) {
-		ISummaryWriter writer = WriterFactory.createXMLWriter(fileName, folder);
+	*/
+	
+	/**
+	 * Writes the given flows into an xml file
+	 * @param flows The flows to write out
+	 * @param fileName The name of the file to be written
+	 * @param folder The folder in which to place the xml file
+	 */
+	private static void write(MethodSummaries flows, String fileName, String folder) {
+		// Create the target folder if it does not exist
 		File f = new File(folder);
 		if(!f.exists())
 			f.mkdir();
+		
+		// Dump the flows
+		ISummaryWriter writer = WriterFactory.createXMLWriter(fileName, folder);
 		try {
 			writer.write(flows);
 		} catch (XMLStreamException e) {
-			e.printStackTrace();
-			if(!continueOnError)
-				throw new RuntimeException(e);
+			throw new RuntimeException(e);
 		}
 	}
 

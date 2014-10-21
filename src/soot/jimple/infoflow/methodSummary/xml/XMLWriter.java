@@ -15,13 +15,11 @@ import soot.jimple.infoflow.methodSummary.data.MethodFlow;
 import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
 
 public class XMLWriter implements ISummaryWriter {
-	private File fileName;
 	private XMLStreamWriter writer;
 	private OutputStream out;
 
 	public XMLWriter(File file) throws FileNotFoundException, XMLStreamException {
-		fileName = file;
-		out = new FileOutputStream(fileName);
+		out = new FileOutputStream(file);
 		XMLOutputFactory factory = XMLOutputFactory.newInstance();
 		writer = factory.createXMLStreamWriter(out);
 	}

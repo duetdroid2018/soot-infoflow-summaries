@@ -91,5 +91,5 @@ public class MethodSummaries {
 	public Map<String, Set<MethodFlow>> getFlows() {
 		return this.flows;
 	}
-
+	
 }

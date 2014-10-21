@@ -1,15 +1,25 @@
 package soot.jimple.infoflow.methodSummary.generator;
 
-import java.io.File;
-import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 
+import soot.G;
+import soot.Scene;
+import soot.SootClass;
+import soot.SootMethod;
 import soot.jimple.infoflow.IInfoflow.CallgraphAlgorithm;
+import soot.jimple.infoflow.BiDirICFGFactory;
 import soot.jimple.infoflow.Infoflow;
 import soot.jimple.infoflow.InfoflowResults;
 import soot.jimple.infoflow.config.IInfoflowConfig;
+import soot.jimple.infoflow.data.pathBuilders.DefaultPathBuilderFactory;
+import soot.jimple.infoflow.data.pathBuilders.DefaultPathBuilderFactory.PathBuilder;
 import soot.jimple.infoflow.entryPointCreators.BaseEntryPointCreator;
 import soot.jimple.infoflow.entryPointCreators.DefaultEntryPointCreator;
 import soot.jimple.infoflow.handlers.ResultsAvailableHandler;
@@ -20,6 +30,7 @@ import soot.jimple.infoflow.methodSummary.postProcessor.InfoflowResultPostProces
 import soot.jimple.infoflow.methodSummary.source.SummarySourceSinkManager;
 import soot.jimple.infoflow.solver.IInfoflowCFG;
 import soot.jimple.infoflow.taintWrappers.ITaintPropagationWrapper;
+import soot.options.Options;
 
 /**
  * Class for generating library summaries
@@ -32,7 +43,7 @@ public class SummaryGenerator {
 	public static final String DUMMY_MAIN_SIG = "<dummyMainClass: void dummyMainMethod()>";
 
 	//the access path length that is used in infoflow
-	protected int accessPathLength = 5;
+	protected int accessPathLength = 1; // 5;
 
 	//the access path length that is used in the summaries. 
 	protected int summaryAPLength = accessPathLength - 1;
@@ -49,12 +60,77 @@ public class SummaryGenerator {
 	protected boolean debug = false;
 	protected ITaintPropagationWrapper taintWrapper;
 	protected IInfoflowConfig config;
-	protected String path;
 	protected List<String> substitutedWith = new LinkedList<String>();
 	private boolean analyseMethodsTogether = true;
 
 	public SummaryGenerator() {
-		initDefPath();
+	}
+	
+	/**
+	 * Generates the summaries for the given set of classes
+	 * @param classpath The classpath from which to load the given classes
+	 * @param classNames The classes for which to create summaries
+	 * @return The generated method summaries
+	 */
+	public MethodSummaries createMethodSummaries(String classpath,
+			Collection<String> classNames) {
+		return createMethodSummaries(classpath, classNames, null);
+	}
+	
+	/**
+	 * Generates the summaries for the given set of classes
+	 * @param classpath The classpath from which to load the given classes
+	 * @param classNames The classes for which to create summaries
+	 * @param handler The handler that shall be invoked when all methods inside
+	 * one class have been summarized
+	 * @return The generated method summaries
+	 */
+	public MethodSummaries createMethodSummaries(String classpath,
+			Collection<String> classNames, IClassSummaryHandler handler) {
+		G.reset();
+		
+		Options.v().set_src_prec(Options.src_prec_class);
+		Options.v().set_output_format(Options.output_format_none);
+		Options.v().set_soot_classpath(classpath);
+		Options.v().set_whole_program(false);
+		Options.v().set_allow_phantom_refs(true);
+		
+		for (String className : classNames)
+			Scene.v().addBasicClass(className, SootClass.SIGNATURES);
+		Scene.v().loadNecessaryClasses();
+		
+		// Collect all the public methods in the given classes. We cannot
+		// directly start the summary generation as this resets Soot.
+		Map<String, Collection<String>> methodsToAnalyze = new HashMap<>();
+		for (String className : classNames) {
+			Collection<String> methods = new ArrayList<>();
+			methodsToAnalyze.put(className, methods);
+
+			SootClass sc = Scene.v().getSootClass(className);
+			for (SootMethod sm : sc.getMethods())
+				methods.add(sm.getSignature());
+		}
+		
+		// Do the actual analysis
+		MethodSummaries summaries = new MethodSummaries();
+		for (Entry<String, Collection<String>> entry : methodsToAnalyze.entrySet()) {
+			MethodSummaries classSummaries = new MethodSummaries();
+			for (String methodSig : entry.getValue()) {
+				
+				if (!methodSig.contains("addAll(int"))
+					continue;
+				
+				MethodSummaries newSums = createMethodSummary(classpath, methodSig);
+				if (handler != null)
+					handler.onMethodFinished(methodSig, classSummaries);
+				classSummaries.merge(newSums);
+			}
+			
+			if (handler != null)
+				handler.onClassFinished(entry.getKey(), classSummaries);
+			summaries.merge(classSummaries);
+		}
+		return summaries;
 	}
 
 	/**
@@ -67,12 +143,14 @@ public class SummaryGenerator {
 	 * A null field is not identified as a source and there for will not create a Field -> X
 	 * flow.
 	 * 
-	 * @param m
+	 * @param classpath
+	 * 			  The classpath containing the classes to summarize
+	 * @param methodSig
 	 *            method for which a summary will be created
 	 * @return summary of method m
 	 */
-	public MethodSummaries createMethodSummary(final String m) {
-		return createMethodSummary(m, null, new SummarySourceSinkManager(m, summaryAPLength,forceTaintSubFields));
+	public MethodSummaries createMethodSummary(String classpath, String methodSig) {
+		return createMethodSummary(classpath, methodSig,  Collections.<String>emptyList());
 	}
 
 	/**
@@ -85,31 +163,40 @@ public class SummaryGenerator {
 	 * That allows e.g. to call a setter before a getter method is analyzed and
 	 * there for the getter field is not null.
 	 * 
-	 * @param m
+	 * @param classpath
+	 * 			  The classpath containing the classes to summarize
+	 * @param methodSig
 	 *            method for which a summary will be created
 	 * @param mDependencies
 	 *            all methods which will be "executed" before m
 	 * @return summary of method m
 	 */
-	public MethodSummaries createMethodSummary(final String m, List<String> mDependencies) {
-		return createMethodSummary(m, mDependencies, new SummarySourceSinkManager(m, summaryAPLength,forceTaintSubFields));
-	}
-
-	private MethodSummaries createMethodSummary(final String sig, List<String> mDependencies, final SummarySourceSinkManager manager) {
+	public MethodSummaries createMethodSummary(String classpath,
+			final String methodSig, List<String> mDependencies) {
+		
+		final SummarySourceSinkManager manager = new SummarySourceSinkManager(methodSig,
+				summaryAPLength,forceTaintSubFields);
 		final MethodSummaries summaries = new MethodSummaries();
-
-		Infoflow infoflow = initInfoflow();
-		final SummaryTaintPropagationHandler listener = new SummaryTaintPropagationHandler(sig);
+		final Infoflow infoflow = initInfoflow();
+		
+		final SummaryTaintPropagationHandler listener = new SummaryTaintPropagationHandler(methodSig);
 		infoflow.addTaintPropagationHandler(listener);
 		
-		infoflow.addResultsAvailableHandler(getResultAvialableHandler(sig,summaries,listener));
+		infoflow.addResultsAvailableHandler(new ResultsAvailableHandler() {
+			@Override
+			public void onResultsAvailable(IInfoflowCFG cfg, InfoflowResults results) {
+				InfoflowResultPostProcessor processor = new InfoflowResultPostProcessor(listener.getResult(),
+						cfg, methodSig, summaryAPLength);
+				summaries.merge(processor.postProcess());
+			}
+		});
 		
 		List<String> ms = new LinkedList<String>();
+		ms.add(methodSig);
 		if (analyseMethodsTogether) {
-			addDependentMethods(sig, ms, mDependencies);
+			addDependentMethods(methodSig, ms, mDependencies);
 		}
-		ms.add(sig);
-		infoflow.computeInfoflow(null, path, createEntryPoint(ms), manager);
+		infoflow.computeInfoflow(null, classpath, createEntryPoint(ms), manager);
 		return summaries;
 	}
 	
@@ -122,18 +209,6 @@ public class SummaryGenerator {
 		}
 	}
 	
-	
-	
-	private ResultsAvailableHandler getResultAvialableHandler(final String sig,final MethodSummaries summaries, final SummaryTaintPropagationHandler listener){
-		return new ResultsAvailableHandler() {
-			@Override
-			public void onResultsAvailable(IInfoflowCFG cfg, InfoflowResults results) {
-				InfoflowResultPostProcessor processor = new InfoflowResultPostProcessor(listener.getResult(), cfg, sig, summaryAPLength);
-				summaries.merge(processor.postProcess());
-			}
-		};
-	}
-
 	private BaseEntryPointCreator createEntryPoint(Collection<String> entryPoints) {
 		DefaultEntryPointCreator dEntryPointCreater = new DefaultEntryPointCreator(entryPoints);
 		dEntryPointCreater.setSubstituteClasses(substitutedWith);
@@ -142,7 +217,16 @@ public class SummaryGenerator {
 	}
 
 	protected Infoflow initInfoflow() {
-		Infoflow iFlow = new Infoflow();
+		Infoflow iFlow = new Infoflow("", false, new BiDirICFGFactory() {
+			
+			@Override
+			public IInfoflowCFG buildBiDirICFG(CallgraphAlgorithm callgraphAlgorithm) {
+				// We encapsulate the ICFG to take care of situations in which the
+				// original callgraph algorithm does not find any callees.
+				return new SummaryCFG();
+			}
+			
+		}, new DefaultPathBuilderFactory(PathBuilder.None, false));
 		Infoflow.setAccessPathLength(accessPathLength);
 
 		iFlow.setEnableImplicitFlows(enableImplicitFlows);
@@ -151,7 +235,7 @@ public class SummaryGenerator {
 		iFlow.setFlowSensitiveAliasing(flowSensitiveAliasing);
 		iFlow.setTaintWrapper(taintWrapper);
 		iFlow.setCallgraphAlgorithm(cfgAlgo);
-		iFlow.setMethodsExcludedFromFlowPropagation(java.util.Collections.singletonList(DUMMY_MAIN_SIG));
+//		iFlow.setMethodsExcludedFromFlowPropagation(java.util.Collections.singletonList(DUMMY_MAIN_SIG));
 		iFlow.setIgnoreFlowsInSystemPackages(ignoreFlowsInSystemPackages);
 		Infoflow.setUseRecursiveAccessPaths(useRecursiveAccessPaths);
 
@@ -163,40 +247,7 @@ public class SummaryGenerator {
 		iFlow.setStopAfterFirstFlow(false);
 		return iFlow;
 	}
-
-	public void setPath(String p) {
-		path = p;
-	}
-
-	protected void initDefPath() {
-		File f = new File(".");
-		try {
-			final String pathSep = System.getProperty("path.separator");
-			path = System.getProperty("java.home") + File.separator + "lib" + File.separator + "rt.jar" + pathSep + f.getCanonicalPath()
-					+ File.separator + "bin" + pathSep + f.getCanonicalPath() + File.separator + "build" + File.separator + "testclasses" + pathSep
-					+ f.getCanonicalPath() + File.separator + "lib";
-			path = "D:\\realSDK\\android.jar" +
-					  System.getProperty("path.separator") +
-					  f.getCanonicalPath() + File.separator + "bin" +
-					  System.getProperty("path.separator") +
-					  f.getCanonicalPath() + File.separator + "lib";
-			
-//			  path = "D:\\Temp\\odex-phone\\android-phone.jar" +
-//			  System.getProperty("path.separator") +
-//			  f.getCanonicalPath() + File.separator + "bin" +
-//			 System.getProperty("path.separator") +
-//			 f.getCanonicalPath() + File.separator + "lib";
-//			
-		} catch (IOException e) {
-			e.printStackTrace();
-			path = System.getProperty("java.home") + File.separator + "lib" + File.separator + "rt.jar";
-		}
-	}
 	
-	public String getPath(){
-		return path;
-	}
-
 	public void setTaintWrapper(ITaintPropagationWrapper taintWrapper) {
 		this.taintWrapper = taintWrapper;
 	}

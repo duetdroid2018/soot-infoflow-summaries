@@ -28,39 +28,51 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 	@Override
 	public void notifyFlowIn(Unit stmt, Set<Abstraction> result, BiDiInterproceduralCFG<Unit, SootMethod> cfg,
 			FlowFunctionType type) {
-		if (type.equals(TaintPropagationHandler.FlowFunctionType.ReturnFlowFunction)) {
-			if (method == null)
-				method = Scene.v().getMethod(methodSig);
+		if (!type.equals(TaintPropagationHandler.FlowFunctionType.ReturnFlowFunction))
+			return;
+		
+		// Get the method for which we should create the summary
+		if (method == null)
+			method = Scene.v().getMethod(methodSig);
 			
-			SootMethod m = cfg.getMethodOf(stmt);
-			if (method.equals(m))
-				for (Abstraction abs : result) {
-					// We ignore inactive abstractions
-					if (!abs.isAbstractionActive())
-						continue;
-					
-					// If the value is returned, we save it
-					boolean isValidResult = false;
-					if (stmt instanceof ReturnStmt) {
-						ReturnStmt retStmt = (ReturnStmt) stmt;
-						isValidResult |= (retStmt.getOp() == abs.getAccessPath().getPlainValue());
+		// Get the method containing the current statement. If this does
+		// not match the method for which we shall create a summary, we
+		// ignore it.
+		SootMethod m = cfg.getMethodOf(stmt);
+		if (!method.equals(m))
+			return;
+		
+		if (m.getName().equals("addAll") && stmt.toString().contains("l5"))
+			System.out.println("x");
+		
+		// Check all results to see whether we must register an entry for
+		// post-processing
+		for (Abstraction abs : result) {
+			// We ignore inactive abstractions
+			if (!abs.isAbstractionActive())
+				continue;
+			
+			// If the value is returned, we save it
+			boolean isValidResult = false;
+			if (stmt instanceof ReturnStmt) {
+				ReturnStmt retStmt = (ReturnStmt) stmt;
+				isValidResult |= (retStmt.getOp() == abs.getAccessPath().getPlainValue());
+			}
+			
+			// If the value corresponds to a parameter, we save it
+			if (!isValidResult)
+				for (Value param : m.getActiveBody().getParameterLocals())
+					if (abs.getAccessPath().getPlainValue() == param) {
+						isValidResult = true;
+						break;
 					}
-					
-					// If the value corresponds to a parameter, we save it
-					if (!isValidResult)
-						for (Value param : m.getActiveBody().getParameterLocals())
-							if (abs.getAccessPath().getPlainValue() == param) {
-								isValidResult = true;
-								break;
-							}
-					
-					// If the value is a field, we save it
-					isValidResult |= (!m.isStatic()
-							&& abs.getAccessPath().getPlainValue() == m.getActiveBody().getThisLocal());
-					
-					if (isValidResult)
-						this.result.add(abs);
-				}
+			
+			// If the value is a field, we save it
+			isValidResult |= (!m.isStatic()
+					&& abs.getAccessPath().getPlainValue() == m.getActiveBody().getThisLocal());
+			
+			if (isValidResult)
+				this.result.add(abs);
 		}
 	}
 	

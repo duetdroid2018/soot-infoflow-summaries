@@ -6,7 +6,7 @@ public class XMLConstants {
 	public static final String VALUE_RETURN = "Return";
 	public static final String ATTRIBUTE_RETURN_LOCAL = "ReturnLocal";
 	public static final String ATTRIBUTE_PARAMTER_TYPE = "ParameterType";
-	public static final String ATTRIBUTE_ACCESSPATH = "AccesPath";
+	public static final String ATTRIBUTE_ACCESSPATH = "AccessPath";
 	public static final String ATTRIBUTE_PARAMTER_INDEX = "ParameterIndex";
 	public static final String ATTRIBUTE_FLOWTYPE = "sourceSinkType";
 	public static final String ATTRIBUTE_FIELD = "FieldSig";
