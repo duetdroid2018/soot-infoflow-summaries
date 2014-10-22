@@ -6,6 +6,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import soot.Scene;
 import soot.SootClass;
@@ -19,6 +20,7 @@ import soot.jimple.toolkits.ide.icfg.JimpleBasedInterproceduralCFG;
 public class SummaryCFG extends InfoflowCFG {
 	
 	private static final Object methodLoadLock = new Object();
+	private final AtomicInteger classCtr = new AtomicInteger();
 
 	@Override
 	public Collection<SootMethod> getCalleesOfCallAt(Unit u) {
@@ -55,7 +57,7 @@ public class SummaryCFG extends InfoflowCFG {
 					// Load the body for not running into issues later on
 					delayLoadMethod(scMethod);
 					receivers.add(scMethod);
-					System.out.println("Delay-loaded " + sc);
+					System.out.println("Delay-loaded class #" + classCtr.incrementAndGet() + " " + sc);
 				}
 				
 				workList.addAll(Scene.v().getFastHierarchy().getSubclassesOf(sc));
