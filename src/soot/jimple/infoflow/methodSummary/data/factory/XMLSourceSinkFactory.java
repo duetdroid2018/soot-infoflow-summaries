@@ -7,31 +7,29 @@ import java.util.Map;
 import soot.jimple.infoflow.methodSummary.data.FlowSink;
 import soot.jimple.infoflow.methodSummary.data.FlowSource;
 import soot.jimple.infoflow.methodSummary.data.SourceSinkType;
-import soot.jimple.infoflow.methodSummary.data.impl.DefaultFlowSink;
-import soot.jimple.infoflow.methodSummary.data.impl.DefaultFlowSource;
 import soot.jimple.infoflow.methodSummary.xml.XMLConstants;
 
 public class XMLSourceSinkFactory {
 	public static FlowSource createSource(Map<String, String> attributes){
 		if(isField(attributes)){
-			return new DefaultFlowSource(SourceSinkType.Field, -1, getFields(attributes));
+			return new FlowSource(SourceSinkType.Field, -1, getFields(attributes));
 		}else if(isParameter(attributes)){
-			return new DefaultFlowSource(SourceSinkType.Parameter, paramterIdx(attributes), getFields(attributes));
+			return new FlowSource(SourceSinkType.Parameter, paramterIdx(attributes), getFields(attributes));
 		}
 		return null;
 	}
+	
 	public static FlowSink createSink(Map<String, String> attributes){
 		if(isField(attributes)){
-			return new DefaultFlowSink(SourceSinkType.Field, -1,getFields(attributes), taintSubFields(attributes));
+			return new FlowSink(SourceSinkType.Field, -1,getFields(attributes), taintSubFields(attributes));
 		}else if(isParameter(attributes)){
-			return new DefaultFlowSink(SourceSinkType.Parameter, paramterIdx(attributes),getFields(attributes),taintSubFields(attributes));
+			return new FlowSink(SourceSinkType.Parameter, paramterIdx(attributes),getFields(attributes),taintSubFields(attributes));
 		}else if(isReturn(attributes)){
-			return new DefaultFlowSink(SourceSinkType.Return, -1,getFields(attributes), taintSubFields(attributes));
+			return new FlowSink(SourceSinkType.Return, -1,getFields(attributes), taintSubFields(attributes));
 		}
 		
 		return null;
 	}
-	
 	
 	private static boolean isReturn(Map<String, String> attributes){
 		return attributes.get(XMLConstants.ATTRIBUTE_FLOWTYPE).equals(XMLConstants.VALUE_RETURN);

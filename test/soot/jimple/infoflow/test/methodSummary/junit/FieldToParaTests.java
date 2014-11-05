@@ -269,12 +269,7 @@ public class FieldToParaTests extends TestHelper {
 		assertTrue(containsFlow(flow, Field, new String[] { DATA_FIELD, DATACLASS_OBJECT_FIELD }, Parameter, 0, new String[] { ALIST_DATA }));
 		assertEquals(1, flow.size());
 	}
-
-	@Override
-	Class<?> getClazz() {
-		return FieldToPara.class;
-	}
-
+	
 	@Override
 	SummaryGenerator getSummary() {
 		SummaryGenerator sg = new SummaryGenerator();

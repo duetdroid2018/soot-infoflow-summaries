@@ -1,10 +1,9 @@
-package soot.jimple.infoflow.methodSummary.data.impl;
+package soot.jimple.infoflow.methodSummary.data;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import soot.SootField;
-
 
 public class SummaryAccessPath {
 	List<String> taintedField = new ArrayList<String>();
@@ -22,7 +21,6 @@ public class SummaryAccessPath {
 				taintedField.add(f.toString());
 		}
 	}
-	
 	
 	public int getAPLength(){
 		return taintedField.size();
@@ -42,14 +40,14 @@ public class SummaryAccessPath {
 		return ap;
 	}
 	
-	
-	
 	public boolean notEmpty(){
 		return taintedField.size() > 0;
 	}
+	
 	public List<String> getFields(){
 		return taintedField;
 	}
+	
 	public String toString(){
 		StringBuffer buf = new StringBuffer();
 		for(String s : taintedField){
@@ -57,6 +55,7 @@ public class SummaryAccessPath {
 		}
 		return buf.toString().trim();
 	}
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -64,6 +63,7 @@ public class SummaryAccessPath {
 		result = prime * result + ((taintedField == null) ? 0 : taintedField.hashCode());
 		return result;
 	}
+	
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)
@@ -80,6 +80,7 @@ public class SummaryAccessPath {
 			return false;
 		return true;
 	}
+	
 	private void setAP(List<String> ap){
 		this.taintedField = ap;
 	}

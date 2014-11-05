@@ -1,6 +1,5 @@
 package soot.jimple.infoflow.test.methodSummary.junit;
 
-import java.util.List;
 import java.util.Set;
 
 import soot.jimple.infoflow.methodSummary.data.AbstractFlowSinkSource;
@@ -9,10 +8,11 @@ import soot.jimple.infoflow.methodSummary.data.FlowSource;
 import soot.jimple.infoflow.methodSummary.data.MethodFlow;
 import soot.jimple.infoflow.methodSummary.data.SourceSinkType;
 import soot.jimple.infoflow.methodSummary.generator.SummaryGenerator;
-import soot.jimple.infoflow.methodSummary.util.ClassFileInformation;
 
 public abstract class TestHelper {
 
+	protected final static String classpath = "./testBin";
+	
 	protected final static String INT_TYPE = "int";
 	protected final static String OBJECT_TYPE = "java.lang.Object";
 	protected static final String OBJECT_ARRAY_TYPE = "java.lang.Object[]";
@@ -86,11 +86,10 @@ public abstract class TestHelper {
 	}
 
 	abstract SummaryGenerator getSummary() ;
-
-	protected List<String> methods() {
-		return ClassFileInformation.getMethodSignatures(getClazz(),true);
+	
+	protected Set<MethodFlow> createSummaries(String methodSignature) {
+		return getSummary().createMethodSummary(classpath, methodSignature)
+				.getFlowsForMethod(methodSignature);
 	}
-
-	abstract Class<?> getClazz();
-
+	
 }

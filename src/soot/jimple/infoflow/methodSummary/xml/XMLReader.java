@@ -11,8 +11,8 @@ import javax.xml.stream.XMLInputFactory;
 import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamReader;
 
+import soot.jimple.infoflow.methodSummary.data.MethodFlow;
 import soot.jimple.infoflow.methodSummary.data.factory.XMLSourceSinkFactory;
-import soot.jimple.infoflow.methodSummary.data.impl.DefaultMethodFlow;
 import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
 
 
@@ -60,7 +60,7 @@ public class XMLReader implements ISummaryReader{
 					toAttributes.put(reader.getAttributeLocalName(i), reader.getAttributeValue(i));
 			}
 			else if(reader.getLocalName().equals("flow") && reader.isEndElement()){
-				summary.addFlowForMethod(currentMethod, new DefaultMethodFlow(currentMethod,					
+				summary.addFlowForMethod(currentMethod, new MethodFlow(currentMethod,					
 						XMLSourceSinkFactory.createSource(fromAttributes), XMLSourceSinkFactory.createSink(toAttributes)));
 			}
 		}

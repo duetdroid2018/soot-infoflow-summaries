@@ -1,6 +1,5 @@
 package soot.jimple.infoflow.methodSummary.source;
 
-import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -8,22 +7,19 @@ import java.util.Set;
 
 import soot.Local;
 import soot.SootField;
-import soot.jimple.infoflow.methodSummary.data.impl.DefaultFlowSource;
+import soot.jimple.infoflow.methodSummary.data.FlowSource;
 
-public class SourceModel {
+class SourceModel {
 	
 	//found sources, list position = apl
-	private List<Set<SourceDataInternal>> sources;
+	private Set<SourceDataInternal> sources;
 
 	public SourceModel(int apLength) {
-		sources = new ArrayList<Set<SourceDataInternal>>(apLength+1);
-		for (int i = 0; i <= apLength; i++) {
-			sources.add(i, new HashSet<SourceDataInternal>());
-		}
+		sources = new HashSet<SourceDataInternal>(apLength+1);
 	}
 
-	boolean addSource(int apl, SourceDataInternal data) {
-		return sources.get(apl).add(data);
+	boolean addSource(SourceDataInternal data) {
+		return sources.add(data);
 	}
 
 	/**
@@ -35,20 +31,16 @@ public class SourceModel {
 	 */
 	public SourceData isSource(Local local, SootField field) {
 		boolean matchedLocal = false;
-		List<DefaultFlowSource> res = new LinkedList<DefaultFlowSource>();
+		List<FlowSource> res = new LinkedList<FlowSource>();
 		boolean taintSubFields = false;
-		for (int i = 1; i < sources.size(); i++) {
-			for (SourceDataInternal s : sources.get(i)) {
-				if (local.equals(s.getFieldBase())) {
-					matchedLocal = true;
-					if ((field == null && s.getField() == null) || (field != null && field.equals(s.getField()))) {
-						res.add(s.getSourceInfo());
-						taintSubFields |= s.isTaintSubFields();
-						// return s;
-					}
-
+		for (SourceDataInternal s : sources) {
+			if (local.equals(s.getFieldBase())) {
+				matchedLocal = true;
+				if ((field == null && s.getField() == null) || (field != null && field.equals(s.getField()))) {
+					res.add(s.getSourceInfo());
+					taintSubFields |= s.isTaintSubFields();
+					// return s;
 				}
-
 			}
 		}
 		if (matchedLocal && res.size() == 0) {
@@ -61,19 +53,14 @@ public class SourceModel {
 	}
 
 	Set<SourceDataInternal> getSources(int apl) {
-		return sources.get(apl);
+		return sources;
 	}
 
 	@Override
 	public String toString() {
 		StringBuffer buf = new StringBuffer();
-		for (int i = 0; i < sources.size(); i++) {
-			buf.append("APL: " + i + "\n");
-			if (sources.size() >= i && sources.get(i) != null) {
-				for (SourceDataInternal s : sources.get(i)) {
-					buf.append(s.getSourceInfo().toString() + "\n");
-				}
-			}
+		for (SourceDataInternal s : sources) {
+			buf.append(s.getSourceInfo().toString() + "\n");
 		}
 		return buf.toString();
 	}

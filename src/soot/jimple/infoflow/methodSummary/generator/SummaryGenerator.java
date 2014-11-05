@@ -8,20 +8,23 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Set;
 
 import soot.G;
 import soot.Scene;
 import soot.SootClass;
 import soot.SootMethod;
+import soot.jimple.Stmt;
+import soot.jimple.infoflow.DefaultBiDiICFGFactory;
 import soot.jimple.infoflow.IInfoflow.CallgraphAlgorithm;
-import soot.jimple.infoflow.BiDirICFGFactory;
 import soot.jimple.infoflow.Infoflow;
 import soot.jimple.infoflow.InfoflowResults;
 import soot.jimple.infoflow.config.IInfoflowConfig;
+import soot.jimple.infoflow.data.AccessPath;
 import soot.jimple.infoflow.data.pathBuilders.DefaultPathBuilderFactory;
 import soot.jimple.infoflow.data.pathBuilders.DefaultPathBuilderFactory.PathBuilder;
 import soot.jimple.infoflow.entryPointCreators.BaseEntryPointCreator;
-import soot.jimple.infoflow.entryPointCreators.DefaultEntryPointCreator;
+import soot.jimple.infoflow.entryPointCreators.SequentialEntryPointCreator;
 import soot.jimple.infoflow.handlers.ResultsAvailableHandler;
 import soot.jimple.infoflow.methodSummary.DefaultSummaryConfig;
 import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
@@ -29,6 +32,7 @@ import soot.jimple.infoflow.methodSummary.handler.SummaryTaintPropagationHandler
 import soot.jimple.infoflow.methodSummary.postProcessor.InfoflowResultPostProcessor;
 import soot.jimple.infoflow.methodSummary.source.SummarySourceSinkManager;
 import soot.jimple.infoflow.solver.IInfoflowCFG;
+import soot.jimple.infoflow.taintWrappers.AbstractTaintWrapper;
 import soot.jimple.infoflow.taintWrappers.ITaintPropagationWrapper;
 import soot.options.Options;
 
@@ -150,7 +154,7 @@ public class SummaryGenerator {
 	 * @return summary of method m
 	 */
 	public MethodSummaries createMethodSummary(String classpath, String methodSig) {
-		return createMethodSummary(classpath, methodSig,  Collections.<String>emptyList());
+		return createMethodSummary(classpath, methodSig, Collections.<String>emptyList());
 	}
 
 	/**
@@ -185,8 +189,8 @@ public class SummaryGenerator {
 		infoflow.addResultsAvailableHandler(new ResultsAvailableHandler() {
 			@Override
 			public void onResultsAvailable(IInfoflowCFG cfg, InfoflowResults results) {
-				InfoflowResultPostProcessor processor = new InfoflowResultPostProcessor(listener.getResult(),
-						cfg, methodSig, summaryAPLength);
+				InfoflowResultPostProcessor processor = new InfoflowResultPostProcessor(
+						listener.getResult(), cfg, methodSig, summaryAPLength);
 				summaries.merge(processor.postProcess());
 			}
 		});
@@ -210,30 +214,51 @@ public class SummaryGenerator {
 	}
 	
 	private BaseEntryPointCreator createEntryPoint(Collection<String> entryPoints) {
-		DefaultEntryPointCreator dEntryPointCreater = new DefaultEntryPointCreator(entryPoints);
+		SequentialEntryPointCreator dEntryPointCreater = new SequentialEntryPointCreator(entryPoints);
 		dEntryPointCreater.setSubstituteClasses(substitutedWith);
 		dEntryPointCreater.setSubstituteCallParams(true);
 		return dEntryPointCreater;
 	}
 
 	protected Infoflow initInfoflow() {
-		Infoflow iFlow = new Infoflow("", false, new BiDirICFGFactory() {
-			
-			@Override
-			public IInfoflowCFG buildBiDirICFG(CallgraphAlgorithm callgraphAlgorithm) {
-				// We encapsulate the ICFG to take care of situations in which the
-				// original callgraph algorithm does not find any callees.
-				return new SummaryCFG();
-			}
-			
-		}, new DefaultPathBuilderFactory(PathBuilder.None, false));
+		// Disable the default path reconstruction
+		Infoflow iFlow = new Infoflow("", false, new DefaultBiDiICFGFactory(),
+				new DefaultPathBuilderFactory(PathBuilder.None, false));
 		Infoflow.setAccessPathLength(accessPathLength);
-
+		
 		iFlow.setEnableImplicitFlows(enableImplicitFlows);
 		iFlow.setEnableExceptionTracking(enableExceptionTracking);
 		iFlow.setEnableStaticFieldTracking(enableStaticFieldTracking);
 		iFlow.setFlowSensitiveAliasing(flowSensitiveAliasing);
-		iFlow.setTaintWrapper(taintWrapper);
+		
+		final SummaryGenerationTaintWrapper summaryWrapper = new SummaryGenerationTaintWrapper();
+		if (taintWrapper == null)
+			iFlow.setTaintWrapper(summaryWrapper);
+		else {
+			ITaintPropagationWrapper wrapper = new AbstractTaintWrapper() {
+				
+				@Override
+				public Set<AccessPath> getTaintsForMethod(Stmt stmt, AccessPath taintedPath,
+						IInfoflowCFG icfg) {
+					Set<AccessPath> taints = taintWrapper.getTaintsForMethod(
+							stmt, taintedPath, icfg);
+					if (!taints.isEmpty())
+						return taints;
+					
+					return summaryWrapper.getTaintsForMethod(stmt, taintedPath, icfg);
+				}
+				
+				@Override
+				protected boolean isExclusiveInternal(Stmt stmt, AccessPath taintedPath,
+						IInfoflowCFG icfg) {
+					return taintWrapper.isExclusive(stmt, taintedPath, icfg)
+							|| summaryWrapper.isExclusive(stmt, taintedPath, icfg);
+				}
+				
+			};
+			iFlow.setTaintWrapper(wrapper);
+		}
+		
 		iFlow.setCallgraphAlgorithm(cfgAlgo);
 //		iFlow.setMethodsExcludedFromFlowPropagation(java.util.Collections.singletonList(DUMMY_MAIN_SIG));
 		iFlow.setIgnoreFlowsInSystemPackages(ignoreFlowsInSystemPackages);

@@ -3,14 +3,14 @@ package soot.jimple.infoflow.methodSummary.source;
 import soot.Local;
 import soot.PointsToSet;
 import soot.SootField;
-import soot.jimple.infoflow.methodSummary.data.impl.DefaultFlowSource;
+import soot.jimple.infoflow.methodSummary.data.FlowSource;
 
 /**
  * Source data which is internally used to create the source model
  */
 class SourceDataInternal {
 	
-	private DefaultFlowSource sourceInfo;
+	private FlowSource sourceInfo;
 	//points to set of x where x.field
 	private final PointsToSet pts;
 	private final Local leftOp;
@@ -18,7 +18,7 @@ class SourceDataInternal {
 	private final SootField field;
 	private final boolean taintSubFields;
 	
-	public SourceDataInternal(DefaultFlowSource sourceInfo,Local base, Local leftOp, SootField f,PointsToSet pts, boolean s) {
+	public SourceDataInternal(FlowSource sourceInfo,Local base, Local leftOp, SootField f,PointsToSet pts, boolean s) {
 		super();
 		this.sourceInfo = sourceInfo;
 		this.pts = pts;
@@ -32,7 +32,7 @@ class SourceDataInternal {
 		return leftOp.equals(l2) || pts.hasNonEmptyIntersection(pts2);
 	} 
 	
-	public DefaultFlowSource getSourceInfo(){
+	public FlowSource getSourceInfo(){
 		return sourceInfo;
 	}
 	

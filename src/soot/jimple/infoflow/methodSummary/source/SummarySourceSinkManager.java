@@ -4,13 +4,13 @@ import heros.InterproceduralCFG;
 import heros.solver.IDESolver;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import soot.Local;
 import soot.Scene;
 import soot.SootClass;
 import soot.SootField;
@@ -18,7 +18,6 @@ import soot.SootMethod;
 import soot.Unit;
 import soot.Value;
 import soot.jimple.DefinitionStmt;
-import soot.jimple.InstanceFieldRef;
 import soot.jimple.ParameterRef;
 import soot.jimple.ReturnStmt;
 import soot.jimple.ReturnVoidStmt;
@@ -40,8 +39,6 @@ import com.google.common.cache.LoadingCache;
  */
 public class SummarySourceSinkManager implements ISourceSinkManager {
 	
-	
-
 	protected final LoadingCache<SootClass, Collection<SootField>> classToFields =
 		IDESolver.DEFAULT_CACHE_BUILDER.build(new CacheLoader<SootClass, Collection<SootField>>() {
 			@Override
@@ -63,7 +60,7 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 	
 	private SootMethod method = null;
 	private final int summaryAccessPathLength;
-	private SourceModel sModel = null;
+//	private SourceModel sModel = null;
 	
 	public SummarySourceSinkManager(String mSig, int apl, boolean forceTaintSubFields) {
 		this.methodSig = mSig;
@@ -72,61 +69,65 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 		
 	}
 
-	public SummarySourceSinkManager(String method, MethodSummaries flows,int  apl,boolean forceTaintSubFields) {
+	public SummarySourceSinkManager(String method, MethodSummaries flows, int apl,
+			boolean forceTaintSubFields) {
 		this.methodSig = method;
 		summaryAccessPathLength = apl;
 		this.forceTaintSubFields = forceTaintSubFields;
 	}
-
-
 	
 	@Override
 	public SourceInfo getSourceInfo(Stmt sCallSite, InterproceduralCFG<Unit, SootMethod> cfg) {
+		if(method == null)
+			method = Scene.v().getMethod(methodSig);
+		
+		/*
 		if(method == null && sModel == null){
 			method = Scene.v().getMethod(methodSig);
-			BuildSourceModel builder = new BuildSourceModel(method, summaryAccessPathLength, getClassFields());
+			BuildSourceModel builder = new BuildSourceModel(method,
+					summaryAccessPathLength, getClassFields());
 			sModel = builder.getModel();
 			if(debug)
 				System.out.println(sModel.toString());
 		}
-		
-		SootMethod currentMethod = cfg.getMethodOf(sCallSite);
-		
+		*/
+				
 		// If this is the dummy main method, we skip it
+		SootMethod currentMethod = cfg.getMethodOf(sCallSite);
 		if (currentMethod.toString().contains("<dummyMainClass: void dummyMainMethod()>"))
 			return null;
-
-		//check if we have a source with apl > 0
+		
 		if (sCallSite instanceof DefinitionStmt) {
 			DefinitionStmt jstmt = (DefinitionStmt) sCallSite;
 			Value rightOp = jstmt.getRightOp();
+
+			//check if we have a source with apl > 0
+			/*
 			if(rightOp instanceof InstanceFieldRef){
-				SourceData si = sModel.isSource((Local) ((InstanceFieldRef) rightOp).getBase(),((InstanceFieldRef) rightOp).getField());
+				InstanceFieldRef fieldRef = (InstanceFieldRef) rightOp;
+				SourceData si = sModel.isSource((Local) fieldRef.getBase(), fieldRef.getField());
 				if(si!=null){
 					if(debug)
 						System.out.println("source: " + sCallSite + " " + currentMethod.getSignature());
 					return new SourceInfo(si.isTaintSubFields()|| forceTaintSubFields, si.getSourceInfo());
 				}
-					
 			}
-		}
-	
-		//check if we have a source with apl = 0 (this or parameter source)
-		if (sCallSite instanceof DefinitionStmt) {
-			DefinitionStmt jstmt = (DefinitionStmt) sCallSite;
-			Value rightOp = jstmt.getRightOp();
-			// Check for direct parameter accesses
+			*/
+
+			//check if we have a source with apl = 0 (this or parameter source)
 			if (currentMethod == method && rightOp instanceof ParameterRef) {
 				ParameterRef pref = (ParameterRef) rightOp;
 				logger.debug("source: " + sCallSite + " " + currentMethod.getSignature());
 				if(debug)
 					System.out.println("source: " + sCallSite + " " + currentMethod.getSignature());
-				return new SourceInfo(false || forceTaintSubFields, java.util.Collections.singletonList(SourceSinkFactory.createParamterSource(method, pref.getIndex(), null)));
+				return new SourceInfo(forceTaintSubFields, Collections.singletonList(
+						SourceSinkFactory.createParamterSource(method, pref.getIndex(), null)));
 			}
 			else if (currentMethod == method && rightOp instanceof ThisRef) {
 				if(debug)
 					System.out.println("source: (this)" + sCallSite + " " + currentMethod.getSignature());				
-				return new SourceInfo(false|| forceTaintSubFields, java.util.Collections.singletonList(SourceSinkFactory.createThisSource()));
+				return new SourceInfo(true || forceTaintSubFields, Collections.singletonList(
+						SourceSinkFactory.createThisSource()));
 			}
 		}
 		return null;
@@ -156,9 +157,6 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 		return false;
 	}
 	
-	private Collection<SootField> getClassFields(){
-		return classToFields.getUnchecked(method.getDeclaringClass());
-	}
 	public void setForceTaintSubFields(boolean forceTaintSubFields) {
 		this.forceTaintSubFields = forceTaintSubFields;
 	}

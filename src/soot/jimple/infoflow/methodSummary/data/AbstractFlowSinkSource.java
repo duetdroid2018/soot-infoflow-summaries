@@ -3,25 +3,31 @@ package soot.jimple.infoflow.methodSummary.data;
 import java.util.List;
 import java.util.Map;
 
-import soot.jimple.infoflow.methodSummary.data.impl.SummaryAccessPath;
-
 /**
- * Data class which stores the data associated to a Sink or a Source of a method flow.
+ * Data class which stores the data associated to a Sink or a Source of a
+ * method flow.
  */
 public abstract class AbstractFlowSinkSource {
 	protected final SourceSinkType type;
 	protected final int parameterIdx;
 	protected final SummaryAccessPath accessPath;
 	
-	protected AbstractFlowSinkSource(SourceSinkType type, int paramterIdx,SummaryAccessPath accessPath){
+	protected AbstractFlowSinkSource(SourceSinkType type, int paramterIdx,
+			SummaryAccessPath accessPath){
 		this.type = type;
 		this.parameterIdx = paramterIdx;
 		this.accessPath = accessPath;
 	}
 	
+	public AbstractFlowSinkSource(SourceSinkType type, int parameterIdx,
+			List<String> fields) {
+		this(type, parameterIdx, new SummaryAccessPath(fields));
+	}
+		
 	public SourceSinkType type(){
 		return type;
 	}
+	
 	public boolean isParameter(){
 		return type().equals(SourceSinkType.Parameter);
 	}
@@ -29,28 +35,31 @@ public abstract class AbstractFlowSinkSource {
 	public int getParameterIndex(){
 		return parameterIdx;
 	}
-	public boolean isField()
-	{
-		return type().equals(SourceSinkType.Field);
-	};
 	
+	public boolean isField() {
+		return type().equals(SourceSinkType.Field);
+	}
 
 	public List<String> getFields(){
 		return accessPath.getFields();
 	}
+	
 	public String getField(int idx){
 		return accessPath.getFields().get(idx);
 	}
+	
 	public int getFieldCount(){
-		return accessPath.getAPLength();
+		return accessPath == null ? 0 : accessPath.getAPLength();
 	}
 
 	public boolean hasAccessPath(){
 		return accessPath != null && accessPath.notEmpty();
 	}
+	
 	public SummaryAccessPath getAccessPath(){
 		return accessPath;
 	}
+	
 	public abstract Map<String, String> xmlAttributes();
 
 	@Override

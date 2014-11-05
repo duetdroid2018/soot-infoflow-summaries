@@ -50,21 +50,16 @@ public class BuildSourceModel {
 		this.method = method;
 		//this.fields = fields;
 		
-		boolean skip = !(method.hasActiveBody() && method.isConcrete() && !method.isStatic());
-		if (!skip) {
-			System.out.println("Bulding Source Model for: " + method.getSignature());
-			System.out.println(method.getActiveBody().toString());
-			//System.out.println(method.getActiveBody().toString());
-			buildModel();
-			//System.out.println(sourceModel.toString());
-			System.out.println("Finished bulding Source Model for: " + method.getSignature());
-		}else{
-			System.err.println("The methods: " + method.toString() + " was skipped");
-		}
+		if (!method.hasActiveBody()
+				|| !method.isConcrete() 
+				|| method.isStatic())
+			return;
+		
+		System.out.println("Bulding Source Model for: " + method.getSignature());
+		buildModel();
+		System.out.println("Finished bulding Source Model for: " + method.getSignature());
 	}
 	
-
-
 	public SourceModel getModel(){
 		return sourceModel;
 	}
@@ -78,10 +73,13 @@ public class BuildSourceModel {
 		for (int i = 0; i < method.getParameterCount(); i++) {
 			Local p = method.getActiveBody().getParameterLocal(i);
 			PointsToSet ptp = pta.reachingObjects(p);
-			sourceModel.addSource(0,new SourceDataInternal(SourceSinkFactory.createParamterSource(method, i, null),p, p,null, ptp, false));
+			sourceModel.addSource(new SourceDataInternal(
+					SourceSinkFactory.createParamterSource(method, i, null),p, p,null, ptp, false));
 		}
+		
 		//create this source
-		sourceModel.addSource(0,new SourceDataInternal(SourceSinkFactory.createThisSource(), thisLocal, thisLocal, null,thisPt, false));
+		sourceModel.addSource(new SourceDataInternal(SourceSinkFactory.createThisSource(),
+				thisLocal, thisLocal, null,thisPt, false));
 		
 		//create the recursive sources
 		handelAPLBiggerZeroCases();
@@ -118,9 +116,6 @@ public class BuildSourceModel {
 			}
 		}
 	}
-
-	
-
 	
 	/**
 	 * Checks for every stmt in a method m if it is a source with apl > 0
@@ -153,11 +148,8 @@ public class BuildSourceModel {
 					for (int i = 0; i < summaryAccessPathLength ; i++) {
 						isStmtASourceWithAPLN(i, base, localPt, leftOp, fiedRef);
 					}
-					
-					
 				}
 			}
-
 		}
 		return false;
 	}
@@ -172,11 +164,9 @@ public class BuildSourceModel {
 		return false;
 	}
 	
-
 	private boolean addNewSource(int apl, SourceDataInternal oldSource, Local base, InstanceFieldRef fieldRef, PointsToSet localPt, Value l) {
 		boolean taintSubFields = apl + 1 >= summaryAccessPathLength;
-		return sourceModel.addSource(apl +1 , 
-				new SourceDataInternal(
+		return sourceModel.addSource(new SourceDataInternal(
 				oldSource.getSourceInfo().createNewSource(fieldRef.getField()), 
 				base,
 				(Local) l,
