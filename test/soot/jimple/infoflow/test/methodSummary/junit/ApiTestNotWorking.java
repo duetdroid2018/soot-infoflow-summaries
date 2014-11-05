@@ -7,15 +7,8 @@ import org.junit.Test;
 
 import soot.jimple.infoflow.methodSummary.generator.SummaryGenerator;
 
-
-
 public class ApiTestNotWorking extends ApiTestHelper{
 
-	@Override
-	Class<?> getClazz() {
-		return null;
-	}
-	
 	@Test
 	public void doNothing(){
 		

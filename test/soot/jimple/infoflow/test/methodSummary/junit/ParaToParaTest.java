@@ -21,27 +21,24 @@ public class ParaToParaTest extends TestHelper {
 
 	@Test(timeout = 100000)
 	public void array() {
-		SummaryGenerator s = getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToParaFlows: void array(java.lang.Object,java.lang.Object[])>";
-		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> flow = createSummaries(mSig);
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Parameter,1,new String[] {}));
 		assertEquals(1,flow.size());
 	}
 
 	@Test(timeout = 100000)
 	public void arrayRec() {
-		SummaryGenerator s = getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToParaFlows: void arrayRec(java.lang.Object,java.lang.Object[],int)>";
-		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> flow = createSummaries(mSig);
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Parameter,1,new String[] {}));
 		assertEquals(1,flow.size());
 	}
 
 	@Test(timeout = 100000)
 	public void list() {
-		SummaryGenerator s = getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToParaFlows: int list(java.util.List,java.lang.Object)>";
-		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> flow = createSummaries(mSig);
 
 		assertTrue(containsFlow(flow, Parameter,1,new String[] {}, Parameter,0,new String[] {LINKEDLIST_FIRST,LINKEDLIST_ITEM}));
 		assertTrue(containsFlow(flow, Parameter,1,new String[] {}, Parameter,0,new String[] {LINKEDLIST_LAST,LINKEDLIST_ITEM}));
@@ -50,19 +47,18 @@ public class ParaToParaTest extends TestHelper {
 
 	@Ignore
 	public void list2() {
-		SummaryGenerator s =  getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToParaFlows: int list(java.util.List,java.lang.Object)>";
-		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> flow = createSummaries(mSig);
 		
 		assertTrue(containsFlow(flow, Parameter,1,new String[] {}, Parameter,1,new String[] {LINKEDLIST_FIRST,LINKEDLIST_ITEM}));
 		assertTrue(containsFlow(flow, Parameter,1,new String[] {}, Parameter,1,new String[] {LINKEDLIST_LAST,LINKEDLIST_ITEM}));
 		assertTrue(flow.size() ==2);
 	}
+	
 	@Test(timeout = 100000)
 	public void setter() {
-		SummaryGenerator s =  getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToParaFlows: int setter(java.lang.String,soot.jimple.infoflow.test.methodSummary.Data)>";
-		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> flow = createSummaries(mSig);
 		
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Parameter,1,new String[] {DATACLASS_STRING_FIELD}));
 		assertEquals(1,flow.size());
@@ -70,9 +66,8 @@ public class ParaToParaTest extends TestHelper {
 
 	@Test(timeout = 100000)
 	public void setter2() {
-		SummaryGenerator s =  getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToParaFlows: int setter2(int,soot.jimple.infoflow.test.methodSummary.Data)>";
-		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> flow = createSummaries(mSig);
 		
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Parameter,1,new String[] {DATACLASS_INT_FIELD}));
 		assertEquals(1,flow.size());
@@ -80,17 +75,13 @@ public class ParaToParaTest extends TestHelper {
 
 	@Test(timeout = 100000)
 	public void innerClass() {
-		SummaryGenerator s =  getSummary();
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToParaFlows: void innerClass(java.lang.Object,soot.jimple.infoflow.test.methodSummary.ParaToParaFlows$InnerClass)>";
-		Set<MethodFlow> flow = s.createMethodSummary(mSig).getFlowsForMethod(mSig);
+		Set<MethodFlow> flow = createSummaries(mSig);
 		
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Parameter,1,new String[] {"<soot.jimple.infoflow.test.methodSummary.ParaToParaFlows$InnerClass: java.lang.Object o>"}));
 		assertEquals(1,flow.size());
 	}
-	@Override
-	Class<?> getClazz() {
-		return ParaToParaTest.class;
-	}
+	
 	@Override
 	SummaryGenerator getSummary() {
 		SummaryGenerator sg = new SummaryGenerator();

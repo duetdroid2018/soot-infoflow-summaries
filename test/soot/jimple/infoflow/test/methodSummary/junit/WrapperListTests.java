@@ -2,7 +2,6 @@ package soot.jimple.infoflow.test.methodSummary.junit;
 
 import java.io.File;
 import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -11,9 +10,7 @@ import javax.xml.stream.XMLStreamException;
 import org.junit.Test;
 
 import soot.jimple.infoflow.Infoflow;
-import soot.jimple.infoflow.config.ConfigForTest;
 import soot.jimple.infoflow.methodSummary.taintWrappers.TaintWrapperFactory;
-import soot.jimple.infoflow.taintWrappers.EasyTaintWrapper;
 import soot.jimple.infoflow.taintWrappers.ITaintPropagationWrapper;
 import soot.jimple.infoflow.test.junit.JUnitTests;
 
