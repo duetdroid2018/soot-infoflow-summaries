@@ -31,8 +31,10 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 	}
 
 	@Override
-	public void notifyFlowIn(Unit stmt, Set<Abstraction> result,
-			BiDiInterproceduralCFG<Unit, SootMethod> cfg, FlowFunctionType type) {
+	public void notifyFlowIn(Unit stmt,
+			Abstraction result,
+			BiDiInterproceduralCFG<Unit, SootMethod> cfg,
+			FlowFunctionType type) {
 		// Get the method for which we should create the summary
 		if (method == null)
 			method = Scene.v().getMethod(methodSig);
@@ -51,57 +53,111 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 			handleCallToReturnFlow(stmt, result, cfg);
 	}
 	
-	private void handleReturnFlow(Unit stmt, Set<Abstraction> result,
+	private void handleReturnFlow(Unit stmt,
+			Abstraction abs,
 			BiDiInterproceduralCFG<Unit, SootMethod> cfg) {
-		// Check all results to see whether we must register an entry for
-		// post-processing
-		for (Abstraction abs : result) {
-			// We ignore inactive abstractions
-			if (!abs.isAbstractionActive())
-				continue;
-			
-			// If the value is returned, we save it
-			boolean isValidResult = false;
-			if (stmt instanceof ReturnStmt) {
-				ReturnStmt retStmt = (ReturnStmt) stmt;
-				isValidResult |= (retStmt.getOp() == abs.getAccessPath().getPlainValue());
-			}
-			
-			// If the value corresponds to a parameter, we save it
-			if (!isValidResult)
-				for (Value param : method.getActiveBody().getParameterLocals())
-					if (abs.getAccessPath().getPlainValue() == param) {
-						isValidResult = true;
-						break;
-					}
-			
-			// If the value is a field, we save it
-			isValidResult |= (!method.isStatic()
-					&& abs.getAccessPath().getPlainValue() == method.getActiveBody().getThisLocal());
-			
-			if (isValidResult)
-				this.result.put(abs, (Stmt) stmt);
+		
+		System.out.println(abs);
+		
+		// Check whether we must register the abstraction for post-processing
+		// We ignore inactive abstractions
+		if (!abs.isAbstractionActive())
+			return;
+		
+		// If the value is returned, we save it
+		boolean isValidResult = false;
+		if (stmt instanceof ReturnStmt) {
+			ReturnStmt retStmt = (ReturnStmt) stmt;
+			isValidResult |= (retStmt.getOp() == abs.getAccessPath().getPlainValue());
 		}
+		
+		// If the value corresponds to a parameter, we save it
+		if (!isValidResult)
+			for (Value param : method.getActiveBody().getParameterLocals())
+				if (abs.getAccessPath().getPlainValue() == param) {
+					isValidResult = true;
+					break;
+				}
+		
+		// If the value is a field, we save it
+		isValidResult |= (!method.isStatic()
+				&& abs.getAccessPath().getPlainValue() == method.getActiveBody().getThisLocal());
+		
+		if (isValidResult)
+			this.result.put(abs, (Stmt) stmt);
 	}
 	
-	private void handleCallToReturnFlow(Unit stmt, Set<Abstraction> result,
+	private void handleCallToReturnFlow(Unit stmt,
+			Abstraction abs,
 			BiDiInterproceduralCFG<Unit, SootMethod> cfg) {
 		// If we have callees, we analyze them as usual
 		Collection<SootMethod> callees = cfg.getCalleesOfCallAt(stmt);
 		if (callees != null && !callees.isEmpty())
 			return;
 		
-		for (Abstraction abs : result) {
-			// If we don't have any callees, we need to build a gap into our
-			// summary. The taint wrapper takes care of continuing the analysis
-			// after the gap.
-			this.result.put(abs, (Stmt) stmt);
-		}
+		// If we don't have any callees, we need to build a gap into our
+		// summary. The taint wrapper takes care of continuing the analysis
+		// after the gap.
+		this.result.put(abs, (Stmt) stmt);
 	}
 	
 	@Override
-	public void notifyFlowOut(Unit stmt, Set<Abstraction> taints,
-			BiDiInterproceduralCFG<Unit, SootMethod> cfg, FlowFunctionType type) {
+	public Set<Abstraction> notifyFlowOut(Unit u,
+			Abstraction incoming,
+			Set<Abstraction> outgoing,
+			BiDiInterproceduralCFG<Unit, SootMethod> cfg,
+			FlowFunctionType type) {
+		/*
+		if (outgoing == null || outgoing.isEmpty())
+			return outgoing;
+		
+		// We only influence assignments from fields
+		if (!(u instanceof AssignStmt))
+			return outgoing;
+		
+		AssignStmt assignStmt = (AssignStmt) u;
+		final Value leftOp = assignStmt.getLeftOp();
+		final Value rightOp = assignStmt.getRightOp();
+
+		if (!(leftOp instanceof Local) || !(rightOp instanceof FieldRef))
+			return outgoing;
+		
+		// If this statement makes a source more concrete, we make it a source
+		// of its own.
+		Set<Abstraction> newOutgoing = new HashSet<>(outgoing.size());			
+		for (Abstraction outgoingAbs : outgoing) {
+			if (outgoingAbs.getAccessPath().getPlainValue() != leftOp)
+				continue;
+			
+			// Extend the right side
+			FieldRef rightRef = (FieldRef) rightOp;
+			boolean matches = incoming.getAccessPath().getFieldCount() > 0
+					&& incoming.getAccessPath().getFirstField() == rightRef.getField();
+			if (rightRef instanceof InstanceFieldRef)
+				matches = ((InstanceFieldRef) rightRef).getBase() == incoming.getAccessPath().getPlainValue();
+			
+			if (matches) {
+				// Extend the left side with the right side
+				AccessPath newAP = outgoingAbs.getAccessPath().copyWithNewValue(rightRef);
+				
+				// Connect to the previous source context
+				if (incoming.getSourceContext() != null) {
+					AccessPath sourceAP = incoming.getSourceContext().getAccessPath();
+					newAP = sourceAP.appendFields(newAP.getFields(),
+							newAP.getFieldTypes(), newAP.getTaintSubFields());
+				}
+				
+				Abstraction newAbs = outgoingAbs.injectSourceContext(new SourceContext(newAP, null));
+				newOutgoing.add(newAbs);
+			}
+			else
+				newOutgoing.add(outgoingAbs);
+		}
+		return newOutgoing;
+		*/
+		
+		
+		return outgoing;
 	}
 	
 	public Map<Abstraction, Stmt> getResult() {

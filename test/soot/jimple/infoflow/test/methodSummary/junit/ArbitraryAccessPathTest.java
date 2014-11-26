@@ -64,7 +64,7 @@ public class ArbitraryAccessPathTest  extends TestHelper{
 		assertEquals(1,res.size());
 	}
 	
-	@Test // (timeout = 100000)
+	@Test(timeout = 100000)
 	public void getData3() {
 		String mSig = mSig(DATA_TYPE,"getData3","");
 		Set<MethodFlow> res = createSummaries(mSig);

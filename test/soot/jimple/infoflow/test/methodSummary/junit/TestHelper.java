@@ -75,10 +75,10 @@ public abstract class TestHelper {
 				return true;
 			return false;
 		}
-		if (s.getFieldCount() != fields.length)
+		if (s.getAccessPath().length != fields.length)
 			return false;
 		for (int i = 0; i < fields.length; i++) {
-			if (!s.getField(i).replaceAll("[<>]", "").equals(fields[i].replaceAll("[<>]", "")))
+			if (!s.getAccessPath()[i].replaceAll("[<>]", "").equals(fields[i].replaceAll("[<>]", "")))
 				return false;
 		}
 

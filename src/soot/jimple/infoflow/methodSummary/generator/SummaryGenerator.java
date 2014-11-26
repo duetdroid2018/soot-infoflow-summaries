@@ -18,7 +18,6 @@ import soot.jimple.Stmt;
 import soot.jimple.infoflow.DefaultBiDiICFGFactory;
 import soot.jimple.infoflow.IInfoflow.CallgraphAlgorithm;
 import soot.jimple.infoflow.Infoflow;
-import soot.jimple.infoflow.InfoflowResults;
 import soot.jimple.infoflow.config.IInfoflowConfig;
 import soot.jimple.infoflow.data.AccessPath;
 import soot.jimple.infoflow.data.pathBuilders.DefaultPathBuilderFactory;
@@ -27,10 +26,12 @@ import soot.jimple.infoflow.entryPointCreators.BaseEntryPointCreator;
 import soot.jimple.infoflow.entryPointCreators.SequentialEntryPointCreator;
 import soot.jimple.infoflow.handlers.ResultsAvailableHandler;
 import soot.jimple.infoflow.methodSummary.DefaultSummaryConfig;
+import soot.jimple.infoflow.methodSummary.data.factory.SourceSinkFactory;
 import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
 import soot.jimple.infoflow.methodSummary.handler.SummaryTaintPropagationHandler;
 import soot.jimple.infoflow.methodSummary.postProcessor.InfoflowResultPostProcessor;
 import soot.jimple.infoflow.methodSummary.source.SummarySourceSinkManager;
+import soot.jimple.infoflow.results.InfoflowResults;
 import soot.jimple.infoflow.solver.IInfoflowCFG;
 import soot.jimple.infoflow.taintWrappers.AbstractTaintWrapper;
 import soot.jimple.infoflow.taintWrappers.ITaintPropagationWrapper;
@@ -56,10 +57,9 @@ public class SummaryGenerator {
 	protected boolean enableImplicitFlows = false;
 	protected boolean enableExceptionTracking = false;
 	protected boolean enableStaticFieldTracking = false;
-	protected boolean flowSensitiveAliasing = false;
+	protected boolean flowSensitiveAliasing = true;
 	protected boolean useRecursiveAccessPaths = false;
-	protected boolean forceTaintSubFields = false;
-
+	
 	protected CallgraphAlgorithm cfgAlgo = CallgraphAlgorithm.SPARK;
 	protected boolean debug = false;
 	protected ITaintPropagationWrapper taintWrapper;
@@ -178,8 +178,9 @@ public class SummaryGenerator {
 	public MethodSummaries createMethodSummary(String classpath,
 			final String methodSig, List<String> mDependencies) {
 		
+		final SourceSinkFactory sourceSinkFactory = new SourceSinkFactory(summaryAPLength);
 		final SummarySourceSinkManager manager = new SummarySourceSinkManager(methodSig,
-				summaryAPLength,forceTaintSubFields);
+				sourceSinkFactory);
 		final MethodSummaries summaries = new MethodSummaries();
 		final Infoflow infoflow = initInfoflow();
 		
@@ -190,7 +191,7 @@ public class SummaryGenerator {
 			@Override
 			public void onResultsAvailable(IInfoflowCFG cfg, InfoflowResults results) {
 				InfoflowResultPostProcessor processor = new InfoflowResultPostProcessor(
-						listener.getResult(), cfg, methodSig, summaryAPLength);
+						listener.getResult(), cfg, methodSig, sourceSinkFactory);
 				summaries.merge(processor.postProcess());
 			}
 		});
@@ -221,9 +222,17 @@ public class SummaryGenerator {
 	}
 
 	protected Infoflow initInfoflow() {
-		// Disable the default path reconstruction
+		// Disable the default path reconstruction. However, still make sure to
+		// retain the contents of the callees.
 		Infoflow iFlow = new Infoflow("", false, new DefaultBiDiICFGFactory(),
-				new DefaultPathBuilderFactory(PathBuilder.None, false));
+				new DefaultPathBuilderFactory(PathBuilder.None, false) {
+					
+					@Override
+					public boolean supportsPathReconstruction() {
+						return true;
+					}
+					
+				});
 		Infoflow.setAccessPathLength(accessPathLength);
 		
 		iFlow.setEnableImplicitFlows(enableImplicitFlows);
@@ -344,14 +353,5 @@ public class SummaryGenerator {
 	public void setAnalyseMethodsTogether(boolean analyseMethodsTogether) {
 		this.analyseMethodsTogether = analyseMethodsTogether;
 	}
-
-	public boolean isForceTaintSubFields() {
-		return forceTaintSubFields;
-	}
-
-	public void setForceTaintSubFields(boolean forceTaintSubFields) {
-		this.forceTaintSubFields = forceTaintSubFields;
-	}
 	
-
 }

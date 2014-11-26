@@ -24,7 +24,6 @@ import soot.jimple.ReturnVoidStmt;
 import soot.jimple.Stmt;
 import soot.jimple.ThisRef;
 import soot.jimple.infoflow.methodSummary.data.factory.SourceSinkFactory;
-import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
 import soot.jimple.infoflow.source.ISourceSinkManager;
 import soot.jimple.infoflow.source.SourceInfo;
 
@@ -51,83 +50,49 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 			}
 		});
 	
-	private boolean forceTaintSubFields = false;
 	private boolean debug = false;
 	
 
 	private final Logger logger = LoggerFactory.getLogger(SummarySourceSinkManager.class);
 	private final String methodSig;
+	private final SourceSinkFactory sourceSinkFactory;
 	
 	private SootMethod method = null;
-	private final int summaryAccessPathLength;
-//	private SourceModel sModel = null;
 	
-	public SummarySourceSinkManager(String mSig, int apl, boolean forceTaintSubFields) {
+	public SummarySourceSinkManager(String mSig, SourceSinkFactory sourceSinkFactory) {
 		this.methodSig = mSig;
-		summaryAccessPathLength = apl;
-		this.forceTaintSubFields = forceTaintSubFields;
-		
-	}
-
-	public SummarySourceSinkManager(String method, MethodSummaries flows, int apl,
-			boolean forceTaintSubFields) {
-		this.methodSig = method;
-		summaryAccessPathLength = apl;
-		this.forceTaintSubFields = forceTaintSubFields;
+		this.sourceSinkFactory = sourceSinkFactory;
 	}
 	
 	@Override
 	public SourceInfo getSourceInfo(Stmt sCallSite, InterproceduralCFG<Unit, SootMethod> cfg) {
+		// Initialize the method we are interested in
 		if(method == null)
 			method = Scene.v().getMethod(methodSig);
 		
-		/*
-		if(method == null && sModel == null){
-			method = Scene.v().getMethod(methodSig);
-			BuildSourceModel builder = new BuildSourceModel(method,
-					summaryAccessPathLength, getClassFields());
-			sModel = builder.getModel();
-			if(debug)
-				System.out.println(sModel.toString());
-		}
-		*/
-				
-		// If this is the dummy main method, we skip it
+		// If this is not the method we are looking for, we skip it
 		SootMethod currentMethod = cfg.getMethodOf(sCallSite);
-		if (currentMethod.toString().contains("<dummyMainClass: void dummyMainMethod()>"))
+		if (currentMethod != method)
 			return null;
 		
 		if (sCallSite instanceof DefinitionStmt) {
 			DefinitionStmt jstmt = (DefinitionStmt) sCallSite;
 			Value rightOp = jstmt.getRightOp();
-
-			//check if we have a source with apl > 0
-			/*
-			if(rightOp instanceof InstanceFieldRef){
-				InstanceFieldRef fieldRef = (InstanceFieldRef) rightOp;
-				SourceData si = sModel.isSource((Local) fieldRef.getBase(), fieldRef.getField());
-				if(si!=null){
-					if(debug)
-						System.out.println("source: " + sCallSite + " " + currentMethod.getSignature());
-					return new SourceInfo(si.isTaintSubFields()|| forceTaintSubFields, si.getSourceInfo());
-				}
-			}
-			*/
-
+			
 			//check if we have a source with apl = 0 (this or parameter source)
 			if (currentMethod == method && rightOp instanceof ParameterRef) {
 				ParameterRef pref = (ParameterRef) rightOp;
 				logger.debug("source: " + sCallSite + " " + currentMethod.getSignature());
 				if(debug)
 					System.out.println("source: " + sCallSite + " " + currentMethod.getSignature());
-				return new SourceInfo(forceTaintSubFields, Collections.singletonList(
-						SourceSinkFactory.createParamterSource(method, pref.getIndex(), null)));
+				return new SourceInfo(true, Collections.singletonList(
+						sourceSinkFactory.createParameterSource(pref.getIndex())));
 			}
 			else if (currentMethod == method && rightOp instanceof ThisRef) {
 				if(debug)
 					System.out.println("source: (this)" + sCallSite + " " + currentMethod.getSignature());				
-				return new SourceInfo(true || forceTaintSubFields, Collections.singletonList(
-						SourceSinkFactory.createThisSource()));
+				return new SourceInfo(true, Collections.singletonList(
+						sourceSinkFactory.createThisSource()));
 			}
 		}
 		return null;
@@ -135,29 +100,17 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 	
 	@Override
 	public boolean isSink(Stmt sCallSite, InterproceduralCFG<Unit, SootMethod> cfg) {
-		SootMethod m = cfg.getMethodOf(sCallSite);
-		if (m.getSignature().contains("dummyMainClass: void dummyMainMethod()"))
+		// Initialize the method we are interested in
+		if(method == null)
+			method = Scene.v().getMethod(methodSig);
+		
+		// If this is not the method we are looking for, we skip it
+		SootMethod currentMethod = cfg.getMethodOf(sCallSite);
+		if (currentMethod != method)
 			return false;
-
-		if (isReturnSink(sCallSite, cfg)) {
-			logger.debug("sink: " + sCallSite + " method: " + m.getSignature());
-			if(debug)
-				System.out.println("sink: " + sCallSite + " method: " + m.getSignature());
-			return true;
-		}
-
-		return false;
-	}
-
-	private boolean isReturnSink(Stmt sCallSite, InterproceduralCFG<Unit, SootMethod> cfg) {
-		if (sCallSite instanceof ReturnStmt || sCallSite instanceof ReturnVoidStmt) {
-			if (methodSig != null && methodSig.contains(cfg.getMethodOf(sCallSite).getSignature()))
-				return true;
-		}
-		return false;
+		
+		return sCallSite instanceof ReturnStmt
+				|| sCallSite instanceof ReturnVoidStmt;
 	}
 	
-	public void setForceTaintSubFields(boolean forceTaintSubFields) {
-		this.forceTaintSubFields = forceTaintSubFields;
-	}
 }

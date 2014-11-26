@@ -18,8 +18,7 @@ public class SummaryGeneratorFactory {
 	private final boolean useRecursiveAccessPaths = false;
 	private final boolean analyseMethodsTogether = true;
 	private final boolean useTaintWrapper = false;
-	private final boolean forceTaintSubFields = false;
-
+	
 	/**
 	 * Initializes the summary generator object
 	 * @return The initialized summary generator object
@@ -34,7 +33,6 @@ public class SummaryGeneratorFactory {
 		s.setFlowSensitiveAliasing(flowSensitiveAliasing);
 		s.setUseRecursiveAccessPaths(useRecursiveAccessPaths);
 		s.setAnalyseMethodsTogether(analyseMethodsTogether);
-		s.setForceTaintSubFields(forceTaintSubFields);
 		
 		if(useTaintWrapper)
 			try {

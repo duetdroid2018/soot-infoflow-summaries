@@ -63,7 +63,17 @@ public class ArbitraryAccessPath {
 		getNullData().next.next = nullData.next.next;
 	}
 	public Data getData3() {
-		return data.next.next;
+		Data d = data;
+		d = d.next;
+		Data e = d;
+		
+		Data x = new Data();
+		Data y = x;
+		x.next = e;
+		e = y.next;
+		e = e.next;
+		return e;
+//		return data.next.next;
 	}
 	public void setData3(Data data) {
 		this.data.next.next = data.next.next;

@@ -1,10 +1,9 @@
 package soot.jimple.infoflow.methodSummary.data;
 
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
-import soot.SootField;
 import soot.jimple.infoflow.methodSummary.xml.XMLConstants;
 
 /**
@@ -14,24 +13,16 @@ import soot.jimple.infoflow.methodSummary.xml.XMLConstants;
  */
 public class FlowSource extends AbstractFlowSinkSource {
 
-	public FlowSource(SourceSinkType type, int paramterIdx) {
-		super(type, paramterIdx, (SummaryAccessPath) null);
+	public FlowSource(SourceSinkType type) {
+		super(type, -1, null);
 	}
 	
-	public FlowSource(SourceSinkType type, int paramterIdx,
-			SummaryAccessPath accessPath) {
-		super(type, paramterIdx, accessPath);
+	public FlowSource(SourceSinkType type, int parameterIdx) {
+		super(type, parameterIdx, null);
 	}
 	
-	public FlowSource(SourceSinkType type, int parameterIdx,
-			List<String> fields) {
+	public FlowSource(SourceSinkType type, int parameterIdx, String[] fields) {
 		super(type, parameterIdx, fields);
-	}
-	
-	public FlowSource createNewSource(SootField extension){
-		SummaryAccessPath ap;
-		ap = accessPath.extend(extension);
-		return new FlowSource(this.type, this.parameterIdx, ap);
 	}
 	
 	@Override
@@ -53,13 +44,16 @@ public class FlowSource extends AbstractFlowSinkSource {
 	@Override
 	public String toString(){
 		if(isParameter())
-			return "Parameter " + getParameterIndex() + (accessPath == null ? "" : " " +  accessPath.toString());
-		else if(isField())
-			return "Field" + (accessPath == null ? "" : " " + accessPath.toString());
-		else if(isThis())
+			return "Parameter " + getParameterIndex() + (accessPath == null ? "" : " "
+					+  Arrays.toString(accessPath));
+		
+		if(isField())
+			return "Field" + (accessPath == null ? "" : " " + Arrays.toString(accessPath));
+		
+		if(isThis())
 			return "THIS";
-		else
-			return "<unknown>";
+		
+		return "<unknown>";
 	}
 
 	//a this source is a field source with apl = 0

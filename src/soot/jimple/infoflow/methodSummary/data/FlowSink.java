@@ -1,7 +1,7 @@
 package soot.jimple.infoflow.methodSummary.data;
 
+import java.util.Arrays;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 import soot.jimple.infoflow.methodSummary.xml.XMLConstants;
@@ -15,20 +15,14 @@ public class FlowSink extends AbstractFlowSinkSource {
 	private final boolean taintSubFields;
 	
 	public FlowSink(SourceSinkType type, int paramterIdx,
-			SummaryAccessPath accessPath, boolean taintSubFields) {
-		super(type, paramterIdx, accessPath);
-		this.taintSubFields = taintSubFields;
-	}
-	
-	public FlowSink(SourceSinkType type, int paramterIdx,
-			List<String> fields, boolean taintSubFields) {
+			String[] fields, boolean taintSubFields) {
 		super(type, paramterIdx, fields);
 		this.taintSubFields = taintSubFields;
 	}
 	
 	public FlowSink(SourceSinkType type, int paramterIdx,
 			boolean taintSubFields) {
-		super(type, paramterIdx, (SummaryAccessPath) null);
+		super(type, paramterIdx, null);
 		this.taintSubFields = taintSubFields;
 	}
 	
@@ -61,16 +55,19 @@ public class FlowSink extends AbstractFlowSinkSource {
 	
 	@Override
 	public String toString(){
-		if(isParameter()){
+		if (isParameter())
 			return "Parameter " + getParameterIndex() + (accessPath == null ? "" : " "
 					+ accessPath.toString()) + " " + taintSubFields();
-		}else if(isField()){
-			return "Field" + (accessPath == null ? "" : " " + accessPath.toString()) + " " + taintSubFields();
-		}else if(isReturn()){
-			return "Return" + (accessPath == null ? "" : " " + getAccessPath().toString()) + " " + taintSubFields();
-		}else{
-			return "invalid sink";
-		}
+		
+		if (isField())
+			return "Field" + (accessPath == null ? "" : " "
+					+ Arrays.toString(accessPath)) + " " + taintSubFields();
+		
+		if(isReturn())
+			return "Return" + (accessPath == null ? "" : " "
+					+ Arrays.toString(accessPath)) + " " + taintSubFields();
+		
+		return "invalid sink";
 	}	
 	
 }
