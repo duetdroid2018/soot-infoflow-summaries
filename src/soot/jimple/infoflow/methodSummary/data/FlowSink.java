@@ -57,7 +57,7 @@ public class FlowSink extends AbstractFlowSinkSource {
 	public String toString(){
 		if (isParameter())
 			return "Parameter " + getParameterIndex() + (accessPath == null ? "" : " "
-					+ accessPath.toString()) + " " + taintSubFields();
+					+ Arrays.toString(accessPath)) + " " + taintSubFields();
 		
 		if (isField())
 			return "Field" + (accessPath == null ? "" : " "

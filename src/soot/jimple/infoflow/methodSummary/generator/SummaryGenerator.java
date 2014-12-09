@@ -48,7 +48,7 @@ public class SummaryGenerator {
 	public static final String DUMMY_MAIN_SIG = "<dummyMainClass: void dummyMainMethod()>";
 
 	//the access path length that is used in infoflow
-	protected int accessPathLength = 1; // 5;
+	protected int accessPathLength = 5;
 
 	//the access path length that is used in the summaries. 
 	protected int summaryAPLength = accessPathLength - 1;

@@ -68,13 +68,24 @@ public abstract class TestHelper {
 		}
 		return true;
 	}
-
+	
+	/**
+	 * Checks whether the given fields are equal to the fields in the access
+	 * path of the given source or sink
+	 * @param s The source or sink to check
+	 * @param fields The fields to compare
+	 * @return True if the given fields are equal to the fields in the access
+	 * path of the given source or sink, otherwise false
+	 */
 	private boolean checkFields(AbstractFlowSinkSource s, String[] fields) {
 		if (fields == null || fields.length == 0) {
 			if (!s.hasAccessPath())
 				return true;
 			return false;
 		}
+		if (!s.hasAccessPath() && fields != null && fields.length > 0)
+			return false;
+		
 		if (s.getAccessPath().length != fields.length)
 			return false;
 		for (int i = 0; i < fields.length; i++) {

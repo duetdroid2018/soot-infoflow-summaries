@@ -9,7 +9,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import soot.jimple.infoflow.methodSummary.data.MethodFlow;
@@ -40,7 +39,6 @@ public class FieldToParaTests extends TestHelper {
 		assertTrue(containsFlow(flow, Field, new String[] { OBJ_ARRAY }, Parameter, 0, new String[] { DATACLASS_OBJECT_FIELD }));
 	}
 
-	@Ignore
 	@Test(timeout = 100000)
 	public void fieldToPara2NoFalsePositive() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void dataParameter2(soot.jimple.infoflow.test.methodSummary.Data)>";
@@ -55,9 +53,7 @@ public class FieldToParaTests extends TestHelper {
 		Set<MethodFlow> flow = createSummaries(mSig);
 		assertTrue(containsFlow(flow, Field, new String[] { LIST_FIELD, ALIST_DATA }, Parameter, 0, new String[] { DATACLASS_OBJECT_FIELD }));
 	}
-
-	@Ignore
-	// bug in infoflow related to the sink -> source path construction
+	
 	@Test(timeout = 100000)
 	public void fieldToPara3NoFalePositive() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void dataParameter3(soot.jimple.infoflow.test.methodSummary.Data)>";
@@ -73,9 +69,7 @@ public class FieldToParaTests extends TestHelper {
 		assertTrue(containsFlow(flow, Field, new String[] { DATA_FIELD, DATACLASS_OBJECT_FIELD }, Parameter, 0,
 				new String[] { DATACLASS_OBJECT_FIELD }));
 	}
-
-	@Ignore
-	// bug in infoflow related to the sink -> source path construction
+	
 	@Test(timeout = 100000)
 	public void fieldToPara4NoFalsePositive() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void dataParameter4(soot.jimple.infoflow.test.methodSummary.Data)>";
@@ -94,7 +88,7 @@ public class FieldToParaTests extends TestHelper {
 
 		assertEquals(1, flow.size());
 	}
-
+	
 	@Test(timeout = 100000)
 	public void fieldToParaRec1() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void dataParameterRec(soot.jimple.infoflow.test.methodSummary.Data,int)>";
@@ -151,7 +145,6 @@ public class FieldToParaTests extends TestHelper {
 		assertTrue(containsFlow(flow, Field, new String[] { LIST_FIELD, ALIST_DATA }, Parameter, 0, new String[] { ALIST_DATA }));
 	}
 
-	@Ignore
 	@Test(timeout = 100000)
 	public void listFieldToParameter1NoFalsePositive() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter(java.util.List)>";
@@ -167,9 +160,7 @@ public class FieldToParaTests extends TestHelper {
 		assertTrue(containsFlow(flow, Field, new String[] {OBJ_FIELD }, Parameter, 0, new String[] { ALIST_DATA }));
 		
 	}
-
-	@Ignore
-	// bug in infoflow related to the sink -> source path construction
+	
 	@Test(timeout = 100000)
 	public void listFieldToParameter2NoFalsePositive() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter2(java.util.List)>";
@@ -185,7 +176,6 @@ public class FieldToParaTests extends TestHelper {
 		assertTrue(containsFlow(flow, Field, new String[] {LIST_FIELD, ALIST_DATA }, Parameter, 0, new String[] { ALIST_DATA }));
 	}
 
-	@Ignore
 	@Test(timeout = 100000)
 	public void listFieldToParameter3NoFalsePositive() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter3(java.util.List)>";
@@ -215,7 +205,6 @@ public class FieldToParaTests extends TestHelper {
 		assertTrue(containsFlow(flow, Field, new String[] { INT_ARRAY }, Parameter, 0, new String[] { ALIST_DATA, "<java.lang.Integer: int value>" }));
 	}
 
-	@Ignore
 	@Test(timeout = 100000)
 	public void listFieldToParameter5NoFalsePositive() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>";
@@ -231,7 +220,6 @@ public class FieldToParaTests extends TestHelper {
 		assertTrue(containsFlow(flow, Field, new String[] { DATA_FIELD, DATACLASS_OBJECT_FIELD }, Parameter, 0, new String[] { ALIST_DATA }));
 	}
 
-	@Ignore
 	@Test(timeout = 100000)
 	public void listFieldToParameter6NoFalsePositive() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter6(java.util.List)>";

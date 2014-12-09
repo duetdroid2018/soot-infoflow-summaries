@@ -151,7 +151,7 @@ public class InfoflowResultPostProcessor {
 	 * @return The fully reconstructed access path
 	 */
 	private AccessPath reconstructSourceAP(Abstraction a, List<Abstraction> path) {
-		// TODO: Static fields, method invocations?
+		// TODO: Static fields?
 		
 		List<SootMethod> callees = new ArrayList<>();
 		
@@ -181,7 +181,7 @@ public class InfoflowResultPostProcessor {
 				for (int i = 0; i < stmt.getInvokeExpr().getArgCount(); i++) {
 					Local paramLocal = callee.getActiveBody().getParameterLocal(i);
 					if (paramLocal == curAP.getPlainValue()) {
-						curAP = curAP.copyWithNewValue(paramLocal);
+						curAP = curAP.copyWithNewValue(stmt.getInvokeExpr().getArg(i));
 						matched = true;
 					}
 				}
@@ -240,9 +240,31 @@ public class InfoflowResultPostProcessor {
 						matched = true;
 					}
 				}
-				callees.add(cfg.getMethodOf(stmt));
 				
-				// TODO: Fields, Parameters
+				SootMethod callee = cfg.getMethodOf(stmt);
+				callees.add(callee);
+				
+				// Map the "this" fields into the callee
+				if (!callee.isStatic() && callSite.getInvokeExpr() instanceof InstanceInvokeExpr) {
+					InstanceInvokeExpr iiExpr = (InstanceInvokeExpr) callSite.getInvokeExpr();
+					if (iiExpr.getBase() == curAP.getPlainValue()) {
+						Local thisLocal = callee.getActiveBody().getThisLocal();
+						curAP = curAP.copyWithNewValue(thisLocal);
+						matched = true;
+					}
+				}
+				
+				// Map the parameters into the callee. Note that parameters as
+				// such cannot return taints from methods, only fields reachable
+				// through them
+				if (!curAP.isLocal())
+					for (int i = 0; i < callSite.getInvokeExpr().getArgCount(); i++) {
+						if (callSite.getInvokeExpr().getArg(i) == curAP.getPlainValue()) {
+							Local paramLocal = callee.getActiveBody().getParameterLocal(i);
+							curAP = curAP.copyWithNewValue(paramLocal);
+							matched = true;
+						}
+					}
 			}
 		}
 		return curAP;

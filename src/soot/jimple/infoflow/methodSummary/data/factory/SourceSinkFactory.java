@@ -1,5 +1,6 @@
 package soot.jimple.infoflow.methodSummary.data.factory;
 
+import soot.ArrayType;
 import soot.SootField;
 import soot.jimple.infoflow.data.AccessPath;
 import soot.jimple.infoflow.methodSummary.data.FlowSink;
@@ -61,8 +62,13 @@ public class SourceSinkFactory {
 	 * @return The sink object
 	 */
 	public FlowSink createParameterSink(int paraIdx, AccessPath accessPath) {
-		if (accessPath.isLocal())
-			throw new RuntimeException("Parameter locals cannot directly be sinks");
+		if (accessPath.isLocal()) {
+			if (!(accessPath.getBaseType() instanceof ArrayType))
+				throw new RuntimeException("Parameter locals cannot directly be sinks");
+			else
+				return new FlowSink(SourceSinkType.Parameter, paraIdx,
+						accessPath.getTaintSubFields());
+		}
 		else if (accessPath.getFieldCount() < summaryAPLength)
 			return new FlowSink(SourceSinkType.Parameter, paraIdx,
 					sootFieldsToString(accessPath.getFields()),
