@@ -1,5 +1,6 @@
 package soot.jimple.infoflow.methodSummary.data;
 
+import java.util.Arrays;
 import java.util.Map;
 
 /**
@@ -47,12 +48,12 @@ public abstract class AbstractFlowSinkSource {
 	}
 	
 	public abstract Map<String, String> xmlAttributes();
-
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;
-		result = prime * result + ((accessPath == null) ? 0 : accessPath.hashCode());
+		result = prime * result + ((accessPath == null) ? 0 : Arrays.hashCode(accessPath));
 		result = prime * result + parameterIdx;
 		result = prime * result + ((type == null) ? 0 : type.hashCode());
 		return result;
@@ -70,7 +71,7 @@ public abstract class AbstractFlowSinkSource {
 		if (accessPath == null) {
 			if (other.accessPath != null)
 				return false;
-		} else if (!accessPath.equals(other.accessPath))
+		} else if (!Arrays.equals(accessPath, other.accessPath))
 			return false;
 		if (parameterIdx != other.parameterIdx)
 			return false;

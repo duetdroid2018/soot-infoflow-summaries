@@ -40,15 +40,19 @@ public class FlowSink extends AbstractFlowSinkSource {
 		if (isParameter()) {
 			res.put(XMLConstants.ATTRIBUTE_FLOWTYPE, XMLConstants.VALUE_PARAMETER);
 			res.put(XMLConstants.ATTRIBUTE_PARAMTER_INDEX, getParameterIndex() + "");
-		} else if (isField()) {
+		}
+		else if (isField()) {
 			res.put(XMLConstants.ATTRIBUTE_FLOWTYPE, XMLConstants.VALUE_FIELD);
 			res.put(XMLConstants.ATTRIBUTE_FIELD, "(this)");
-		} else {
+		}
+		else if (isReturn())
 			res.put(XMLConstants.ATTRIBUTE_FLOWTYPE, XMLConstants.VALUE_RETURN);
-		}
-		if(hasAccessPath()){
+		else
+			throw new RuntimeException("Invalid source type");
+		
+		if(hasAccessPath())
 			res.put(XMLConstants.ATTRIBUTE_ACCESSPATH, getAccessPath().toString());
-		}
+		
 		res.put(XMLConstants.ATTRIBUTE_TAINT_SUB_FIELDS, taintSubFields() + "");
 		return res;
 	}
@@ -69,5 +73,18 @@ public class FlowSink extends AbstractFlowSinkSource {
 		
 		return "invalid sink";
 	}	
+	
+	@Override
+	public int hashCode() {
+		return super.hashCode() + (31 * (taintSubFields ? 1 : 0));
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (!super.equals(obj))
+			return false;
+		
+		return this.taintSubFields == ((FlowSink) obj).taintSubFields;
+	}
 	
 }

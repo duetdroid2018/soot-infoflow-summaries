@@ -13,11 +13,11 @@ import soot.Local;
 import soot.PointsToAnalysis;
 import soot.Scene;
 import soot.SootMethod;
+import soot.Value;
 import soot.jimple.AssignStmt;
 import soot.jimple.InstanceFieldRef;
 import soot.jimple.InstanceInvokeExpr;
 import soot.jimple.ReturnStmt;
-import soot.jimple.ReturnVoidStmt;
 import soot.jimple.Stmt;
 import soot.jimple.infoflow.data.Abstraction;
 import soot.jimple.infoflow.data.AbstractionAtSink;
@@ -29,6 +29,7 @@ import soot.jimple.infoflow.methodSummary.data.factory.SourceSinkFactory;
 import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
 import soot.jimple.infoflow.methodSummary.postProcessor.SummaryPathBuilder.SummarySourceInfo;
 import soot.jimple.infoflow.solver.IInfoflowCFG;
+import soot.jimple.infoflow.util.BaseSelector;
 
 public class InfoflowResultPostProcessor {
 	private final Logger logger = LoggerFactory.getLogger(InfoflowResultPostProcessor.class);
@@ -151,22 +152,25 @@ public class InfoflowResultPostProcessor {
 	 * @return The fully reconstructed access path
 	 */
 	private AccessPath reconstructSourceAP(Abstraction a, List<Abstraction> path) {
+		if (a.toString().contains("<java.util.AbstractList: int modCount>"))
+			System.out.println("x");
+		
 		// TODO: Static fields?
 		
 		List<SootMethod> callees = new ArrayList<>();
-		
 		AccessPath curAP = a.getAccessPath();
 		for (int pathIdx = path.size() - 1; pathIdx >= 0; pathIdx--) {
 			final Abstraction abs = path.get(pathIdx);
 			final Stmt stmt = abs.getCurrentStmt();
 			final Stmt callSite = abs.getCorrespondingCallSite();
 			boolean matched = false;
-			
+						
 			// In case of a call-to-return edge, we have no information about
 			// what happened in the callee, so we take the incoming access path
 			if (stmt.containsInvokeExpr()) {
 				if (callSite == stmt) {
-					curAP = abs.getAccessPath();
+					curAP = (pathIdx > 0) ? path.get(pathIdx - 1).getAccessPath()
+							: abs.getAccessPath();
 					matched = true;
 				}
 			}
@@ -176,6 +180,10 @@ public class InfoflowResultPostProcessor {
 			
 			if (stmt.containsInvokeExpr() && !callees.isEmpty()) {
 				SootMethod callee = callees.remove(0);
+				
+				// Make sure that we don't end up with a senseless callee
+				if (!callee.getSubSignature().equals(stmt.getInvokeExpr().getMethod().getSubSignature()))
+					throw new RuntimeException("Invalid callee on stack"); 
 				
 				// Map the parameters back into the caller
 				for (int i = 0; i < stmt.getInvokeExpr().getArgCount(); i++) {
@@ -197,13 +205,31 @@ public class InfoflowResultPostProcessor {
 				}
 			}
 			else if (stmt instanceof AssignStmt) {
-				AssignStmt assignStmt = (AssignStmt) stmt;
+				final AssignStmt assignStmt = (AssignStmt) stmt;
+				final Value leftOp = BaseSelector.selectBase(assignStmt.getLeftOp(), false);
 				
 				// If the access path must matches on the left side, we
 				// continue with the value from the right side.
-				if (assignStmt.getLeftOp() instanceof Local
-						&& assignStmt.getLeftOp() == curAP.getPlainValue()) {
-					curAP = curAP.copyWithNewValue(assignStmt.getRightOp());
+				if (leftOp instanceof Local && leftOp == curAP.getPlainValue()) {
+					// Get the next value from the right side of the assignment
+					final Value[] rightOps = BaseSelector.selectBaseList(assignStmt.getRightOp(), false);
+					Value rightOp = null;
+					if (rightOps.length == 1)
+						rightOp = rightOps[0];
+					else {
+						int prevIdx = pathIdx - 1;
+						scan : while (pathIdx >= 0) {
+							Abstraction prevAbs = path.get(prevIdx);
+							Value base = prevAbs.getAccessPath().getPlainValue();
+							for (Value rv : rightOps)
+								if (base == rv) {
+									rightOp = rv;
+									break scan;
+								}
+						}
+					}
+					
+					curAP = curAP.copyWithNewValue(rightOp);
 					matched = true;
 				}
 				else if (assignStmt.getLeftOp() instanceof InstanceFieldRef) {
@@ -230,7 +256,10 @@ public class InfoflowResultPostProcessor {
 				}
 				
 			}
-			else if (stmt instanceof ReturnStmt || stmt instanceof ReturnVoidStmt) {
+			else if (callSite != null) {
+				SootMethod callee = cfg.getMethodOf(stmt);
+				callees.add(0, callee);
+				
 				// Map the return value back into the scope of the callee
 				if (stmt instanceof ReturnStmt) {
 					ReturnStmt retStmt = (ReturnStmt) stmt;
@@ -240,10 +269,7 @@ public class InfoflowResultPostProcessor {
 						matched = true;
 					}
 				}
-				
-				SootMethod callee = cfg.getMethodOf(stmt);
-				callees.add(callee);
-				
+								
 				// Map the "this" fields into the callee
 				if (!callee.isStatic() && callSite.getInvokeExpr() instanceof InstanceInvokeExpr) {
 					InstanceInvokeExpr iiExpr = (InstanceInvokeExpr) callSite.getInvokeExpr();
@@ -357,8 +383,7 @@ public class InfoflowResultPostProcessor {
 		if (summaries.addFlowForMethod(method, mFlow))
 			debugMSG(source, sink);
 	}
-
-
+	
 	private void debugMSG(FlowSource source, FlowSink sink) {
 		if (DEBUG) {
 			System.out.println("\nmethod: " + method);

@@ -19,11 +19,14 @@ public class FieldToParaTests extends TestHelper {
 	static final String className = "soot.jimple.infoflow.test.methodSummary.FieldToPara";
 	static final String OBJ_FIELD = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: java.lang.Object obField>";
 	static final String OBJ_ARRAY = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: java.lang.Object[] arrayField>";
+	static final String INT_FIELD = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: int intField>";
 	static final String LIST_FIELD = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: java.util.List listField>";
 	static final String DATA_FIELD = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: soot.jimple.infoflow.test.methodSummary.Data dataField>";
 	static final String ALIST_DATA = "<java.util.ArrayList: java.lang.Object[] elementData>";
 	static final String INT_ARRAY = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: int[] intArray>";
 
+	static final String INTEGER_VALUE_FIELD = "<java.lang.Integer: int value>";
+	
 	@Test(timeout = 100000)
 	public void fieldToPara1() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void dataParameter(soot.jimple.infoflow.test.methodSummary.Data)>";
@@ -37,48 +40,26 @@ public class FieldToParaTests extends TestHelper {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void dataParameter2(soot.jimple.infoflow.test.methodSummary.Data)>";
 		Set<MethodFlow> flow = createSummaries(mSig);
 		assertTrue(containsFlow(flow, Field, new String[] { OBJ_ARRAY }, Parameter, 0, new String[] { DATACLASS_OBJECT_FIELD }));
-	}
-
-	@Test(timeout = 100000)
-	public void fieldToPara2NoFalsePositive() {
-		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void dataParameter2(soot.jimple.infoflow.test.methodSummary.Data)>";
-		Set<MethodFlow> flow = createSummaries(mSig);
-		assertTrue(containsFlow(flow, Field, new String[] { OBJ_ARRAY }, Parameter, 0, new String[] { DATACLASS_OBJECT_FIELD }));
 		assertEquals(1, flow.size());
 	}
-
+	
 	@Test(timeout = 100000)
 	public void fieldToPara3() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void dataParameter3(soot.jimple.infoflow.test.methodSummary.Data)>";
 		Set<MethodFlow> flow = createSummaries(mSig);
 		assertTrue(containsFlow(flow, Field, new String[] { LIST_FIELD, ALIST_DATA }, Parameter, 0, new String[] { DATACLASS_OBJECT_FIELD }));
-	}
-	
-	@Test(timeout = 100000)
-	public void fieldToPara3NoFalePositive() {
-		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void dataParameter3(soot.jimple.infoflow.test.methodSummary.Data)>";
-		Set<MethodFlow> flow = createSummaries(mSig);
-		assertTrue(containsFlow(flow, Field, new String[] { LIST_FIELD, ALIST_DATA }, Parameter, 0, new String[] { DATACLASS_OBJECT_FIELD }));
 		assertEquals(1, flow.size());
 	}
-
+	
 	@Test(timeout = 100000)
 	public void fieldToPara4() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void dataParameter4(soot.jimple.infoflow.test.methodSummary.Data)>";
 		Set<MethodFlow> flow = createSummaries(mSig);
 		assertTrue(containsFlow(flow, Field, new String[] { DATA_FIELD, DATACLASS_OBJECT_FIELD }, Parameter, 0,
 				new String[] { DATACLASS_OBJECT_FIELD }));
-	}
-	
-	@Test(timeout = 100000)
-	public void fieldToPara4NoFalsePositive() {
-		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void dataParameter4(soot.jimple.infoflow.test.methodSummary.Data)>";
-		Set<MethodFlow> flow = createSummaries(mSig);
-		assertTrue(containsFlow(flow, Field, new String[] { DATA_FIELD, DATACLASS_OBJECT_FIELD }, Parameter, 0,
-				new String[] { DATACLASS_OBJECT_FIELD }));
 		assertEquals(1, flow.size());
 	}
-
+	
 	@Test(timeout = 100000)
 	public void fieldToPara5() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void dataParameter5(soot.jimple.infoflow.test.methodSummary.Data)>";
@@ -141,87 +122,49 @@ public class FieldToParaTests extends TestHelper {
 	@Test(timeout = 100000)
 	public void listFieldToParameter1() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter(java.util.List)>";
-		Set<MethodFlow> flow = createSummaries(mSig);
-		assertTrue(containsFlow(flow, Field, new String[] { LIST_FIELD, ALIST_DATA }, Parameter, 0, new String[] { ALIST_DATA }));
-	}
-
-	@Test(timeout = 100000)
-	public void listFieldToParameter1NoFalsePositive() {
-		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter(java.util.List)>";
-		Set<MethodFlow> flow = createSummaries(mSig);
-		assertTrue(containsFlow(flow, Field, new String[] { LIST_FIELD, ALIST_DATA }, Parameter, 0, new String[] { ALIST_DATA }));
+		Set<MethodFlow> flow = createSummaries(mSig);		
+		assertTrue(containsFlow(flow, Field, new String[] { INT_FIELD }, Parameter, 0, new String[] { ALIST_DATA,
+				INTEGER_VALUE_FIELD }));
 		assertEquals(1, flow.size());
-	}
-
-	@Test(timeout = 100000)
-	public void listFieldToParameter2() {
-		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter2(java.util.List)>";
-		Set<MethodFlow> flow = createSummaries(mSig);
-		assertTrue(containsFlow(flow, Field, new String[] {OBJ_FIELD }, Parameter, 0, new String[] { ALIST_DATA }));
-		
 	}
 	
-	@Test(timeout = 100000)
-	public void listFieldToParameter2NoFalsePositive() {
+	@Test//(timeout = 100000)
+	public void listFieldToParameter2() {
+		for (int i = 0; i < 10; i++) {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter2(java.util.List)>";
 		Set<MethodFlow> flow = createSummaries(mSig);
+		System.out.println(flow);
 		assertTrue(containsFlow(flow, Field, new String[] { OBJ_FIELD }, Parameter, 0, new String[] { ALIST_DATA }));
 		assertEquals(1, flow.size());
+		}
 	}
-
+	
 	@Test(timeout = 100000)
 	public void listFieldToParameter3() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter3(java.util.List)>";
 		Set<MethodFlow> flow = createSummaries(mSig);
 		assertTrue(containsFlow(flow, Field, new String[] {LIST_FIELD, ALIST_DATA }, Parameter, 0, new String[] { ALIST_DATA }));
-	}
-
-	@Test(timeout = 100000)
-	public void listFieldToParameter3NoFalsePositive() {
-		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter3(java.util.List)>";
-		Set<MethodFlow> flow = createSummaries(mSig);
-		assertTrue(containsFlow(flow, Field, new String[] { DATA_FIELD, DATACLASS_OBJECT_FIELD }, Parameter, 0, new String[] { ALIST_DATA }));
 		assertEquals(1, flow.size());
 	}
-
+	
 	@Test(timeout = 100000)
 	public void listFieldToParameter4() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter4(java.util.List)>";
 		Set<MethodFlow> flow = createSummaries(mSig);
 		assertTrue(containsFlow(flow, Field, new String[] { OBJ_ARRAY}, Parameter, 0, new String[] { ALIST_DATA }));
+		assertEquals(1, flow.size());
 	}
-
-	@Test(timeout = 100000)
-	public void listFieldToParameter4NoFalsePositive() {
-		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter4(java.util.List)>";
-		Set<MethodFlow> flow = createSummaries(mSig);
-		assertTrue(containsFlow(flow, Field, new String[] { "<soot.jimple.infoflow.test.methodSummary.FieldToPara: java.lang.Object[] arrayField>" }, Parameter, 0, new String[] { ALIST_DATA }));
-	}
-
+	
 	@Test(timeout = 100000)
 	public void listFieldToParameter5() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>";
 		Set<MethodFlow> flow = createSummaries(mSig);
 		assertTrue(containsFlow(flow, Field, new String[] { INT_ARRAY }, Parameter, 0, new String[] { ALIST_DATA, "<java.lang.Integer: int value>" }));
-	}
-
-	@Test(timeout = 100000)
-	public void listFieldToParameter5NoFalsePositive() {
-		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter5(java.util.List)>";
-		Set<MethodFlow> flow = createSummaries(mSig);
-		assertTrue(containsFlow(flow, Field, new String[] { INT_ARRAY }, Parameter, 0, new String[] { ALIST_DATA, "<java.lang.Integer: int value>" }));
 		assertEquals(1, flow.size());
 	}
-
+	
 	@Test(timeout = 100000)
 	public void listFieldToParameter6() {
-		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter6(java.util.List)>";
-		Set<MethodFlow> flow = createSummaries(mSig);
-		assertTrue(containsFlow(flow, Field, new String[] { DATA_FIELD, DATACLASS_OBJECT_FIELD }, Parameter, 0, new String[] { ALIST_DATA }));
-	}
-
-	@Test(timeout = 100000)
-	public void listFieldToParameter6NoFalsePositive() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter6(java.util.List)>";
 		Set<MethodFlow> flow = createSummaries(mSig);
 		assertTrue(containsFlow(flow, Field, new String[] { DATA_FIELD, DATACLASS_OBJECT_FIELD }, Parameter, 0, new String[] { ALIST_DATA }));
@@ -229,7 +172,7 @@ public class FieldToParaTests extends TestHelper {
 	}
 	
 	@Override
-	SummaryGenerator getSummary() {
+	protected SummaryGenerator getSummary() {
 		SummaryGenerator sg = new SummaryGenerator();
 		List<String> sub = new LinkedList<String>();
 		sub.add("java.util.ArrayList");

@@ -1,6 +1,12 @@
 package soot.jimple.infoflow.test.methodSummary.junit;
 
+import static org.junit.Assert.fail;
+
+import java.io.File;
+import java.io.IOException;
 import java.util.Set;
+
+import org.junit.BeforeClass;
 
 import soot.jimple.infoflow.methodSummary.data.AbstractFlowSinkSource;
 import soot.jimple.infoflow.methodSummary.data.FlowSink;
@@ -11,7 +17,8 @@ import soot.jimple.infoflow.methodSummary.generator.SummaryGenerator;
 
 public abstract class TestHelper {
 
-	protected final static String classpath = "./testBin";
+	protected static String appPath;
+	protected static String libPath;
 	
 	protected final static String INT_TYPE = "int";
 	protected final static String OBJECT_TYPE = "java.lang.Object";
@@ -28,6 +35,22 @@ public abstract class TestHelper {
 	protected final static String LINKEDLIST_LAST = "<java.util.LinkedList: java.util.LinkedList$Node last>";
 	protected final static String LINKEDLIST_ITEM = "<java.util.LinkedList$Node: java.lang.Object item>";
 
+    @BeforeClass
+    public static void setUp() throws IOException {
+        final String sep = System.getProperty("path.separator");
+        
+    	File f = new File(".");
+        File testSrc1 = new File(f,"testBin");
+        File testSrc2 = new File(f,"build" + File.separator + "testclasses");
+
+        if (!(testSrc1.exists() || testSrc2.exists()))
+            fail("Test aborted - none of the test sources are available");
+
+    	appPath = testSrc1.getCanonicalPath()
+    			+ sep + testSrc2.getCanonicalPath();
+    	libPath = System.getProperty("java.home") + File.separator + "lib" + File.separator + "rt.jar";
+    }
+    
 	protected boolean containsFlow(Set<MethodFlow> flows, SourceSinkType sourceTyp, String[] sourceFields,
 			SourceSinkType sinkTyp, String[] sinkFields) {
 		return containsFlow(flows, sourceTyp, -1 ,sourceFields, sinkTyp, -1,sinkFields);
@@ -40,9 +63,22 @@ public abstract class TestHelper {
 			SourceSinkType sinkTyp, String[] sinkFields) {
 		return containsFlow(flows, sourceTyp, sourceParamterIdx,sourceFields,  sinkTyp, -1, sinkFields);
 	}
-
-	protected boolean containsFlow(Set<MethodFlow> flows, SourceSinkType sourceTyp,int sourceParamterIdx, String[] sourceFields,
-			SourceSinkType sinkTyp, int sinkParamterIdx,String[] sinkFields) {
+	
+	/**
+	 * Checks whether the given set of flows contains a specific flow
+	 * @param flows The set of flows
+	 * @param sourceTyp The type of the source (parameter, field, etc.)
+	 * @param sourceParamterIdx The parameter index of the source
+	 * @param sourceFields The array of fields in the source
+	 * @param sinkTyp The type of the sink (parameter, field, etc.)
+	 * @param sinkParamterIdx The parameter index of the sink
+	 * @param sinkFields The array of fields in the sink
+	 * @return True if the given flow is contained in the given set of flows,
+	 * otherwise false
+	 */
+	protected boolean containsFlow(Set<MethodFlow> flows,
+			SourceSinkType sourceTyp, int sourceParamterIdx, String[] sourceFields,
+			SourceSinkType sinkTyp, int sinkParamterIdx, String[] sinkFields) {
 		for (MethodFlow mf : flows) {
 			FlowSource source = mf.source();
 			FlowSink sink = mf.sink();
@@ -56,7 +92,6 @@ public abstract class TestHelper {
 		}
 		
 		return false;
-
 	}
 
 	private boolean checkParamter(AbstractFlowSinkSource s, SourceSinkType sType, int parameterIdx) {
@@ -95,10 +130,23 @@ public abstract class TestHelper {
 
 		return true;
 	}
-
-	abstract SummaryGenerator getSummary() ;
 	
+	/**
+	 * Gets the {@link SummaryGenerator} instance to be used for producing the
+	 * summaries
+	 * @return The {@link SummaryGenerator} instance
+	 */
+	protected abstract SummaryGenerator getSummary();
+	
+	/**
+	 * Creates flow summaries for the given method
+	 * @param methodSignature The signature ofthe method for which to compute
+	 * the flow summaries
+	 * @return The set of flow summaries computed for the given method
+	 */
 	protected Set<MethodFlow> createSummaries(String methodSignature) {
+		final String classpath = appPath + System.getProperty("path.separator")
+				+ libPath;
 		return getSummary().createMethodSummary(classpath, methodSignature)
 				.getFlowsForMethod(methodSignature);
 	}

@@ -80,7 +80,6 @@ public class FieldToPara {
 		}
 	}
 	
-	
 	void dataParameterRec(Data d, int i){
 		if(i == 0){
 			d.objectField = obField;
@@ -88,7 +87,7 @@ public class FieldToPara {
 		}
 		dataParameterRec(d,i-1);
 	}
-	
+
 	@SuppressWarnings({ "unchecked", "rawtypes" })
 	void listParameter(List list){
 		list.add(intField);

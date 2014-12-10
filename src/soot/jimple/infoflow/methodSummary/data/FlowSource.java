@@ -31,16 +31,20 @@ public class FlowSource extends AbstractFlowSinkSource {
 		if (isParameter()) {
 			res.put(XMLConstants.ATTRIBUTE_FLOWTYPE, XMLConstants.VALUE_PARAMETER);
 			res.put(XMLConstants.ATTRIBUTE_PARAMTER_INDEX, getParameterIndex() + "");
-		} else { // isField
+		}
+		else if (isField()) {
 			res.put(XMLConstants.ATTRIBUTE_FLOWTYPE, XMLConstants.VALUE_FIELD);
 			res.put(XMLConstants.ATTRIBUTE_FIELD, "(this)");
 		}
-		if(hasAccessPath()){
+		else
+			throw new RuntimeException("Invalid source type");
+		
+		if(hasAccessPath())
 			res.put(XMLConstants.ATTRIBUTE_ACCESSPATH, getAccessPath().toString());
-		}
+		
 		return res;
 	}
-
+	
 	@Override
 	public String toString(){
 		if(isParameter())

@@ -7,6 +7,11 @@ import soot.jimple.infoflow.methodSummary.data.FlowSink;
 import soot.jimple.infoflow.methodSummary.data.FlowSource;
 import soot.jimple.infoflow.methodSummary.data.SourceSinkType;
 
+/**
+ * Factory class for source and sink data objects
+ * 
+ * @author Steven Arzt
+ */
 public class SourceSinkFactory {
 
 	private final int summaryAPLength;
