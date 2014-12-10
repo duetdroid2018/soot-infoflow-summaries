@@ -128,15 +128,13 @@ public class FieldToParaTests extends TestHelper {
 		assertEquals(1, flow.size());
 	}
 	
-	@Test//(timeout = 100000)
+	@Test(timeout = 100000)
 	public void listFieldToParameter2() {
-		for (int i = 0; i < 10; i++) {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void listParameter2(java.util.List)>";
 		Set<MethodFlow> flow = createSummaries(mSig);
 		System.out.println(flow);
 		assertTrue(containsFlow(flow, Field, new String[] { OBJ_FIELD }, Parameter, 0, new String[] { ALIST_DATA }));
 		assertEquals(1, flow.size());
-		}
 	}
 	
 	@Test(timeout = 100000)

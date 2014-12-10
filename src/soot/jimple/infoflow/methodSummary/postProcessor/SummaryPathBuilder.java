@@ -9,6 +9,7 @@ import soot.jimple.infoflow.data.Abstraction;
 import soot.jimple.infoflow.data.AccessPath;
 import soot.jimple.infoflow.data.SourceContextAndPath;
 import soot.jimple.infoflow.data.pathBuilders.ContextSensitivePathBuilder;
+import soot.jimple.infoflow.results.ResultSinkInfo;
 import soot.jimple.infoflow.results.ResultSourceInfo;
 import soot.jimple.infoflow.solver.IInfoflowCFG;
 import soot.jimple.infoflow.source.SourceInfo;
@@ -20,7 +21,7 @@ import soot.jimple.infoflow.source.SourceInfo;
  */
 public class SummaryPathBuilder extends ContextSensitivePathBuilder {
 	
-	private Set<SummarySourceInfo> sourceInfos = new HashSet<SummarySourceInfo>();
+	private Set<SummaryResultInfo> resultInfos = new HashSet<SummaryResultInfo>();
 	
 	/**
 	 * Extended version of the {@link SourceInfo} class that also allows to
@@ -49,6 +50,45 @@ public class SummaryPathBuilder extends ContextSensitivePathBuilder {
 	}
 	
 	/**
+	 * Data class containing a single source-to-sink connection produced by
+	 * FlowDroid
+	 * 
+	 * @author Steven Arzt
+	 */
+	public class SummaryResultInfo {
+		private final SummarySourceInfo sourceInfo;
+		private final ResultSinkInfo sinkInfo;
+		
+		/**
+		 * Creates a new instance of the {@link SummaryResultInfo} class
+		 * @param sourceInfo The source information object
+		 * @param sinkInfo The sink information object
+		 */
+		public SummaryResultInfo(SummarySourceInfo sourceInfo,
+				ResultSinkInfo sinkInfo) {
+			this.sourceInfo = sourceInfo;
+			this.sinkInfo = sinkInfo;
+		}
+		
+		/**
+		 * Gets the source information for this source-to-sink connection
+		 * @return The source information for this source-to-sink connection
+		 */
+		public SummarySourceInfo getSourceInfo() {
+			return this.sourceInfo;
+		}
+		
+		/**
+		 * Gets the sink information for this source-to-sink connection
+		 * @return The sink information for this source-to-sink connection
+		 */
+		public ResultSinkInfo getSinkInfo() {
+			return this.sinkInfo;
+		}
+		
+	}
+	
+	/**
 	 * Creates a new instance of the SummaryPathBuilder class 
 	 * @param icfg The interprocedural control-flow graph to use
 	 * @param maxThreadNum The maximum number of threads to use
@@ -69,7 +109,10 @@ public class SummaryPathBuilder extends ContextSensitivePathBuilder {
 				abs.getSourceContext().getUserData(),
 				scap.getPath(),
 				scap.getAbstractionPath());
-		this.sourceInfos.add(ssi);
+		ResultSinkInfo rsi = new ResultSinkInfo(
+				scap.getAccessPath(),
+				scap.getStmt());
+		this.resultInfos.add(new SummaryResultInfo(ssi, rsi));
 		return true;
 	}
 	
@@ -78,15 +121,16 @@ public class SummaryPathBuilder extends ContextSensitivePathBuilder {
 	 */
 	public void clear() {
 		getResults().clear();
-		sourceInfos.clear();
+		resultInfos.clear();
 	}
 	
 	/**
 	 * Gets the source information and the reconstructed paths
-	 * @return The found sources and the respective propagation paths
+	 * @return The found source-to-sink connections and the respective
+	 * propagation paths
 	 */
-	public Set<SummarySourceInfo> getSourceInfos() {
-		return this.sourceInfos;
+	public Set<SummaryResultInfo> getResultInfos() {
+		return this.resultInfos;
 	}
 
 }

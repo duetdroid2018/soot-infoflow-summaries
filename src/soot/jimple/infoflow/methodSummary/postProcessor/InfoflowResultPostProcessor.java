@@ -27,6 +27,7 @@ import soot.jimple.infoflow.methodSummary.data.FlowSource;
 import soot.jimple.infoflow.methodSummary.data.MethodFlow;
 import soot.jimple.infoflow.methodSummary.data.factory.SourceSinkFactory;
 import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
+import soot.jimple.infoflow.methodSummary.postProcessor.SummaryPathBuilder.SummaryResultInfo;
 import soot.jimple.infoflow.methodSummary.postProcessor.SummaryPathBuilder.SummarySourceInfo;
 import soot.jimple.infoflow.solver.IInfoflowCFG;
 import soot.jimple.infoflow.util.BaseSelector;
@@ -78,14 +79,27 @@ public class InfoflowResultPostProcessor {
 			pathBuilder.computeTaintPaths(Collections.singleton(new AbstractionAtSink(a,
 					a.getCurrentStmt())));
 			
-			for (SummarySourceInfo si : pathBuilder.getSourceInfos()) {
+			for (SummaryResultInfo si : pathBuilder.getResultInfos()) {
+				final AccessPath sourceAP = si.getSourceInfo().getAccessPath();
+				final AccessPath sinkAP = si.getSinkInfo().getAccessPath();
+				
 				// Check that we don't get any weird results
-				if (si.getAccessPath() == null)
+				if (sourceAP == null || sinkAP == null)
 					throw new RuntimeException("Invalid access path");
+				
+				/*
+				if ((a.toString().contains("size") || a.toString().contains("modCount"))
+						&& si.getPath().toString().contains("elementData")) {
+					pathBuilder.clear();
+					pathBuilder.computeTaintPaths(Collections.singleton(new AbstractionAtSink(a,
+							a.getCurrentStmt())));
+					System.out.println("x");
+				}
+				*/
 										
 				// Process the flow from this source
-				if (!a.getAccessPath().equals(si.getAccessPath()))
-					processFlowSource(flows, m, a, stmt, si);
+				if (!sinkAP.equals(sourceAP))
+					processFlowSource(flows, m, sinkAP, stmt, si.getSourceInfo());
 			}
 		}
 		
@@ -98,13 +112,13 @@ public class InfoflowResultPostProcessor {
 	 * Processes data from a given flow source that has arrived at a given
 	 * statement
 	 * @param flows The flows object to which to add the newly found flow
-	 * @param a The abstraction that has reached the given statement
+	 * @param ap The access path that has reached the given statement
 	 * @param m The method in which the flow has been found
 	 * @param stmt The statement at which the flow has arrived
 	 * @param source The source from which the flow originated
 	 */
 	private void processFlowSource(MethodSummaries flows, final SootMethod m,
-			Abstraction a, Stmt stmt, SummarySourceInfo sourceInfo) {
+			AccessPath ap, Stmt stmt, SummarySourceInfo sourceInfo) {
 		// Get the source information for this abstraction
 		@SuppressWarnings("unchecked")
 		List<FlowSource> sources = (List<FlowSource>) sourceInfo.getUserData();
@@ -118,16 +132,16 @@ public class InfoflowResultPostProcessor {
 			return;
 		
 		// We need to reconstruct the original source access path
-		AccessPath sourceAP = reconstructSourceAP(a, sourceInfo.getAbstractionPath());
+		AccessPath sourceAP = reconstructSourceAP(ap, sourceInfo.getAbstractionPath());
 		flowSource = sourceSinkFactory.createSource(flowSource.getType(),
 				flowSource.getParameterIndex(), sourceAP);
 		
 		// Depending on the statement at which the flow ended, we need to create
 		// a different type of summary
 		if (cfg.isExitStmt(stmt))
-			processAbstractionAtReturn(flows, a, m, flowSource, stmt, sourceAP);
+			processAbstractionAtReturn(flows, ap, m, flowSource, stmt, sourceAP);
 		else if (cfg.isCallStmt(stmt))
-			processAbstractionAtCall(flows, a, flowSource, stmt);
+			processAbstractionAtCall(flows, ap, flowSource, stmt);
 		else
 			throw new RuntimeException("Invalid statement for flow "
 					+ "termination: " + stmt);
@@ -147,30 +161,29 @@ public class InfoflowResultPostProcessor {
 	 * 
 	 * We reconstruct that the value being returned is in fact this.a.x.y.
 	 * 
-	 * @param a The final access path at the end of the propagation path
+	 * @param sinkAP The final access path at the end of the propagation path
 	 * @param path The propagation path
 	 * @return The fully reconstructed access path
 	 */
-	private AccessPath reconstructSourceAP(Abstraction a, List<Abstraction> path) {
-		if (a.toString().contains("<java.util.AbstractList: int modCount>"))
-			System.out.println("x");
-		
+	private AccessPath reconstructSourceAP(AccessPath sinkAP, List<Abstraction> path) {
 		// TODO: Static fields?
 		
 		List<SootMethod> callees = new ArrayList<>();
-		AccessPath curAP = a.getAccessPath();
+		AccessPath curAP = sinkAP;
 		for (int pathIdx = path.size() - 1; pathIdx >= 0; pathIdx--) {
 			final Abstraction abs = path.get(pathIdx);
 			final Stmt stmt = abs.getCurrentStmt();
 			final Stmt callSite = abs.getCorrespondingCallSite();
 			boolean matched = false;
-						
+			
 			// In case of a call-to-return edge, we have no information about
 			// what happened in the callee, so we take the incoming access path
 			if (stmt.containsInvokeExpr()) {
 				if (callSite == stmt) {
-					curAP = (pathIdx > 0) ? path.get(pathIdx - 1).getAccessPath()
-							: abs.getAccessPath();
+					// only change base local
+					Value newBase = (pathIdx > 0) ? path.get(pathIdx - 1).getAccessPath().getPlainValue()
+							: abs.getAccessPath().getPlainValue();
+					curAP = curAP.copyWithNewValue(newBase);
 					matched = true;
 				}
 			}
@@ -300,11 +313,11 @@ public class InfoflowResultPostProcessor {
 	 * Processes an abstraction at a method call. This is a partial summary that
 	 * ends at a gap which can for instance be a callback into unknown code.
 	 * @param flows The flows object to which to add the newly found flow
-	 * @param a The abstraction that has reached the method call
+	 * @param apAtCall The access path that has reached the method call
 	 * @param source The source at which the data flow started
 	 * @param stmt The statement at which the call happened
 	 */
-	private void processAbstractionAtCall(MethodSummaries flows, Abstraction a,
+	private void processAbstractionAtCall(MethodSummaries flows, AccessPath apAtCall,
 			FlowSource source, Stmt stmt) {
 		System.out.println("x");
 	}
@@ -313,18 +326,18 @@ public class InfoflowResultPostProcessor {
 	 * Processes an abstraction at the end of a method. This gives full
 	 * summaries for the whole method
 	 * @param flows The flows object to which to add the newly found flow
-	 * @param a The abstraction that has reached the end of the method
+	 * @param apAtReturn The access path that has reached the end of the method
 	 * @param m The method in which the flow has been found
 	 * @param source The source at which the data flow started
 	 * @param stmt The statement at which the flow left the method
 	 */
-	private void processAbstractionAtReturn(MethodSummaries flows, Abstraction a,
+	private void processAbstractionAtReturn(MethodSummaries flows, AccessPath apAtReturn,
 			SootMethod m, FlowSource source, Stmt stmt, AccessPath sourceAP) {
 		// Was this the value returned by the method?
 		if (stmt instanceof ReturnStmt) {
 			ReturnStmt retStmt = (ReturnStmt) stmt;
-			if (a.getAccessPath().getPlainValue() == retStmt.getOp()) {
-				FlowSink sink = sourceSinkFactory.createReturnSink(a.getAccessPath());
+			if (apAtReturn.getPlainValue() == retStmt.getOp()) {
+				FlowSink sink = sourceSinkFactory.createReturnSink(apAtReturn);
 				addFlow(source, sink, flows);
 			}
 		}
@@ -332,15 +345,15 @@ public class InfoflowResultPostProcessor {
 		// The sink may be a parameter
 		for (int i = 0; i < m.getParameterCount(); i++) {
 			Local p = m.getActiveBody().getParameterLocal(i);
-			if (a.getAccessPath().getPlainValue() == p) {
-				FlowSink sink = sourceSinkFactory.createParameterSink(i, a.getAccessPath());
+			if (apAtReturn.getPlainValue() == p) {
+				FlowSink sink = sourceSinkFactory.createParameterSink(i, apAtReturn);
 				addFlow(source, sink, flows);
 			}
 		}
 
 		// The sink may be a local field
-		if (!m.isStatic() && a.getAccessPath().getPlainValue() == m.getActiveBody().getThisLocal()) {
-			FlowSink sink = sourceSinkFactory.createFieldSink(a.getAccessPath());
+		if (!m.isStatic() && apAtReturn.getPlainValue() == m.getActiveBody().getThisLocal()) {
+			FlowSink sink = sourceSinkFactory.createFieldSink(apAtReturn);
 			addFlow(source, sink, flows);
 		}
 	}
