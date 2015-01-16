@@ -6,7 +6,6 @@ import static soot.jimple.infoflow.methodSummary.data.SourceSinkType.Parameter;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.junit.Ignore;
@@ -16,7 +15,7 @@ import soot.jimple.infoflow.methodSummary.data.MethodFlow;
 import soot.jimple.infoflow.methodSummary.generator.SummaryGenerator;
 
 public class ParaToParaTest extends TestHelper {
-	protected static Map<String, Set<MethodFlow>> flows;
+	
 	static final String className = "soot.jimple.infoflow.test.methodSummary.ParaToParaFlows";
 
 	@Test(timeout = 100000)
@@ -27,7 +26,7 @@ public class ParaToParaTest extends TestHelper {
 		assertEquals(1,flow.size());
 	}
 
-	@Test(timeout = 100000)
+	@Test//(timeout = 100000)
 	public void arrayRec() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToParaFlows: void arrayRec(java.lang.Object,java.lang.Object[],int)>";
 		Set<MethodFlow> flow = createSummaries(mSig);

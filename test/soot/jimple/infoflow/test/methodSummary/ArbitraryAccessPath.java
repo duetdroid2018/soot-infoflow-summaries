@@ -103,7 +103,6 @@ public class ArbitraryAccessPath {
 		data2.next.next.next = data.next.next.next;
 	}
 	public void fieldToField2(){
-		//sinkT1.t2.o = sourceT1.t2.o;
 		data2.next = data;
 	}
 	

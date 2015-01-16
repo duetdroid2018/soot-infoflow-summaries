@@ -6,7 +6,6 @@ import static soot.jimple.infoflow.methodSummary.data.SourceSinkType.Return;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.junit.Test;
@@ -15,9 +14,9 @@ import soot.jimple.infoflow.methodSummary.data.MethodFlow;
 import soot.jimple.infoflow.methodSummary.generator.SummaryGenerator;
 
 public class FieldToReturnTest extends TestHelper{
-	protected static Map<String, Set<MethodFlow>> flows;
-	static boolean executeSummary = true;
-	static final String className = "soot.jimple.infoflow.test.methodSummary.FieldToReturn"; 
+	
+	static final String className = "soot.jimple.infoflow.test.methodSummary.FieldToReturn";
+	
 	static final String INT_FIELD = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: int intField>";
 	static final String OBJ_FIELD = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.lang.Object obField>";
 	static final String LIST_FIELD = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.util.LinkedList listField>";
@@ -50,10 +49,16 @@ public class FieldToReturnTest extends TestHelper{
 	}
 	
 	@Test(timeout = 100000)
-	public void NotWfieldToReturn4() {
+	public void fieldToReturn4() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.lang.Object fieldToReturn4()>";
 		Set<MethodFlow> flow = createSummaries(mSig);
-		assertTrue(containsFlow(flow, Field,new String[] {LIST_FIELD,"<java.util.LinkedList: java.util.LinkedList$Node last>","<java.util.LinkedList$Node: java.lang.Object item>"}, Return,new String[] {}));
+		
+		boolean hasFirstFlow = containsFlow(flow, Field,new String[] {LIST_FIELD,"<java.util.LinkedList: java.util.LinkedList$Node first>",
+				"<java.util.LinkedList$Node: java.lang.Object item>"}, Return,new String[] {});
+		boolean hasLastFlow = containsFlow(flow, Field,new String[] {LIST_FIELD,"<java.util.LinkedList: java.util.LinkedList$Node last>",
+				"<java.util.LinkedList$Node: java.lang.Object item>"}, Return,new String[] {});
+		
+		assertTrue(hasFirstFlow || hasLastFlow);
 		assertTrue(flow.size() == 1);
 	}
 	

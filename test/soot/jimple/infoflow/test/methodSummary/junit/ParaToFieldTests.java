@@ -7,7 +7,6 @@ import static soot.jimple.infoflow.methodSummary.data.SourceSinkType.Parameter;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.Map;
 import java.util.Set;
 
 import org.junit.Ignore;
@@ -17,9 +16,9 @@ import soot.jimple.infoflow.methodSummary.data.MethodFlow;
 import soot.jimple.infoflow.methodSummary.generator.SummaryGenerator;
 
 public class ParaToFieldTests extends TestHelper {
-	protected static Map<String, Set<MethodFlow>> flows;
-	static boolean executeSummary = true;
+	
 	static final String className = "soot.jimple.infoflow.test.methodSummary.ParaToField";
+	
 	static final String LIST_ITEM[] = new String[]{"<soot.jimple.infoflow.test.methodSummary.ParaToField: java.util.List listField>","<java.util.LinkedList: java.util.LinkedList$Node first>","<java.util.LinkedList$Node: java.lang.Object item>"} ;
 	static final String DATA_FIELD = "<soot.jimple.infoflow.test.methodSummary.ParaToField: soot.jimple.infoflow.test.methodSummary.Data dataField>";
 	private static final String INT_FIELD = "<soot.jimple.infoflow.test.methodSummary.ParaToField: int intField>";
