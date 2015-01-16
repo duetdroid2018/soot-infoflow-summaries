@@ -14,7 +14,7 @@ public class ApiTestNotWorking extends ApiTestHelper{
 		
 	}
 	@Override
-	SummaryGenerator getSummary() {
+	protected  SummaryGenerator getSummary() {
 		SummaryGenerator sg = new SummaryGenerator();
 		List<String> sub = new LinkedList<String>();
 		sub.add("java.util.ArrayList");

@@ -263,6 +263,18 @@ public class SummaryGenerator {
 					return taintWrapper.isExclusive(stmt, taintedPath, icfg)
 							|| summaryWrapper.isExclusive(stmt, taintedPath, icfg);
 				}
+
+				@Override
+				public boolean supportsCallee(SootMethod method) {
+					return taintWrapper.supportsCallee(method)
+							|| summaryWrapper.supportsCallee(method);
+				}
+
+				@Override
+				public boolean supportsCallee(Stmt callSite, IInfoflowCFG icfg) {
+					return taintWrapper.supportsCallee(callSite, icfg)
+							|| summaryWrapper.supportsCallee(callSite, icfg);
+				}
 				
 			};
 			iFlow.setTaintWrapper(wrapper);

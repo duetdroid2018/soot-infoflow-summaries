@@ -38,4 +38,17 @@ public class SummaryGenerationTaintWrapper extends AbstractTaintWrapper {
 		return false;
 	}
 
+	@Override
+	public boolean supportsCallee(SootMethod method) {
+		// Callees are always theoretically supported
+		return true;
+	}
+
+	@Override
+	public boolean supportsCallee(Stmt callSite, IInfoflowCFG icfg) {
+		// We only wrap calls that have no callees
+		Collection<SootMethod> callees = icfg.getCalleesOfCallAt(callSite);
+		return callees == null || callees.isEmpty();
+	}
+
 }

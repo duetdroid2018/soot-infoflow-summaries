@@ -83,7 +83,7 @@ public class ParaToParaTest extends TestHelper {
 	}
 	
 	@Override
-	SummaryGenerator getSummary() {
+	protected SummaryGenerator getSummary() {
 		SummaryGenerator sg = new SummaryGenerator();
 		List<String> sub = new LinkedList<String>();
 		sub.add("java.util.LinkedList");
