@@ -26,36 +26,38 @@ public class FlowSink extends AbstractFlowSinkSource {
 		this.taintSubFields = taintSubFields;
 	}
 	
-	public boolean isReturn(){
-		return type().equals(SourceSinkType.Return);
+	public FlowSink(SourceSinkType type, String[] accessPath,
+			boolean taintSubFields2) {
+		super(type,-1,accessPath);
+		this.taintSubFields = taintSubFields2;
 	}
-	
+
 	public boolean taintSubFields(){
 		return taintSubFields;
 	}
 
-	@Override
-	public Map<String, String> xmlAttributes() {
-		Map<String, String> res = new HashMap<String, String>();
-		if (isParameter()) {
-			res.put(XMLConstants.ATTRIBUTE_FLOWTYPE, XMLConstants.VALUE_PARAMETER);
-			res.put(XMLConstants.ATTRIBUTE_PARAMTER_INDEX, getParameterIndex() + "");
-		}
-		else if (isField()) {
-			res.put(XMLConstants.ATTRIBUTE_FLOWTYPE, XMLConstants.VALUE_FIELD);
-			res.put(XMLConstants.ATTRIBUTE_FIELD, "(this)");
-		}
-		else if (isReturn())
-			res.put(XMLConstants.ATTRIBUTE_FLOWTYPE, XMLConstants.VALUE_RETURN);
-		else
-			throw new RuntimeException("Invalid source type");
-		
-		if(hasAccessPath())
-			res.put(XMLConstants.ATTRIBUTE_ACCESSPATH, getAccessPath().toString());
-		
-		res.put(XMLConstants.ATTRIBUTE_TAINT_SUB_FIELDS, taintSubFields() + "");
-		return res;
-	}
+//	@Override
+//	public Map<String, String> xmlAttributes() {
+//		Map<String, String> res = new HashMap<String, String>();
+//		if (isParameter()) {
+//			res.put(XMLConstants.ATTRIBUTE_FLOWTYPE, XMLConstants.VALUE_PARAMETER);
+//			res.put(XMLConstants.ATTRIBUTE_PARAMTER_INDEX, getParameterIndex() + "");
+//		}
+//		else if (isField()) {
+//			res.put(XMLConstants.ATTRIBUTE_FLOWTYPE, XMLConstants.VALUE_FIELD);
+//			res.put(XMLConstants.ATTRIBUTE_FIELD, "(this)");
+//		}
+//		else if (isReturn())
+//			res.put(XMLConstants.ATTRIBUTE_FLOWTYPE, XMLConstants.VALUE_RETURN);
+//		else
+//			throw new RuntimeException("Invalid source type");
+//		
+//		if(hasAccessPath())
+//			res.put(XMLConstants.ATTRIBUTE_ACCESSPATH, getAccessPath().toString());
+//		
+//		res.put(XMLConstants.ATTRIBUTE_TAINT_SUB_FIELDS, taintSubFields() + "");
+//		return res;
+//	}
 	
 	@Override
 	public String toString(){

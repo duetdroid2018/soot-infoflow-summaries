@@ -9,7 +9,6 @@ import java.util.Set;
 
 import soot.SootMethod;
 import soot.jimple.infoflow.methodSummary.data.MethodFlow;
-import soot.jimple.infoflow.methodSummary.xml.ISummaryReader;
 import soot.jimple.infoflow.methodSummary.xml.XMLReader;
 
 
@@ -19,7 +18,7 @@ import soot.jimple.infoflow.methodSummary.xml.XMLReader;
  */
 public class LazySummary {
 
-	private ISummaryReader reader;
+	private XMLReader reader;
 	private MethodSummaries flows = new MethodSummaries();
 	private Set<String> supportedClasses = new HashSet<String>();
 	private Set<String> loadableClasses = new HashSet<String>();
@@ -81,7 +80,7 @@ public class LazySummary {
 		for (File f : files) {
 			if (fileToClass(f).equals(clazz)) {
 				try {
-					flows.merge(reader.processXMLFile(f));
+					flows.merge(reader.read(f));
 					loadableClasses.remove(clazz);
 					supportedClasses.add(clazz);
 					//System.out.println();

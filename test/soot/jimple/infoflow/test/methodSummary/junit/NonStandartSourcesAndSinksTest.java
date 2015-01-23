@@ -13,6 +13,7 @@ import org.junit.Test;
 import soot.jimple.infoflow.Infoflow;
 import soot.jimple.infoflow.config.ConfigForTest;
 import soot.jimple.infoflow.entryPointCreators.DefaultEntryPointCreator;
+import soot.jimple.infoflow.methodSummary.data.factory.SourceSinkFactory;
 import soot.jimple.infoflow.methodSummary.handler.SummaryTaintPropagationHandler;
 import soot.jimple.infoflow.methodSummary.source.SummarySourceSinkManager;
 import soot.jimple.infoflow.source.ISourceSinkManager;
@@ -23,7 +24,7 @@ public class NonStandartSourcesAndSinksTest {
 	public static final String APICLASS ="soot.jimple.infoflow.test.methodSummary.ApiClass";
 	
 	private ISourceSinkManager createSourceSinkManger(String methodSig,String clz){
-		return new SummarySourceSinkManager(methodSig,5,false);
+		return new SummarySourceSinkManager(methodSig,new SourceSinkFactory(5));
 	}
 	
 	@Test

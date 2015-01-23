@@ -9,8 +9,8 @@ public class SummaryGeneratorFactory {
 	/**
 	 * summary generator settings
 	 */
-	private final int accessPathLength =2;
-	private final int summaryAPLength = 1;
+	private final int accessPathLength =3;
+	private final int summaryAPLength = 2;
 	private final boolean ignoreFlowsInSystemPackages = false;
 	private final boolean enableImplicitFlows = true;
 	private final boolean enableExceptionTracking = true;

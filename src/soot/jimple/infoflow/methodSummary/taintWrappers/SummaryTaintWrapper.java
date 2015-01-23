@@ -1,3 +1,4 @@
+
 package soot.jimple.infoflow.methodSummary.taintWrappers;
 
 import java.util.Collection;
@@ -12,6 +13,7 @@ import soot.SootClass;
 import soot.SootField;
 import soot.SootMethod;
 import soot.Value;
+import soot.jimple.Constant;
 import soot.jimple.DefinitionStmt;
 import soot.jimple.InstanceInvokeExpr;
 import soot.jimple.InvokeExpr;
@@ -32,34 +34,17 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 
 	public SummaryTaintWrapper(LazySummary flows) {
 		this.flows = flows;
-//		try {
-//			w = new EasyTaintWrapper(new File("EasyTaintWrapperSourceComplet.txt"));
-//		} catch (Exception e) {
-//
-//		}
 	}
 
 	@Override
 	public Set<AccessPath> getTaintsForMethod(Stmt stmt, AccessPath taintedPath, IInfoflowCFG icfg) {
 		// We always retain the incoming taint
-
 		Set<AccessPath> res = new HashSet<AccessPath>();
 		
-//		
-//		if(stmt.toString().contains("Object")){
-//			System.out.print("");
-//		}
-		
-		//res.add(taintedPath);
 		if(isExclusiveInternal(stmt, taintedPath, icfg)){
 			res.add(taintedPath);
-//			System.out.print("");
+
 		}else{
-//			Set<AccessPath> tmpRes = w.getTaintsForMethod(stmt, taintedPath, icfg);
-//			if(! (tmpRes.containsAll(res) && res.containsAll(tmpRes))){
-//				System.out.println("::" +stmt.toString());
-//				w.getTaintsForMethod(stmt, taintedPath, icfg);
-//			}
 			return res;
 		}
 		
@@ -122,12 +107,12 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 			return !flowSource.isField() || taintedPath.getTaintSubFields();
 
 		// if we have x.f....fn and the source is x.f'.f1'...f'n+1 and we dont taint sub, we cant have a match
-		if (taintedPath.getFieldCount() < flowSource.getFieldCount() && !taintedPath.getTaintSubFields())
+		if (taintedPath.getFieldCount() < flowSource.getAccessPathLenght() && !taintedPath.getTaintSubFields())
 			return false;
 
-		for (int i = 0; i < taintedPath.getFieldCount() && i < flowSource.getFieldCount(); i++) {
+		for (int i = 0; i < taintedPath.getFieldCount() && i < flowSource.getAccessPathLenght(); i++) {
 			SootField taintField = taintedPath.getFields()[i];
-			String sourceField = flowSource.getFields().get(i);
+			String sourceField = flowSource.getAccessPath()[i];
 			if (!sourceField.equals(taintField.toString()))
 				return false;
 		}
@@ -157,10 +142,12 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 	 *            , list of the field signatures to retriev
 	 * @return The Array of fields with the given signature if all exists, otherwise null
 	 */
-	private SootField[] safeGetFields(List<String> fieldSigs) {
-		SootField[] fields = new SootField[fieldSigs.size()];
-		for (int i = 0; i < fieldSigs.size(); i++) {
-			fields[i] = safeGetField(fieldSigs.get(i));
+	private SootField[] safeGetFields(String[] fieldSigs) {
+		if(fieldSigs == null || fieldSigs.length == 0)
+			return null;
+		SootField[] fields = new SootField[fieldSigs.length];
+		for (int i = 0; i < fieldSigs.length; i++) {
+			fields[i] = safeGetField(fieldSigs[i]);
 			if (fields[i] == null)
 				return null;
 		}
@@ -180,7 +167,7 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 					res.add(new AccessPath(defStmt.getLeftOp(), true));
 				}
 				if (flowSink.hasAccessPath()) {
-					SootField[] fields = safeGetFields(flowSink.getFields());
+					SootField[] fields = safeGetFields(flowSink.getAccessPath());
 					if (fields == null)
 						taintSubFields = true;
 					res.add(new AccessPath(defStmt.getLeftOp(), fields, taintSubFields));
@@ -193,7 +180,7 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 		else if (flowSink.isField() && stmt.containsInvokeExpr() && stmt.getInvokeExpr() instanceof InstanceInvokeExpr) {
 			// TODO check
 			InstanceInvokeExpr iinv = (InstanceInvokeExpr) stmt.getInvokeExpr();
-			SootField[] sinkFields = safeGetFields(flowSink.getFields());
+			SootField[] sinkFields = safeGetFields(flowSink.getAccessPath());
 			if (sinkFields == null) {
 				taintSubFields = true;
 			}
@@ -203,7 +190,7 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 		else if (flowSink.isParameter()) {
 			Value arg = stmt.getInvokeExpr().getArg(flowSink.getParameterIndex());
 			if (arg instanceof Local) {
-				res.add(new AccessPath(arg, safeGetFields(flowSink.getFields()), taintSubFields));
+				res.add(new AccessPath(arg, safeGetFields(flowSink.getAccessPath()), taintSubFields));
 			} else {
 				System.err.println("paramter is not a local " + arg);
 			}
@@ -249,6 +236,8 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 		boolean returnVal = false;
 		
 		SootMethod method = stmt.getInvokeExpr().getMethod();
+		if(method.getSignature().contains("List"))
+			System.out.println();
 		if(method.isConstructor() && method.getParameterCount() == 0)
 			return false;
 		if(method.getDeclaringClass().getName().equals("java.lang.Object") && method.getName().contains("init"))
@@ -298,6 +287,25 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 			}
 		}
 		return res;
+	}
+
+	@Override
+	public boolean supportsCallee(SootMethod method) {
+		boolean res = checkIsExclusiveForAMethod(method);
+		return res;
+	}
+
+	@Override
+	public boolean supportsCallee(Stmt callSite, IInfoflowCFG icfg) {
+		if (!callSite.containsInvokeExpr()
+				|| !supportsCallee(callSite.getInvokeExpr().getMethod()))
+			return false;
+		
+		// We need at least one non-constant argument
+		for (Value val : callSite.getInvokeExpr().getArgs())
+			if (!(val instanceof Constant))
+				return true;
+		return false;
 	}
 
 }
