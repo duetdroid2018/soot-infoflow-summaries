@@ -129,16 +129,18 @@ public class SummaryGenerator {
 			MethodSummaries classSummaries = new MethodSummaries();
 			for (String methodSig : entry.getValue()) {
 
-				if (!(methodSig.contains("add(") || methodSig.contains("get(")
-						|| methodSig.contains("iterator(")
-						|| methodSig.contains("subList(")
-						|| methodSig.contains("addElement(")
-						|| methodSig.contains("push(")
-						|| methodSig.contains("peek(") || methodSig
-							.contains("pop(")
-
-				))
-					continue;
+				
+				//TODO remove!
+//				if (!(methodSig.contains("add(") || methodSig.contains("get(")
+//						|| methodSig.contains("iterator(")
+//						|| methodSig.contains("subList(")
+//						|| methodSig.contains("addElement(")
+//						|| methodSig.contains("push(")
+//						|| methodSig.contains("peek(") || methodSig
+//							.contains("pop(")
+//
+//				))
+//					continue;
 
 				MethodSummaries newSums = createMethodSummary(classpath,
 						methodSig);

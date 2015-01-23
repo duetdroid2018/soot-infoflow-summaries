@@ -173,14 +173,15 @@ public class SummaryTaintWrapperTests {
 		final String sep = System.getProperty("path.separator");
 		File f = new File(".");
 		File testSrc1 = new File(f, "bin");
-		File testSrc2 = new File(f, "build" + File.separator + "classes");
+		File testSrc2 = new File(f, "testBin");
+		File testSrc3 = new File(f, "build" + File.separator + "classes");
 
-		if (!(testSrc1.exists() || testSrc2.exists())) {
+		if (!(testSrc1.exists() || testSrc2.exists() || testSrc3.exists())) {
 			fail("Test aborted - none of the test sources are available");
 		}
 
 		libPath = System.getProperty("java.home") + File.separator + "lib" + File.separator + "rt.jar";
-		appPath = testSrc1.getCanonicalPath() + sep + testSrc2.getCanonicalPath();
+		appPath = testSrc1.getCanonicalPath() + sep + testSrc2.getCanonicalPath() + sep + testSrc3.getCanonicalPath();
 	}
 
 }
