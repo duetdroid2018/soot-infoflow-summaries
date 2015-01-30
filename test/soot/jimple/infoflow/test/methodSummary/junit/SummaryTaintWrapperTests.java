@@ -103,7 +103,7 @@ public class SummaryTaintWrapperTests {
 	}
 	@Test
 	public void apl3NoFlow() {
-		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void apl3NoFlow()>");
+		testNoFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void apl3NoFlow()>");
 	}
 	@Test
 	public void apl3Flow() {
@@ -159,6 +159,7 @@ public class SummaryTaintWrapperTests {
 
 	protected Infoflow initInfoflow() throws FileNotFoundException, XMLStreamException {
 		Infoflow result = new Infoflow();
+		Infoflow.setUseRecursiveAccessPaths(false);
 		ConfigForTest testConfig = new ConfigForTest();
 		result.setSootConfig(testConfig);
 

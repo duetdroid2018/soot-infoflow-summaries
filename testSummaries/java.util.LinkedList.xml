@@ -1,1 +1,805 @@
-<?xml version="1.0" ?><methods><method id="&lt;java.util.LinkedList: boolean add(java.lang.Object)&gt;"><flows><flow><from sourceSinkType="Parameter" ParameterIndex="0"></from><to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true"></to></flow><flow><from sourceSinkType="Field"></from><to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true"></to></flow><flow><from sourceSinkType="Parameter" ParameterIndex="0" AccessPath="[&lt;java.util.LinkedList$Node: java.lang.Object item&gt;]"></from><to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true"></to></flow><flow><from sourceSinkType="Parameter" ParameterIndex="0"></from><to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.lang.Object item&gt;]" taintSubFields="true"></to></flow><flow><from sourceSinkType="Parameter" ParameterIndex="0" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]"></from><to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true"></to></flow><flow><from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]"></from><to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true"></to></flow><flow><from sourceSinkType="Parameter" ParameterIndex="0" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]"></from><to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true"></to></flow><flow><from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;]"></from><to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true"></to></flow><flow><from sourceSinkType="Parameter" ParameterIndex="0"></from><to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;]" taintSubFields="true"></to></flow><flow><from sourceSinkType="Field"></from><to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true"></to></flow><flow><from sourceSinkType="Parameter" ParameterIndex="0"></from><to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.lang.Object item&gt;]" taintSubFields="true"></to></flow><flow><from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;]"></from><to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true"></to></flow><flow><from sourceSinkType="Field"></from><to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;]" taintSubFields="true"></to></flow><flow><from sourceSinkType="Parameter" ParameterIndex="0" AccessPath="[&lt;java.util.LinkedList$Node: java.lang.Object item&gt;]"></from><to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true"></to></flow><flow><from sourceSinkType="Parameter" ParameterIndex="0"></from><to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true"></to></flow></flows></method><method id="&lt;java.util.LinkedList: java.util.Spliterator spliterator()&gt;"><flows><flow><from sourceSinkType="Field"></from><to sourceSinkType="Return" ReturnLocal="true" AccessPath="[&lt;java.util.LinkedList$LLSpliterator: java.util.LinkedList list&gt;]" taintSubFields="true"></to></flow></flows></method><method id="&lt;java.util.LinkedList: void push(java.lang.Object)&gt;"><flows><flow><from sourceSinkType="Field"></from><to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true"></to></flow><flow><from sourceSinkType="Field"></from><to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true"></to></flow><flow><from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;]"></from><to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true"></to></flow><flow><from sourceSinkType="Parameter" ParameterIndex="0" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]"></from><to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true"></to></flow><flow><from sourceSinkType="Parameter" ParameterIndex="0"></from><to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true"></to></flow><flow><from sourceSinkType="Parameter" ParameterIndex="0" AccessPath="[&lt;java.util.LinkedList$Node: java.lang.Object item&gt;]"></from><to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true"></to></flow><flow><from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;]"></from><to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true"></to></flow><flow><from sourceSinkType="Field"></from><to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;]" taintSubFields="true"></to></flow><flow><from sourceSinkType="Parameter" ParameterIndex="0" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]"></from><to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true"></to></flow><flow><from sourceSinkType="Parameter" ParameterIndex="0"></from><to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true"></to></flow><flow><from sourceSinkType="Parameter" ParameterIndex="0"></from><to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.lang.Object item&gt;]" taintSubFields="true"></to></flow><flow><from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]"></from><to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true"></to></flow><flow><from sourceSinkType="Parameter" ParameterIndex="0"></from><to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;]" taintSubFields="true"></to></flow><flow><from sourceSinkType="Parameter" ParameterIndex="0"></from><to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.lang.Object item&gt;]" taintSubFields="true"></to></flow><flow><from sourceSinkType="Parameter" ParameterIndex="0" AccessPath="[&lt;java.util.LinkedList$Node: java.lang.Object item&gt;]"></from><to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true"></to></flow></flows></method><method id="&lt;java.util.LinkedList: java.lang.Object get(int)&gt;"><flows><flow><from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.lang.Object item&gt;]"></from><to sourceSinkType="Return" ReturnLocal="true" taintSubFields="true"></to></flow><flow><from sourceSinkType="Parameter" ParameterIndex="0" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.lang.Object item&gt;]"></from><to sourceSinkType="Return" ReturnLocal="true" taintSubFields="true"></to></flow></flows></method></methods>
+<?xml version="1.0" ?>
+<methods>
+<method id="&lt;java.util.LinkedList: boolean add(java.lang.Object)&gt;">
+<flows>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="0" AccessPath="[&lt;java.util.LinkedList$Node: java.lang.Object item&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.lang.Object item&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="0" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="0">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.lang.Object item&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="0" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="0">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="0">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.lang.Object item&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="0" AccessPath="[&lt;java.util.LinkedList$Node: java.lang.Object item&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.lang.Object item&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="0" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="0" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="0" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.lang.Object item&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="0" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.lang.Object item&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="0">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+</flows>
+</method>
+<method id="&lt;java.util.LinkedList: java.util.Spliterator spliterator()&gt;">
+<flows>
+<flow>
+<from sourceSinkType="Field">
+</from>
+<to sourceSinkType="Return" ReturnLocal="true" AccessPath="[&lt;java.util.LinkedList$LLSpliterator: java.util.LinkedList list&gt;]" taintSubFields="true">
+</to>
+</flow>
+</flows>
+</method>
+<method id="&lt;java.util.LinkedList: java.lang.Object peek()&gt;">
+<flows>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.lang.Object item&gt;]">
+</from>
+<to sourceSinkType="Return" ReturnLocal="true" taintSubFields="true">
+</to>
+</flow>
+</flows>
+</method>
+<method id="&lt;java.util.LinkedList: java.lang.Object pop()&gt;">
+<flows>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.lang.Object item&gt;]">
+</from>
+<to sourceSinkType="Return" ReturnLocal="true" taintSubFields="true">
+</to>
+</flow>
+</flows>
+</method>
+<method id="&lt;java.util.LinkedList: void add(int,java.lang.Object)&gt;">
+<flows>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="1" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="1" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="1" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.lang.Object item&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.lang.Object item&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="1" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="1" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="1" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="1" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="1" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="1" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="1">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.lang.Object item&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="1">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="1" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.lang.Object item&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.lang.Object item&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="1" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="1">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.lang.Object item&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="1" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.lang.Object item&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="1">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="1">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="1" AccessPath="[&lt;java.util.LinkedList$Node: java.lang.Object item&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="1" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.lang.Object item&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="1" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="1" AccessPath="[&lt;java.util.LinkedList$Node: java.lang.Object item&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.lang.Object item&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="1" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="1" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="1" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.lang.Object item&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="1">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.lang.Object item&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="1" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="1" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="1">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="1" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="1" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.lang.Object item&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="1" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="1">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="1" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="1" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="1" AccessPath="[&lt;java.util.LinkedList$Node: java.lang.Object item&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.lang.Object item&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="1" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="1">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="1" AccessPath="[&lt;java.util.LinkedList$Node: java.lang.Object item&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.lang.Object item&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="1" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="1" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="1" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="1">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="1" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.lang.Object item&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+</flows>
+</method>
+<method id="&lt;java.util.LinkedList: void push(java.lang.Object)&gt;">
+<flows>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="0">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="0" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.lang.Object item&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="0" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.lang.Object item&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="0">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.lang.Object item&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="0" AccessPath="[&lt;java.util.LinkedList$Node: java.lang.Object item&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.lang.Object item&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="0">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="0" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="0" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="0">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.lang.Object item&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="0" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="0" AccessPath="[&lt;java.util.LinkedList$Node: java.lang.Object item&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.lang.Object item&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Parameter" ParameterIndex="0" AccessPath="[&lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node prev&gt;]" taintSubFields="true">
+</to>
+</flow>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]">
+</from>
+<to sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node last&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;, &lt;java.util.LinkedList$Node: java.util.LinkedList$Node next&gt;]" taintSubFields="true">
+</to>
+</flow>
+</flows>
+</method>
+<method id="&lt;java.util.LinkedList: java.lang.Object get(int)&gt;">
+<flows>
+<flow>
+<from sourceSinkType="Field" AccessPath="[&lt;java.util.LinkedList: java.util.LinkedList$Node first&gt;, &lt;java.util.LinkedList$Node: java.lang.Object item&gt;]">
+</from>
+<to sourceSinkType="Return" ReturnLocal="true" taintSubFields="true">
+</to>
+</flow>
+</flows>
+</method>
+</methods>

@@ -1,12 +1,26 @@
 package soot.jimple.infoflow.methodSummary.xml;
 
+import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.ATTRIBUTE_ACCESSPATH;
+import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.ATTRIBUTE_ERROR;
+import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.ATTRIBUTE_FLOWTYPE;
+import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.ATTRIBUTE_PARAMTER_INDEX;
+import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.ATTRIBUTE_RETURN;
+import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.ATTRIBUTE_TAINT_SUB_FIELDS;
+import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.ATTRIBUT_METHOD_SIG;
+import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.TREE_FLOW;
+import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.TREE_FLOWS;
+import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.TREE_METHOD;
+import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.TREE_METHODS;
+import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.TREE_SINK;
+import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.TREE_SOURCE;
+import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.VALUE_TRUE;
+
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
 import java.util.Map.Entry;
-import java.util.logging.FileHandler;
 import java.util.Set;
 
 import javax.xml.stream.XMLOutputFactory;
@@ -16,7 +30,6 @@ import javax.xml.stream.XMLStreamWriter;
 import soot.jimple.infoflow.methodSummary.data.AbstractFlowSinkSource;
 import soot.jimple.infoflow.methodSummary.data.MethodFlow;
 import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
-import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.*;
 
 public class XMLWriter  {
 	public XMLWriter(){

@@ -131,17 +131,18 @@ public class SummaryGenerator {
 
 				
 				//TODO remove!
-//				if (!(methodSig.contains("add(") || methodSig.contains("get(")
-//						|| methodSig.contains("iterator(")
-//						|| methodSig.contains("subList(")
-//						|| methodSig.contains("addElement(")
-//						|| methodSig.contains("push(")
-//						|| methodSig.contains("peek(") || methodSig
-//							.contains("pop(")
+//				if (!(methodSig.contains("iterator(") || methodSig.contains("listIterator(")
+//						//|| methodSig.contains("iterator(")
+//						//|| methodSig.contains("subList(")
+//						//|| methodSig.contains("addElement(")
+//						//|| methodSig.contains("push(")
+//						//|| methodSig.contains("peek(") || methodSig
+//						//.contains("pop(")
 //
 //				))
 //					continue;
-
+				//if (!(methodSig.contains("paraToVar2(") ))
+					//	continue;
 				MethodSummaries newSums = createMethodSummary(classpath,
 						methodSig);
 				if (handler != null)

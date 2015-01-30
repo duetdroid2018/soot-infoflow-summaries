@@ -15,7 +15,6 @@ import soot.jimple.infoflow.methodSummary.generator.SummaryGeneratorFactory;
 import soot.jimple.infoflow.methodSummary.xml.XMLWriter;
 
 class Main {
-	
 	final List<String> failedMethos = new LinkedList<>();
 	
 	public static void main(final String[] args) throws FileNotFoundException, XMLStreamException {
@@ -24,7 +23,7 @@ class Main {
 			printUsage();	
 			return;
 		}
-				
+		
 		// Collect the classes to be analyzed from our command line
 		final int offset = 2;
 		List<String> classesToAnalyze = new ArrayList<String>(args.length - offset);
