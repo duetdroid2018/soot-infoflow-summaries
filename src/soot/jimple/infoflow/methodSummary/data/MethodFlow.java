@@ -25,6 +25,21 @@ public class MethodFlow {
 		return to;
 	}
 	
+	/**
+	 * Checks whether the current flow is coarser than the given flow, i.e., if
+	 * all elements referenced by the given flow are also referenced by this flow
+	 * @param flow The flow with which to compare the current flow
+	 * @return True if the current flow is coarser than the given flow, otherwise
+	 * false
+	 */
+	public boolean isCoarserThan(MethodFlow flow) {
+		if (flow.equals(this))
+			return true;
+				
+		return this.from.isCoarserThan(flow.source())
+				&& this.to.isCoarserThan(flow.sink());
+	}
+	
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)

@@ -2,6 +2,7 @@ package soot.jimple.infoflow.methodSummary.postProcessor;
 
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -86,17 +87,7 @@ public class InfoflowResultPostProcessor {
 				// Check that we don't get any weird results
 				if (sourceAP == null || sinkAP == null)
 					throw new RuntimeException("Invalid access path");
-				
-				/*
-				if ((a.toString().contains("size") || a.toString().contains("modCount"))
-						&& si.getPath().toString().contains("elementData")) {
-					pathBuilder.clear();
-					pathBuilder.computeTaintPaths(Collections.singleton(new AbstractionAtSink(a,
-							a.getCurrentStmt())));
-					System.out.println("x");
-				}
-				*/
-										
+														
 				// Process the flow from this source
 				if (!sinkAP.equals(sourceAP))
 					processFlowSource(flows, m, sinkAP, stmt, si.getSourceInfo());
@@ -104,10 +95,37 @@ public class InfoflowResultPostProcessor {
 		}
 		
 		pathBuilder.shutdown();
+		
+		// Compact the flow set to remove paths that are over-approximations of
+		// other flows
+		compactFlowSet(flows);
+		
 		logger.info("Result processing finished");
 		return flows;
 	}
 	
+	/**
+	 * Compacts the flow set by removing flows that are over-approximations of
+	 * others
+	 * @param flows The flow set to compact
+	 */
+	private void compactFlowSet(MethodSummaries flows) {
+		for (Iterator<MethodFlow> flowIt = flows.iterator(); flowIt.hasNext(); ) {
+			MethodFlow flow = flowIt.next();
+			
+			// Check if there is a more precise flow
+			boolean hasMorePreciseFlow = false;
+			for (MethodFlow flow2 : flows)
+				if (flow != flow2 && flow.isCoarserThan(flow2)) {
+					flowIt.remove();
+					hasMorePreciseFlow = true;
+					break;
+				}
+			if (hasMorePreciseFlow)
+				continue;
+		}
+	}
+
 	/**
 	 * Processes data from a given flow source that has arrived at a given
 	 * statement
@@ -166,6 +184,13 @@ public class InfoflowResultPostProcessor {
 	 * @return The fully reconstructed access path
 	 */
 	private AccessPath reconstructSourceAP(AccessPath sinkAP, List<Abstraction> path) {
+		// Dump the path
+		/*
+		for (Abstraction abs : path)
+			System.out.println(abs.getCurrentStmt());
+		*/
+		
+		
 		// TODO: Static fields?
 		
 		List<SootMethod> callees = new ArrayList<>();
@@ -190,31 +215,32 @@ public class InfoflowResultPostProcessor {
 			
 			if (matched)
 				continue;
-			
-			if (stmt.containsInvokeExpr() && !callees.isEmpty()) {
+
+			// Our call stack may run empty if we have a follow-returns-past-seeds case
+			if (stmt.containsInvokeExpr() && !callees.isEmpty()/* && abs.isAbstractionActive()*/) {
+				// Forward propagation, backwards reconstruction: We leave
+				// methods when we reach the call site.
 				SootMethod callee = callees.remove(0);
 				
-				// Make sure that we don't end up with a senseless callee
-				if (!callee.getSubSignature().equals(stmt.getInvokeExpr().getMethod().getSubSignature()))
-					throw new RuntimeException("Invalid callee on stack"); 
-				
-				// Map the parameters back into the caller
-				for (int i = 0; i < stmt.getInvokeExpr().getArgCount(); i++) {
-					Local paramLocal = callee.getActiveBody().getParameterLocal(i);
-					if (paramLocal == curAP.getPlainValue()) {
-						curAP = curAP.copyWithNewValue(stmt.getInvokeExpr().getArg(i));
-						matched = true;
-					}
+				// Match the access path from the caller back into the callee
+				AccessPath newAP = mapAccessPathBackIntoCaller(curAP, stmt, callee);
+				if (newAP != null) {
+					curAP = newAP;
+					matched = true;
 				}
+			}
+			else if (callSite != null/* && abs.isAbstractionActive()*/) {
+				// Forward propagation, backwards reconstruction: We enter
+				// methods at the return site when we have a corresponding call site.
+				SootMethod callee = cfg.getMethodOf(stmt);
+				if (callees.isEmpty() || callee != callees.get(0))
+					callees.add(0, callee);
 				
-				// Map the "this" local back into the caller
-				if (!callee.isStatic() && stmt.getInvokeExpr() instanceof InstanceInvokeExpr) {
-					Local thisLocal = callee.getActiveBody().getThisLocal();
-					if (thisLocal == curAP.getPlainValue()) {
-						curAP = curAP.copyWithNewValue(((InstanceInvokeExpr)
-								stmt.getInvokeExpr()).getBase());
-						matched = true;
-					}
+				// Map the access path into the scope of the callee
+				AccessPath newAP = mapAccessPathIntoCallee(curAP, stmt, callSite, callee);
+				if (newAP != null) {
+					curAP = newAP;
+					matched = true;
 				}
 			}
 			else if (stmt instanceof AssignStmt) {
@@ -248,7 +274,7 @@ public class InfoflowResultPostProcessor {
 				else if (assignStmt.getLeftOp() instanceof InstanceFieldRef) {
 					InstanceFieldRef ifref = (InstanceFieldRef) assignStmt.getLeftOp();
 					if (ifref.getBase() == curAP.getPlainValue()
-							&& ifref.getField() == curAP.getFirstField()) {
+							&& (ifref.getField() == curAP.getFirstField() || curAP.isLocal())) {
 						curAP = curAP.copyWithNewValue(assignStmt.getRightOp(), null, true);
 						matched = true;
 					}
@@ -269,44 +295,95 @@ public class InfoflowResultPostProcessor {
 				}
 				
 			}
-			else if (callSite != null) {
-				SootMethod callee = cfg.getMethodOf(stmt);
-				callees.add(0, callee);
-				
-				// Map the return value back into the scope of the callee
-				if (stmt instanceof ReturnStmt) {
-					ReturnStmt retStmt = (ReturnStmt) stmt;
-					if (callSite instanceof AssignStmt
-							&& ((AssignStmt) callSite).getLeftOp() == curAP.getPlainValue()) {
-						curAP = curAP.copyWithNewValue(retStmt.getOp());
-						matched = true;
-					}
-				}
-								
-				// Map the "this" fields into the callee
-				if (!callee.isStatic() && callSite.getInvokeExpr() instanceof InstanceInvokeExpr) {
-					InstanceInvokeExpr iiExpr = (InstanceInvokeExpr) callSite.getInvokeExpr();
-					if (iiExpr.getBase() == curAP.getPlainValue()) {
-						Local thisLocal = callee.getActiveBody().getThisLocal();
-						curAP = curAP.copyWithNewValue(thisLocal);
-						matched = true;
-					}
-				}
-				
-				// Map the parameters into the callee. Note that parameters as
-				// such cannot return taints from methods, only fields reachable
-				// through them
-				if (!curAP.isLocal())
-					for (int i = 0; i < callSite.getInvokeExpr().getArgCount(); i++) {
-						if (callSite.getInvokeExpr().getArg(i) == curAP.getPlainValue()) {
-							Local paramLocal = callee.getActiveBody().getParameterLocal(i);
-							curAP = curAP.copyWithNewValue(paramLocal);
-							matched = true;
-						}
-					}
-			}
 		}
 		return curAP;
+	}
+	
+	/**
+	 * Maps an access path from a call site into the respective callee
+	 * @param curAP The current access path in the scope of the caller
+	 * @param stmt The statement entering the callee
+	 * @param callSite The call site corresponding to the callee
+	 * @param callee The callee to enter
+	 * @return The new callee-side access path if it exists, otherwise null
+	 * if the given access path has no corresponding AP in the scope of the
+	 * callee.
+	 */
+	private AccessPath mapAccessPathIntoCallee(AccessPath curAP,
+			final Stmt stmt, final Stmt callSite, SootMethod callee) {
+		boolean matched = false;
+		
+		// Map the return value into the scope of the callee
+		if (stmt instanceof ReturnStmt) {
+			ReturnStmt retStmt = (ReturnStmt) stmt;
+			if (callSite instanceof AssignStmt
+					&& ((AssignStmt) callSite).getLeftOp() == curAP.getPlainValue()) {
+				curAP = curAP.copyWithNewValue(retStmt.getOp());
+				matched = true;
+			}
+		}
+						
+		// Map the "this" fields into the callee
+		if (!callee.isStatic() && callSite.getInvokeExpr() instanceof InstanceInvokeExpr) {
+			InstanceInvokeExpr iiExpr = (InstanceInvokeExpr) callSite.getInvokeExpr();
+			if (iiExpr.getBase() == curAP.getPlainValue()) {
+				Local thisLocal = callee.getActiveBody().getThisLocal();
+				curAP = curAP.copyWithNewValue(thisLocal);
+				matched = true;
+			}
+		}
+		
+		// Map the parameters into the callee. Note that parameters as
+		// such cannot return taints from methods, only fields reachable
+		// through them
+		if (!curAP.isLocal())
+			for (int i = 0; i < callSite.getInvokeExpr().getArgCount(); i++) {
+				if (callSite.getInvokeExpr().getArg(i) == curAP.getPlainValue()) {
+					Local paramLocal = callee.getActiveBody().getParameterLocal(i);
+					curAP = curAP.copyWithNewValue(paramLocal);
+					matched = true;
+				}
+			}
+		
+		return matched ? curAP : null;
+	}
+
+	/**
+	 * Matches an access path from the scope of the callee back into the scope
+	 * of the caller
+	 * @param curAP The access path to map
+	 * @param stmt The call statement
+	 * @param callee The callee from which we return
+	 * @return The new access path in the scope of the caller if applicable,
+	 * null if there is no corresponding access path in the caller.
+	 */
+	private AccessPath mapAccessPathBackIntoCaller(AccessPath curAP,
+			final Stmt stmt, SootMethod callee) {
+		boolean matched = false;
+		
+		// Make sure that we don't end up with a senseless callee
+		if (!callee.getSubSignature().equals(stmt.getInvokeExpr().getMethod().getSubSignature()))
+			throw new RuntimeException("Invalid callee on stack"); 
+		
+		// Map the parameters back into the caller
+		for (int i = 0; i < stmt.getInvokeExpr().getArgCount(); i++) {
+			Local paramLocal = callee.getActiveBody().getParameterLocal(i);
+			if (paramLocal == curAP.getPlainValue()) {
+				curAP = curAP.copyWithNewValue(stmt.getInvokeExpr().getArg(i));
+				matched = true;
+			}
+		}
+		
+		// Map the "this" local back into the caller
+		if (!callee.isStatic() && stmt.getInvokeExpr() instanceof InstanceInvokeExpr) {
+			Local thisLocal = callee.getActiveBody().getThisLocal();
+			if (thisLocal == curAP.getPlainValue()) {
+				curAP = curAP.copyWithNewValue(((InstanceInvokeExpr)
+						stmt.getInvokeExpr()).getBase());
+				matched = true;
+			}
+		}
+		return matched ? curAP : null;
 	}
 
 	/**

@@ -19,6 +19,32 @@ public abstract class AbstractFlowSinkSource {
 		this.accessPath = accessPath;
 	}
 		
+	/**
+	 * Checks whether the current source or sink is coarser than the given one,
+	 * i.e., if all elements referenced by the given source or sink are also
+	 * referenced by this one
+	 * @param src The source or sink with which to compare the current one
+	 * @return True if the current source or sink is coarser than the given one,
+	 * otherwise false
+	 */
+	public boolean isCoarserThan(AbstractFlowSinkSource other) {
+		if (this.equals(other))
+			return true;
+		
+		if (this.type != other.type)
+			return false;
+		if (this.parameterIdx != other.parameterIdx)
+			return false;
+		if (this.accessPath != null && other.accessPath != null) {
+			if (this.accessPath.length > other.accessPath.length)
+				return false;
+			for (int i = 0; i < this.accessPath.length; i++)
+				if (!this.accessPath[i].equals(other.accessPath[i]))
+					return false;
+		}
+		return true;
+	}
+	
 	public SourceSinkType type(){
 		return type;
 	}

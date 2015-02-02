@@ -9,7 +9,6 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import soot.jimple.infoflow.methodSummary.data.MethodFlow;
@@ -105,11 +104,13 @@ public class ParaToFieldTests extends TestHelper {
 		Set<MethodFlow> flow = createSummaries(mSig);
 		
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,new String[] {INT_FIELD}));
-		assertTrue(containsFlow(flow, Parameter,1,new String[] {}, Field,new String[] {OBJECT_FIELD}));
-		assertTrue(containsFlow(flow, Parameter,1,new String[] {}, Field,new String[] {OBJ_ARRAY_FIELD}));
+		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,new String[] {DATA_FIELD,DATACLASS_INT_FIELD}));	
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,new String[] {IARRAY_FIELD}));
-		assertTrue(containsFlow(flow, Parameter,1,new String[] {}, Field,new String[] {LIST_FIELD,LINKEDLIST_FIRST,LINKEDLIST_ITEM}));
+		assertTrue(containsFlow(flow, Parameter,1,new String[] {}, Field,new String[] {OBJECT_FIELD}));
 		assertTrue(containsFlow(flow, Parameter,1,new String[] {}, Field,new String[] {DATA_FIELD,DATACLASS_OBJECT_FIELD}));	
+		assertTrue(containsFlow(flow, Parameter,1,new String[] {}, Field,new String[] {OBJ_ARRAY_FIELD}));
+		assertTrue(containsFlow(flow, Parameter,1,new String[] {}, Field,new String[] {LIST_FIELD,LINKEDLIST_FIRST,LINKEDLIST_ITEM}));
+		assertTrue(containsFlow(flow, Parameter,1,new String[] {}, Field,new String[] {LIST_FIELD,LINKEDLIST_LAST,LINKEDLIST_ITEM}));
 		assertEquals(9,flow.size());
 	}
 
@@ -127,22 +128,7 @@ public class ParaToFieldTests extends TestHelper {
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,new String[] {IARRAY_FIELD}));
 		assertEquals(9,flow.size());
 	}
-
-	@Test(timeout = 300000)
-	public void dataAndListParameterNotCompled() {
-		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToField: void dataAndList(soot.jimple.infoflow.test.methodSummary.Data,java.util.List)>";
-		Set<MethodFlow> flow = createSummaries(mSig);
-		
-		assertTrue(containsFlow(flow, Parameter,0,new String[] {DATACLASS_INT_FIELD}, Field,new String[] {INT_FIELD}));
-		assertTrue(containsFlow(flow, Parameter,0,new String[] {DATACLASS_OBJECT_FIELD}, Field,new String[] {DATA_FIELD,DATACLASS_OBJECT_FIELD}));
-		assertTrue(containsFlow(flow, Parameter,0,new String[] {DATACLASS_INT_FIELD}, Field,new String[] {DATA_FIELD,DATACLASS_INT_FIELD}));
-		//assertTrue(containsFlow(flow, Parameter,1,new String[] {LINKEDLIST_FIRST}, Field,new String[] {OBJECT_FIELD}));
-		assertTrue(containsFlow(flow, Parameter,0,new String[] {DATACLASS_OBJECT_FIELD}, Field,new String[] {OBJ_ARRAY_FIELD}));
-		assertTrue(containsFlow(flow, Parameter,0,new String[] {DATACLASS_INT_FIELD}, Field,new String[] {IARRAY_FIELD}));	
-		assertEquals(6,flow.size());
-	}
 	
-	@Ignore //We dont identify list.first.item as a source. that is because first = null
 	@Test(timeout = 300000)
 	public void dataAndListParameter() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToField: void dataAndList(soot.jimple.infoflow.test.methodSummary.Data,java.util.List)>";
@@ -153,25 +139,12 @@ public class ParaToFieldTests extends TestHelper {
 		
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {DATACLASS_OBJECT_FIELD}, Field,new String[] {OBJ_ARRAY_FIELD}));
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {DATACLASS_INT_FIELD}, Field,new String[] {IARRAY_FIELD}));
-		assertTrue(containsFlow(flow, Parameter,1,new String[] {LINKEDLIST_FIRST}, Field,new String[] {OBJECT_FIELD}));
+		
+		assertTrue(containsFlow(flow, Parameter,1,new String[] {LINKEDLIST_FIRST, LINKEDLIST_ITEM}, Field,new String[] {OBJECT_FIELD}));
+		
 		assertEquals(6,flow.size());
 	}
 
-	@Test(timeout = 400000)
-	public void dataAndListParameter2NotComplet() {
-		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToField: void dataAndList(soot.jimple.infoflow.test.methodSummary.Data,java.util.List)>";
-		Set<MethodFlow> flow = createSummaries(mSig);
-		
-		assertTrue(containsFlow(flow, Parameter,0,new String[] {DATACLASS_INT_FIELD}, Field,new String[] {INT_FIELD}));
-		assertTrue(containsFlow(flow, Parameter,0,new String[] {DATACLASS_INT_FIELD}, Field,new String[] {DATA_FIELD,DATACLASS_INT_FIELD}));
-		assertTrue(containsFlow(flow, Parameter,0,new String[] {DATACLASS_INT_FIELD}, Field,new String[] {IARRAY_FIELD}));
-		assertTrue(containsFlow(flow, Parameter,0,new String[] {DATACLASS_OBJECT_FIELD}, Field,new String[] {DATA_FIELD, DATACLASS_OBJECT_FIELD}));
-		assertTrue(containsFlow(flow, Parameter,0,new String[] {DATACLASS_OBJECT_FIELD}, Field,new String[] {OBJ_ARRAY_FIELD}));
-		
-		assertEquals(6,flow.size());
-	}
-	
-	@Ignore //LinkedList works that as parameter source because we have list.null.null and then the points to doesnt work correctly
 	@Test(timeout = 400000)
 	public void dataAndListParameter2() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToField: void dataAndList(soot.jimple.infoflow.test.methodSummary.Data,java.util.List)>";

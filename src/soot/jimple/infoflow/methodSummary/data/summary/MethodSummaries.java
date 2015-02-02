@@ -1,7 +1,9 @@
 package soot.jimple.infoflow.methodSummary.data.summary;
 
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -13,7 +15,7 @@ import soot.jimple.infoflow.util.ConcurrentHashSet;
  * 
  * @author Steven Arzt
  */
-public class MethodSummaries {
+public class MethodSummaries implements Iterable<MethodFlow> {
 	
 	private final Map<String, Set<MethodFlow>> flows;
 	
@@ -90,6 +92,43 @@ public class MethodSummaries {
 
 	public Map<String, Set<MethodFlow>> getFlows() {
 		return this.flows;
+	}
+
+	@Override
+	public Iterator<MethodFlow> iterator() {
+		return new Iterator<MethodFlow>() {
+			
+			private String curMethod = null;
+			private Iterator<Entry<String, Set<MethodFlow>>> flowIt = flows.entrySet().iterator();
+			private Iterator<MethodFlow> curMethodIt = null;
+
+			@Override
+			public boolean hasNext() {
+				return flowIt.hasNext()
+						|| (curMethodIt != null && curMethodIt.hasNext());
+			}
+
+			@Override
+			public MethodFlow next() {
+				if (curMethodIt != null && !curMethodIt.hasNext())
+					curMethodIt = null;
+				if (curMethodIt == null) {
+					Entry<String, Set<MethodFlow>> entry = flowIt.next();
+					curMethodIt = entry.getValue().iterator();
+					curMethod = entry.getKey();
+				}
+				return curMethodIt.next();
+			}
+
+			@Override
+			public void remove() {
+				curMethodIt.remove();
+				if (flows.get(curMethod).isEmpty()) {
+					flowIt.remove();
+					curMethodIt = null;
+				}
+			}
+		};
 	}
 	
 }

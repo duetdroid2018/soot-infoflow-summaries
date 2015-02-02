@@ -34,6 +34,21 @@ public class FlowSink extends AbstractFlowSinkSource {
 		return taintSubFields;
 	}
 
+	/**
+	 * Checks whether the current source or sink is coarser than the given one,
+	 * i.e., if all elements referenced by the given source or sink are also
+	 * referenced by this one
+	 * @param src The source or sink with which to compare the current one
+	 * @return True if the current source or sink is coarser than the given one,
+	 * otherwise false
+	 */
+	@Override
+	public boolean isCoarserThan(AbstractFlowSinkSource other) {
+		return super.isCoarserThan(other)
+				&& other instanceof FlowSink
+				&& this.taintSubFields;
+	}
+	
 	@Override
 	public Map<String, String> xmlAttributes() {
 		Map<String, String> res = new HashMap<String, String>();
