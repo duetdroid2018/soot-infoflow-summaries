@@ -33,5 +33,9 @@ public class XMLConstants {
 	
 	public static final String VALUE_TRUE = "true";
 	public static final String VALUE_FALSE = "false";
+
+	public static final String VALUE_PARAMETER = "parameter";
+	public static final String VALUE_FIELD = "field";
+	public static final String VALUE_RETURN = "return";
 	
 }

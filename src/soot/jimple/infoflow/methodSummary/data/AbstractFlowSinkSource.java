@@ -1,7 +1,10 @@
 package soot.jimple.infoflow.methodSummary.data;
 
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.Map;
+
+import soot.jimple.infoflow.methodSummary.xml.XMLConstants;
 
 /**
  * Data class which stores the data associated to a Sink or a Source of a method
@@ -121,6 +124,23 @@ public abstract class AbstractFlowSinkSource {
 		return true;
 	}
 	
-	public abstract Map<String, String> xmlAttributes();
+	public Map<String, String> xmlAttributes() {
+		Map<String, String> res = new HashMap<String, String>();
+		if (isParameter()) {
+			res.put(XMLConstants.ATTRIBUTE_FLOWTYPE, XMLConstants.VALUE_PARAMETER);
+			res.put(XMLConstants.ATTRIBUTE_PARAMTER_INDEX, getParameterIndex() + "");
+		}
+		else if (isField())
+			res.put(XMLConstants.ATTRIBUTE_FLOWTYPE, XMLConstants.VALUE_FIELD);
+		else if (isReturn())
+			res.put(XMLConstants.ATTRIBUTE_FLOWTYPE, XMLConstants.VALUE_RETURN);
+		else
+			throw new RuntimeException("Invalid source type");
+		
+		if(hasAccessPath())
+			res.put(XMLConstants.ATTRIBUTE_ACCESSPATH, getAccessPath().toString());
+		
+		return res;
+	}
 	
 }

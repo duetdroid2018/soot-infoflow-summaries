@@ -1,7 +1,6 @@
 package soot.jimple.infoflow.methodSummary.data;
 
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.Map;
 
 import soot.jimple.infoflow.methodSummary.xml.XMLConstants;
@@ -53,23 +52,7 @@ public class FlowSink extends AbstractFlowSinkSource {
 	
 	@Override
 	public Map<String, String> xmlAttributes() {
-		Map<String, String> res = new HashMap<String, String>();
-		if (isParameter()) {
-			res.put(XMLConstants.ATTRIBUTE_FLOWTYPE, XMLConstants.VALUE_PARAMETER);
-			res.put(XMLConstants.ATTRIBUTE_PARAMTER_INDEX, getParameterIndex() + "");
-		}
-		else if (isField()) {
-			res.put(XMLConstants.ATTRIBUTE_FLOWTYPE, XMLConstants.VALUE_FIELD);
-			res.put(XMLConstants.ATTRIBUTE_FIELD, "(this)");
-		}
-		else if (isReturn())
-			res.put(XMLConstants.ATTRIBUTE_FLOWTYPE, XMLConstants.VALUE_RETURN);
-		else
-			throw new RuntimeException("Invalid source type");
-		
-		if(hasAccessPath())
-			res.put(XMLConstants.ATTRIBUTE_ACCESSPATH, getAccessPath().toString());
-		
+		Map<String, String> res = super.xmlAttributes();
 		res.put(XMLConstants.ATTRIBUTE_TAINT_SUB_FIELDS, taintSubFields() + "");
 		return res;
 	}
