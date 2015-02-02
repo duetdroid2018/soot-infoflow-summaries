@@ -15,7 +15,7 @@ import soot.jimple.infoflow.methodSummary.data.MethodFlow;
 import soot.jimple.infoflow.methodSummary.data.SourceSinkType;
 import soot.jimple.infoflow.methodSummary.generator.SummaryGenerator;
 
-public class ArbitraryAccessPathTest  extends TestHelper{
+public class ArbitraryAccessPathTests  extends TestHelper{
 	
 	private static final String CLASS_NAME = "soot.jimple.infoflow.test.methodSummary.ArbitraryAccessPath";
 	

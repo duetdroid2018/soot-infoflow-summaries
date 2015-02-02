@@ -13,7 +13,7 @@ import org.junit.Test;
 import soot.jimple.infoflow.methodSummary.data.MethodFlow;
 import soot.jimple.infoflow.methodSummary.generator.SummaryGenerator;
 
-public class FieldToReturnTest extends TestHelper{
+public class FieldToReturnTests extends TestHelper{
 	
 	static final String className = "soot.jimple.infoflow.test.methodSummary.FieldToReturn";
 	

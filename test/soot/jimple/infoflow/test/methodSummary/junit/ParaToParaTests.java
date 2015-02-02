@@ -14,7 +14,7 @@ import org.junit.Test;
 import soot.jimple.infoflow.methodSummary.data.MethodFlow;
 import soot.jimple.infoflow.methodSummary.generator.SummaryGenerator;
 
-public class ParaToParaTest extends TestHelper {
+public class ParaToParaTests extends TestHelper {
 	
 	static final String className = "soot.jimple.infoflow.test.methodSummary.ParaToParaFlows";
 

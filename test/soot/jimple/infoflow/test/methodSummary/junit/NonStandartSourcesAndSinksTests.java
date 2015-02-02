@@ -18,7 +18,7 @@ import soot.jimple.infoflow.methodSummary.handler.SummaryTaintPropagationHandler
 import soot.jimple.infoflow.methodSummary.source.SummarySourceSinkManager;
 import soot.jimple.infoflow.source.ISourceSinkManager;
 
-public class NonStandartSourcesAndSinksTest {
+public class NonStandartSourcesAndSinksTests {
 	private static String appPath, libPath;
 	public static final String NON_STANDART_SOURCES_AND_SINKS ="soot.jimple.infoflow.test.NonStandartSourcesAndSinks";
 	public static final String APICLASS ="soot.jimple.infoflow.test.methodSummary.ApiClass";
