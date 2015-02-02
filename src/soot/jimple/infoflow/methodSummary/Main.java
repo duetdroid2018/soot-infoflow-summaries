@@ -12,11 +12,9 @@ import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
 import soot.jimple.infoflow.methodSummary.generator.IClassSummaryHandler;
 import soot.jimple.infoflow.methodSummary.generator.SummaryGenerator;
 import soot.jimple.infoflow.methodSummary.generator.SummaryGeneratorFactory;
-import soot.jimple.infoflow.methodSummary.xml.ISummaryWriter;
-import soot.jimple.infoflow.methodSummary.xml.WriterFactory;
+import soot.jimple.infoflow.methodSummary.xml.XMLWriter;
 
 class Main {
-	
 	final List<String> failedMethos = new LinkedList<>();
 	
 	public static void main(final String[] args) throws FileNotFoundException, XMLStreamException {
@@ -25,7 +23,7 @@ class Main {
 			printUsage();	
 			return;
 		}
-				
+		
 		// Collect the classes to be analyzed from our command line
 		final int offset = 2;
 		List<String> classesToAnalyze = new ArrayList<String>(args.length - offset);
@@ -90,10 +88,14 @@ class Main {
 			f.mkdir();
 		
 		// Dump the flows
-		ISummaryWriter writer = WriterFactory.createXMLWriter(fileName, folder);
+		XMLWriter writer = new XMLWriter();
+
 		try {
-			writer.write(flows);
+			writer.write(new File(f,fileName),flows);
 		} catch (XMLStreamException e) {
+			e.printStackTrace();
+			throw new RuntimeException(e);
+		} catch (FileNotFoundException e) {
 			throw new RuntimeException(e);
 		}
 	}

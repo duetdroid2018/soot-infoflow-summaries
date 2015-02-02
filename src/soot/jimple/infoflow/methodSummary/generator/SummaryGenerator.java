@@ -47,10 +47,10 @@ public class SummaryGenerator {
 
 	public static final String DUMMY_MAIN_SIG = "<dummyMainClass: void dummyMainMethod()>";
 
-	//the access path length that is used in infoflow
+	// the access path length that is used in infoflow
 	protected int accessPathLength = 5;
 
-	//the access path length that is used in the summaries. 
+	// the access path length that is used in the summaries.
 	protected int summaryAPLength = accessPathLength - 1;
 
 	protected boolean ignoreFlowsInSystemPackages = false;
@@ -59,7 +59,7 @@ public class SummaryGenerator {
 	protected boolean enableStaticFieldTracking = false;
 	protected boolean flowSensitiveAliasing = true;
 	protected boolean useRecursiveAccessPaths = false;
-	
+
 	protected CallgraphAlgorithm cfgAlgo = CallgraphAlgorithm.SPARK;
 	protected boolean debug = false;
 	protected ITaintPropagationWrapper taintWrapper;
@@ -69,40 +69,47 @@ public class SummaryGenerator {
 
 	public SummaryGenerator() {
 	}
-	
+
 	/**
 	 * Generates the summaries for the given set of classes
-	 * @param classpath The classpath from which to load the given classes
-	 * @param classNames The classes for which to create summaries
+	 * 
+	 * @param classpath
+	 *            The classpath from which to load the given classes
+	 * @param classNames
+	 *            The classes for which to create summaries
 	 * @return The generated method summaries
 	 */
 	public MethodSummaries createMethodSummaries(String classpath,
 			Collection<String> classNames) {
 		return createMethodSummaries(classpath, classNames, null);
 	}
-	
+
 	/**
 	 * Generates the summaries for the given set of classes
-	 * @param classpath The classpath from which to load the given classes
-	 * @param classNames The classes for which to create summaries
-	 * @param handler The handler that shall be invoked when all methods inside
-	 * one class have been summarized
+	 * 
+	 * @param classpath
+	 *            The classpath from which to load the given classes
+	 * @param classNames
+	 *            The classes for which to create summaries
+	 * @param handler
+	 *            The handler that shall be invoked when all methods inside one
+	 *            class have been summarized
 	 * @return The generated method summaries
 	 */
 	public MethodSummaries createMethodSummaries(String classpath,
 			Collection<String> classNames, IClassSummaryHandler handler) {
 		G.reset();
-		
+
 		Options.v().set_src_prec(Options.src_prec_class);
 		Options.v().set_output_format(Options.output_format_none);
 		Options.v().set_soot_classpath(classpath);
 		Options.v().set_whole_program(false);
 		Options.v().set_allow_phantom_refs(true);
-		
+
 		for (String className : classNames)
 			Scene.v().addBasicClass(className, SootClass.SIGNATURES);
 		Scene.v().loadNecessaryClasses();
-		
+
 		// Collect all the public methods in the given classes. We cannot
 		// directly start the summary generation as this resets Soot.
 		Map<String, Collection<String>> methodsToAnalyze = new HashMap<>();
@@ -114,22 +121,35 @@ public class SummaryGenerator {
 			for (SootMethod sm : sc.getMethods())
 				methods.add(sm.getSignature());
 		}
-		
+
 		// Do the actual analysis
 		MethodSummaries summaries = new MethodSummaries();
-		for (Entry<String, Collection<String>> entry : methodsToAnalyze.entrySet()) {
+		for (Entry<String, Collection<String>> entry : methodsToAnalyze
+				.entrySet()) {
 			MethodSummaries classSummaries = new MethodSummaries();
 			for (String methodSig : entry.getValue()) {
+
 				
-				if (!methodSig.contains("addAll(int"))
-					continue;
-				
-				MethodSummaries newSums = createMethodSummary(classpath, methodSig);
+				//TODO remove!
+//				if (!(methodSig.contains("iterator(") || methodSig.contains("listIterator(")
+//						//|| methodSig.contains("iterator(")
+//						//|| methodSig.contains("subList(")
+//						//|| methodSig.contains("addElement(")
+//						//|| methodSig.contains("push(")
+//						//|| methodSig.contains("peek(") || methodSig
+//						//.contains("pop(")
+//
+//				))
+//					continue;
+				//if (!(methodSig.contains("paraToVar2(") ))
+					//	continue;
+				MethodSummaries newSums = createMethodSummary(classpath,
+						methodSig);
 				if (handler != null)
 					handler.onMethodFinished(methodSig, classSummaries);
 				classSummaries.merge(newSums);
 			}
-			
+
 			if (handler != null)
 				handler.onClassFinished(entry.getKey(), classSummaries);
 			summaries.merge(classSummaries);
@@ -140,35 +160,36 @@ public class SummaryGenerator {
 	/**
 	 * Creates a method summary for the method m
 	 * 
-	 * It is assumed that only the default constructor of c is executed before
-	 * m is called.
+	 * It is assumed that only the default constructor of c is executed before m
+	 * is called.
 	 * 
-	 * The result of that assumption is that some fields of c may be null. 
-	 * A null field is not identified as a source and there for will not create a Field -> X
-	 * flow.
+	 * The result of that assumption is that some fields of c may be null. A
+	 * null field is not identified as a source and there for will not create a
+	 * Field -> X flow.
 	 * 
 	 * @param classpath
-	 * 			  The classpath containing the classes to summarize
+	 *            The classpath containing the classes to summarize
 	 * @param methodSig
 	 *            method for which a summary will be created
 	 * @return summary of method m
 	 */
-	public MethodSummaries createMethodSummary(String classpath, String methodSig) {
-		return createMethodSummary(classpath, methodSig, Collections.<String>emptyList());
+	public MethodSummaries createMethodSummary(String classpath,
+			String methodSig) {
+		return createMethodSummary(classpath, methodSig,
+				Collections.<String> emptyList());
 	}
 
 	/**
 	 * Creates a method summary for the method m.
 	 * 
 	 * It is assumed that all method in mDependencies and the default
-	 * constructor of c is executed before
-	 * m is executed.
+	 * constructor of c is executed before m is executed.
 	 * 
 	 * That allows e.g. to call a setter before a getter method is analyzed and
 	 * there for the getter field is not null.
 	 * 
 	 * @param classpath
-	 * 			  The classpath containing the classes to summarize
+	 *            The classpath containing the classes to summarize
 	 * @param methodSig
 	 *            method for which a summary will be created
 	 * @param mDependencies
@@ -177,35 +198,45 @@ public class SummaryGenerator {
 	 */
 	public MethodSummaries createMethodSummary(String classpath,
 			final String methodSig, List<String> mDependencies) {
-		
-		final SourceSinkFactory sourceSinkFactory = new SourceSinkFactory(summaryAPLength);
-		final SummarySourceSinkManager manager = new SummarySourceSinkManager(methodSig,
-				sourceSinkFactory);
+
+		final SourceSinkFactory sourceSinkFactory = new SourceSinkFactory(
+				summaryAPLength);
+		final SummarySourceSinkManager manager = new SummarySourceSinkManager(
+				methodSig, sourceSinkFactory);
 		final MethodSummaries summaries = new MethodSummaries();
 		final Infoflow infoflow = initInfoflow();
-		
-		final SummaryTaintPropagationHandler listener = new SummaryTaintPropagationHandler(methodSig);
+
+		final SummaryTaintPropagationHandler listener = new SummaryTaintPropagationHandler(
+				methodSig);
 		infoflow.addTaintPropagationHandler(listener);
-		
+
 		infoflow.addResultsAvailableHandler(new ResultsAvailableHandler() {
 			@Override
-			public void onResultsAvailable(IInfoflowCFG cfg, InfoflowResults results) {
+			public void onResultsAvailable(IInfoflowCFG cfg,
+					InfoflowResults results) {
 				InfoflowResultPostProcessor processor = new InfoflowResultPostProcessor(
 						listener.getResult(), cfg, methodSig, sourceSinkFactory);
 				summaries.merge(processor.postProcess());
 			}
 		});
-		
+
 		List<String> ms = new LinkedList<String>();
 		ms.add(methodSig);
 		if (analyseMethodsTogether) {
 			addDependentMethods(methodSig, ms, mDependencies);
 		}
-		infoflow.computeInfoflow(null, classpath, createEntryPoint(ms), manager);
+		try{
+			infoflow.computeInfoflow(null, classpath, createEntryPoint(ms), manager);
+		}catch(Exception e){
+			e.printStackTrace();
+			return new MethodSummaries();
+		}
+		
 		return summaries;
 	}
-	
-	private void addDependentMethods(String sig, List<String> methods, List<String> mDependencies){
+
+	private void addDependentMethods(String sig, List<String> methods,
+			List<String> mDependencies) {
 		if (mDependencies != null) {
 			for (String s : mDependencies) {
 				if (!s.equals(sig))
@@ -213,9 +244,11 @@ public class SummaryGenerator {
 			}
 		}
 	}
-	
-	private BaseEntryPointCreator createEntryPoint(Collection<String> entryPoints) {
-		SequentialEntryPointCreator dEntryPointCreater = new SequentialEntryPointCreator(entryPoints);
+
+	private BaseEntryPointCreator createEntryPoint(
+			Collection<String> entryPoints) {
+		SequentialEntryPointCreator dEntryPointCreater = new SequentialEntryPointCreator(
+				entryPoints);
 		dEntryPointCreater.setSubstituteClasses(substitutedWith);
 		dEntryPointCreater.setSubstituteCallParams(true);
 		return dEntryPointCreater;
@@ -226,42 +259,44 @@ public class SummaryGenerator {
 		// retain the contents of the callees.
 		Infoflow iFlow = new Infoflow("", false, new DefaultBiDiICFGFactory(),
 				new DefaultPathBuilderFactory(PathBuilder.None, false) {
-					
+
 					@Override
 					public boolean supportsPathReconstruction() {
 						return true;
 					}
-					
+
 				});
 		Infoflow.setAccessPathLength(accessPathLength);
-		
+
 		iFlow.setEnableImplicitFlows(enableImplicitFlows);
 		iFlow.setEnableExceptionTracking(enableExceptionTracking);
 		iFlow.setEnableStaticFieldTracking(enableStaticFieldTracking);
 		iFlow.setFlowSensitiveAliasing(flowSensitiveAliasing);
-		
+
 		final SummaryGenerationTaintWrapper summaryWrapper = new SummaryGenerationTaintWrapper();
 		if (taintWrapper == null)
 			iFlow.setTaintWrapper(summaryWrapper);
 		else {
 			ITaintPropagationWrapper wrapper = new AbstractTaintWrapper() {
-				
+
 				@Override
-				public Set<AccessPath> getTaintsForMethod(Stmt stmt, AccessPath taintedPath,
-						IInfoflowCFG icfg) {
+				public Set<AccessPath> getTaintsForMethod(Stmt stmt,
+						AccessPath taintedPath, IInfoflowCFG icfg) {
 					Set<AccessPath> taints = taintWrapper.getTaintsForMethod(
 							stmt, taintedPath, icfg);
 					if (!taints.isEmpty())
 						return taints;
-					
-					return summaryWrapper.getTaintsForMethod(stmt, taintedPath, icfg);
+
+					return summaryWrapper.getTaintsForMethod(stmt, taintedPath,
+							icfg);
 				}
-				
+
 				@Override
-				protected boolean isExclusiveInternal(Stmt stmt, AccessPath taintedPath,
-						IInfoflowCFG icfg) {
+				protected boolean isExclusiveInternal(Stmt stmt,
+						AccessPath taintedPath, IInfoflowCFG icfg) {
 					return taintWrapper.isExclusive(stmt, taintedPath, icfg)
-							|| summaryWrapper.isExclusive(stmt, taintedPath, icfg);
+							|| summaryWrapper.isExclusive(stmt, taintedPath,
+									icfg);
 				}
 
 				@Override
@@ -275,13 +310,13 @@ public class SummaryGenerator {
 					return taintWrapper.supportsCallee(callSite, icfg)
 							|| summaryWrapper.supportsCallee(callSite, icfg);
 				}
-				
+
 			};
 			iFlow.setTaintWrapper(wrapper);
 		}
-		
+
 		iFlow.setCallgraphAlgorithm(cfgAlgo);
-//		iFlow.setMethodsExcludedFromFlowPropagation(java.util.Collections.singletonList(DUMMY_MAIN_SIG));
+		// iFlow.setMethodsExcludedFromFlowPropagation(java.util.Collections.singletonList(DUMMY_MAIN_SIG));
 		iFlow.setIgnoreFlowsInSystemPackages(ignoreFlowsInSystemPackages);
 		Infoflow.setUseRecursiveAccessPaths(useRecursiveAccessPaths);
 
@@ -293,7 +328,7 @@ public class SummaryGenerator {
 		iFlow.setStopAfterFirstFlow(false);
 		return iFlow;
 	}
-	
+
 	public void setTaintWrapper(ITaintPropagationWrapper taintWrapper) {
 		this.taintWrapper = taintWrapper;
 	}
@@ -354,7 +389,8 @@ public class SummaryGenerator {
 		this.summaryAPLength = summaryAPLength;
 	}
 
-	public void setIgnoreFlowsInSystemPackages(boolean ignoreFlowsInSystemPackages) {
+	public void setIgnoreFlowsInSystemPackages(
+			boolean ignoreFlowsInSystemPackages) {
 		this.ignoreFlowsInSystemPackages = ignoreFlowsInSystemPackages;
 	}
 
@@ -365,5 +401,5 @@ public class SummaryGenerator {
 	public void setAnalyseMethodsTogether(boolean analyseMethodsTogether) {
 		this.analyseMethodsTogether = analyseMethodsTogether;
 	}
-	
+
 }

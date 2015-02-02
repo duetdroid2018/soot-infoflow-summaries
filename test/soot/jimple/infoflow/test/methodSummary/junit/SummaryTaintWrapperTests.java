@@ -103,7 +103,7 @@ public class SummaryTaintWrapperTests {
 	}
 	@Test
 	public void apl3NoFlow() {
-		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void apl3NoFlow()>");
+		testNoFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void apl3NoFlow()>");
 	}
 	@Test
 	public void apl3Flow() {
@@ -159,6 +159,7 @@ public class SummaryTaintWrapperTests {
 
 	protected Infoflow initInfoflow() throws FileNotFoundException, XMLStreamException {
 		Infoflow result = new Infoflow();
+		Infoflow.setUseRecursiveAccessPaths(false);
 		ConfigForTest testConfig = new ConfigForTest();
 		result.setSootConfig(testConfig);
 
@@ -173,14 +174,15 @@ public class SummaryTaintWrapperTests {
 		final String sep = System.getProperty("path.separator");
 		File f = new File(".");
 		File testSrc1 = new File(f, "bin");
-		File testSrc2 = new File(f, "build" + File.separator + "classes");
+		File testSrc2 = new File(f, "testBin");
+		File testSrc3 = new File(f, "build" + File.separator + "classes");
 
-		if (!(testSrc1.exists() || testSrc2.exists())) {
+		if (!(testSrc1.exists() || testSrc2.exists() || testSrc3.exists())) {
 			fail("Test aborted - none of the test sources are available");
 		}
 
 		libPath = System.getProperty("java.home") + File.separator + "lib" + File.separator + "rt.jar";
-		appPath = testSrc1.getCanonicalPath() + sep + testSrc2.getCanonicalPath();
+		appPath = testSrc1.getCanonicalPath() + sep + testSrc2.getCanonicalPath() + sep + testSrc3.getCanonicalPath();
 	}
 
 }

@@ -16,6 +16,9 @@ public class FlowSource extends AbstractFlowSinkSource {
 	public FlowSource(SourceSinkType type) {
 		super(type, -1, null);
 	}
+	public FlowSource(SourceSinkType type, String[] fields) {
+		super(type, -1, fields);
+	}
 	
 	public FlowSource(SourceSinkType type, int parameterIdx) {
 		super(type, parameterIdx, null);
@@ -25,26 +28,26 @@ public class FlowSource extends AbstractFlowSinkSource {
 		super(type, parameterIdx, fields);
 	}
 	
-	@Override
-	public Map<String, String> xmlAttributes() {
-		Map<String, String> res = new HashMap<String, String>();
-		if (isParameter()) {
-			res.put(XMLConstants.ATTRIBUTE_FLOWTYPE, XMLConstants.VALUE_PARAMETER);
-			res.put(XMLConstants.ATTRIBUTE_PARAMTER_INDEX, getParameterIndex() + "");
-		}
-		else if (isField()) {
-			res.put(XMLConstants.ATTRIBUTE_FLOWTYPE, XMLConstants.VALUE_FIELD);
-			res.put(XMLConstants.ATTRIBUTE_FIELD, "(this)");
-		}
-		else
-			throw new RuntimeException("Invalid source type");
-		
-		if(hasAccessPath())
-			res.put(XMLConstants.ATTRIBUTE_ACCESSPATH, getAccessPath().toString());
-		
-		return res;
-	}
-	
+//	@Override
+//	public Map<String, String> xmlAttributes() {
+//		Map<String, String> res = new HashMap<String, String>();
+//		if (isParameter()) {
+//			res.put(XMLConstants.ATTRIBUTE_FLOWTYPE, XMLConstants.VALUE_PARAMETER);
+//			res.put(XMLConstants.ATTRIBUTE_PARAMTER_INDEX, getParameterIndex() + "");
+//		}
+//		else if (isField()) {
+//			res.put(XMLConstants.ATTRIBUTE_FLOWTYPE, XMLConstants.VALUE_FIELD);
+//			res.put(XMLConstants.ATTRIBUTE_FIELD, "(this)");
+//		}
+//		else
+//			throw new RuntimeException("Invalid source type");
+//		
+//		if(hasAccessPath())
+//			res.put(XMLConstants.ATTRIBUTE_ACCESSPATH, getAccessPath().toString());
+//		
+//		return res;
+//	}
+//	
 	@Override
 	public String toString(){
 		if(isParameter())

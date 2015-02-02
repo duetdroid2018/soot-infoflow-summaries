@@ -26,10 +26,12 @@ public class FlowSink extends AbstractFlowSinkSource {
 		this.taintSubFields = taintSubFields;
 	}
 	
-	public boolean isReturn(){
-		return type().equals(SourceSinkType.Return);
+	public FlowSink(SourceSinkType type, String[] accessPath,
+			boolean taintSubFields2) {
+		super(type,-1,accessPath);
+		this.taintSubFields = taintSubFields2;
 	}
-	
+
 	public boolean taintSubFields(){
 		return taintSubFields;
 	}

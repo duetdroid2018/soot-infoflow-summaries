@@ -183,6 +183,8 @@ public class ApiTests extends ApiTestHelper {
 		assertTrue(res.size() == 2);
 	}
 
+	
+	//Todo fails with an error if implicit flows is enabled 
 	@Test(timeout = 100000)
 	public void paraToVar2() {
 		String mSig = "<" + className + ": " + DATA_TYPE + " paraToVar2(int,java.lang.Object)>";

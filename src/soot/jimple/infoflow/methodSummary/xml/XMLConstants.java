@@ -1,16 +1,37 @@
 package soot.jimple.infoflow.methodSummary.xml;
 
 public class XMLConstants {
-	public static final String VALUE_PARAMETER = "Parameter";
-	public static final String VALUE_FIELD = "Field";
-	public static final String VALUE_RETURN = "Return";
-	public static final String ATTRIBUTE_RETURN_LOCAL = "ReturnLocal";
-	public static final String ATTRIBUTE_PARAMTER_TYPE = "ParameterType";
-	public static final String ATTRIBUTE_ACCESSPATH = "AccessPath";
-	public static final String ATTRIBUTE_PARAMTER_INDEX = "ParameterIndex";
+	//xml summary tree
+	/*
+	 * <methods>
+	 * 	<method>
+	 * 		<flows>
+	 * 			<flow>
+	 * 				<from></from>
+	 * 				<to></to>
+	 * 			</flow>
+	 * 			...
+	 * 		</flows>
+	 * 	</method>
+	 * 	...
+	 * </methods>
+	 */
+	public static final String TREE_METHODS = "methods";
+	public static final String TREE_METHOD = "method";
+	public static final String TREE_FLOWS = "flows";
+	public static final String TREE_FLOW = "flow";
+	public static final String TREE_SINK = "to";
+	public static final String TREE_SOURCE = "from";
+	
+	public static final String ATTRIBUT_METHOD_SIG = "id";
 	public static final String ATTRIBUTE_FLOWTYPE = "sourceSinkType";
-	public static final String ATTRIBUTE_FIELD = "FieldSig";
-	public static final String ATTRIBUTE_TAINT_SUB_FIELDS = "TaintSubField";
-	public static final String VALUE_THIS_FIELD = "THIS";
-
+	public static final String ATTRIBUTE_PARAMTER_INDEX = "ParameterIndex";
+	public static final String ATTRIBUTE_ACCESSPATH = "AccessPath";
+	public static final String ATTRIBUTE_ERROR = "ERROR";
+	public static final String ATTRIBUTE_RETURN = "ReturnLocal";
+	public static final String ATTRIBUTE_TAINT_SUB_FIELDS = "taintSubFields";
+	
+	public static final String VALUE_TRUE = "true";
+	public static final String VALUE_FALSE = "false";
+	
 }

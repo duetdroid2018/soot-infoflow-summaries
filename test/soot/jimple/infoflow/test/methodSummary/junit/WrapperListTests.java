@@ -12,7 +12,7 @@ import org.junit.Test;
 import soot.jimple.infoflow.Infoflow;
 import soot.jimple.infoflow.methodSummary.taintWrappers.TaintWrapperFactory;
 import soot.jimple.infoflow.taintWrappers.ITaintPropagationWrapper;
-import soot.jimple.infoflow.test.junit.JUnitTests;
+
 
 public class WrapperListTests extends JUnitTests {
 	static File files = new File("testSummaries");//String[] files =  {"testSummaries\\LinkedList.xml","testSummaries\\ArrayList.xml","testSummaries\\Stack.xml"};
@@ -55,10 +55,10 @@ public class WrapperListTests extends JUnitTests {
 	@Test
 	public void listTest() {
 		Infoflow infoflow = initInfoflow();
-		List<String> epoints = new ArrayList<String>();
-		epoints.add("<soot.jimple.infoflow.test.ListTestCode: void writeReadTest()>");
-		infoflow.setTaintWrapper(wrapper);
-		infoflow.computeInfoflow(appPath, libPath, epoints, sources, sinks);
+    	List<String> epoints = new ArrayList<String>();
+    	epoints.add("<soot.jimple.infoflow.test.ListTestCode: void writeReadTest()>");
+    	infoflow.setTaintWrapper(wrapper);
+    	infoflow.computeInfoflow(appPath, libPath, epoints, sources, sinks);
 		checkInfoflow(infoflow, 1);
 	}
 
