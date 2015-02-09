@@ -53,9 +53,9 @@ public class FieldToReturnTests extends TestHelper{
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.lang.Object fieldToReturn4()>";
 		Set<MethodFlow> flow = createSummaries(mSig);
 		
-		boolean hasFirstFlow = containsFlow(flow, Field,new String[] {LIST_FIELD,"<java.util.LinkedList: java.util.LinkedList$Node first>",
+		boolean hasFirstFlow = containsFlow(flow, Field,new String[] {LIST_FIELD, LINKEDLIST_ITEM,
 				"<java.util.LinkedList$Node: java.lang.Object item>"}, Return,new String[] {});
-		boolean hasLastFlow = containsFlow(flow, Field,new String[] {LIST_FIELD,"<java.util.LinkedList: java.util.LinkedList$Node last>",
+		boolean hasLastFlow = containsFlow(flow, Field,new String[] {LIST_FIELD, LINKEDLIST_ITEM,
 				"<java.util.LinkedList$Node: java.lang.Object item>"}, Return,new String[] {});
 		
 		assertTrue(hasFirstFlow || hasLastFlow);
