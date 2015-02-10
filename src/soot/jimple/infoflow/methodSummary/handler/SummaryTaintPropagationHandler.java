@@ -1,6 +1,7 @@
 package soot.jimple.infoflow.methodSummary.handler;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
@@ -22,14 +23,21 @@ import soot.jimple.toolkits.ide.icfg.BiDiInterproceduralCFG;
 public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 	
 	private final String methodSig;
+	private final Set<String> excludedMethods;
 	private SootMethod method = null;
 	
 	private Map<Abstraction, Stmt> result = new ConcurrentHashMap<>();
 	
 	public SummaryTaintPropagationHandler(String m) {
 		this.methodSig = m;
+		this.excludedMethods = Collections.emptySet();
 	}
-
+	
+	public SummaryTaintPropagationHandler(String m, Set<String> excludedMethods) {
+		this.methodSig = m;
+		this.excludedMethods = excludedMethods;
+	}
+	
 	@Override
 	public void notifyFlowIn(Unit stmt,
 			Abstraction result,
@@ -56,9 +64,6 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 	private void handleReturnFlow(Unit stmt,
 			Abstraction abs,
 			BiDiInterproceduralCFG<Unit, SootMethod> cfg) {
-		
-		System.out.println(abs);
-		
 		// Check whether we must register the abstraction for post-processing
 		// We ignore inactive abstractions
 		if (!abs.isAbstractionActive())
@@ -107,6 +112,11 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 			Set<Abstraction> outgoing,
 			BiDiInterproceduralCFG<Unit, SootMethod> cfg,
 			FlowFunctionType type) {
+		// Do not propagate through excluded methods
+		SootMethod sm = cfg.getMethodOf(u);
+		if (excludedMethods.contains(sm.getSignature()))
+			return Collections.emptySet();
+		
 		/*
 		if (outgoing == null || outgoing.isEmpty())
 			return outgoing;

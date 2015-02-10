@@ -128,21 +128,6 @@ public class SummaryGenerator {
 				.entrySet()) {
 			MethodSummaries classSummaries = new MethodSummaries();
 			for (String methodSig : entry.getValue()) {
-
-				
-				//TODO remove!
-//				if (!(methodSig.contains("iterator(") || methodSig.contains("listIterator(")
-//						//|| methodSig.contains("iterator(")
-//						//|| methodSig.contains("subList(")
-//						//|| methodSig.contains("addElement(")
-//						//|| methodSig.contains("push(")
-//						//|| methodSig.contains("peek(") || methodSig
-//						//.contains("pop(")
-//
-//				))
-//					continue;
-				//if (!(methodSig.contains("paraToVar2(") ))
-					//	continue;
 				MethodSummaries newSums = createMethodSummary(classpath,
 						methodSig);
 				if (handler != null)
@@ -207,7 +192,7 @@ public class SummaryGenerator {
 		final Infoflow infoflow = initInfoflow();
 
 		final SummaryTaintPropagationHandler listener = new SummaryTaintPropagationHandler(
-				methodSig);
+				methodSig, Collections.singleton(DUMMY_MAIN_SIG));
 		infoflow.addTaintPropagationHandler(listener);
 
 		infoflow.addResultsAvailableHandler(new ResultsAvailableHandler() {
@@ -267,7 +252,7 @@ public class SummaryGenerator {
 
 				});
 		Infoflow.setAccessPathLength(accessPathLength);
-
+		
 		iFlow.setEnableImplicitFlows(enableImplicitFlows);
 		iFlow.setEnableExceptionTracking(enableExceptionTracking);
 		iFlow.setEnableStaticFieldTracking(enableStaticFieldTracking);

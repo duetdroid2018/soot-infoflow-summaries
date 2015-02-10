@@ -13,22 +13,21 @@ public class DefaultSummaryConfig implements IInfoflowConfig{
 		public void setSootOptions(Options options) {
 			// explicitly include packages for shorter runtime:
 			List<String> includeList = new LinkedList<String>();
-			includeList.add("java.lang.");
-			includeList.add("java.util.");
-			includeList.add("android.app.");
-			includeList.add("java.nio.charset.");
+			includeList.add("java.lang.*");
+			includeList.add("java.util.*");
+			includeList.add("android.app.*");
+			includeList.add("java.nio.charset.*");
 //			includeList.add("java.io.");
 //			includeList.add("java.security.");
 //			includeList.add("sun.misc.");
-			includeList.add("java.net.");
+			includeList.add("java.net.*");
 //			includeList.add("javax.servlet.");
 //			includeList.add("javax.crypto.");
 
-			includeList.add("android.");
-			includeList.add("android.content.");
+			includeList.add("android.*");
+			includeList.add("android.content.*");
 //			includeList.add("org.apache.http.");
-			includeList.add("de.test.");
-			includeList.add("soot.");
+			includeList.add("soot.*");
 //			includeList.add("com.example.");
 //			includeList.add("com.jakobkontor.");
 //			includeList.add("libcore.icu.");
