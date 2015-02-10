@@ -1,6 +1,7 @@
 package soot.jimple.infoflow.methodSummary.postProcessor;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
@@ -10,11 +11,15 @@ import java.util.Map.Entry;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import soot.ArrayType;
 import soot.Local;
-import soot.PointsToAnalysis;
 import soot.Scene;
+import soot.SootField;
 import soot.SootMethod;
+import soot.Type;
+import soot.Unit;
 import soot.Value;
+import soot.jimple.ArrayRef;
 import soot.jimple.AssignStmt;
 import soot.jimple.InstanceFieldRef;
 import soot.jimple.InstanceInvokeExpr;
@@ -23,6 +28,7 @@ import soot.jimple.Stmt;
 import soot.jimple.infoflow.data.Abstraction;
 import soot.jimple.infoflow.data.AbstractionAtSink;
 import soot.jimple.infoflow.data.AccessPath;
+import soot.jimple.infoflow.data.AccessPath.BasePair;
 import soot.jimple.infoflow.methodSummary.data.FlowSink;
 import soot.jimple.infoflow.methodSummary.data.FlowSource;
 import soot.jimple.infoflow.methodSummary.data.MethodFlow;
@@ -42,8 +48,6 @@ public class InfoflowResultPostProcessor {
 	private final String method;
 	private final SourceSinkFactory sourceSinkFactory;
 	
-	final PointsToAnalysis pTa = Scene.v().getPointsToAnalysis();
-
 	public InfoflowResultPostProcessor(Map<Abstraction, Stmt> collectedAbstractions,
 			IInfoflowCFG cfg, String m, SourceSinkFactory sourceSinkFactory) {
 		this.collectedAbstractions = collectedAbstractions;
@@ -51,7 +55,7 @@ public class InfoflowResultPostProcessor {
 		this.method = m;
 		this.sourceSinkFactory = sourceSinkFactory;
 	}
-
+	
 	/**
 	 * Post process the information collected during a Infoflow analyse.
 	 * Extract all summary flow from collectedAbstractions.
@@ -70,6 +74,16 @@ public class InfoflowResultPostProcessor {
 			Abstraction a = entry.getKey();
 			Stmt stmt = entry.getValue();
 			
+			// If this abstraction is directly the source abstraction, we do not
+			// need to construct paths
+			if (a.getSourceContext() != null) {
+				processFlowSource(flows, m, a.getAccessPath(), stmt,
+						pathBuilder.new SummarySourceInfo(a.getAccessPath(), a.getCurrentStmt(),
+								a.getSourceContext().getUserData(), Collections.singletonList(a.getCurrentStmt()),
+								Collections.singletonList(a)));
+				continue;
+			}
+			
 			// In case we have the same abstraction in multiple places and we
 			// extend it with external sink information regardless of the
 			// original propagation, we need to clean up first
@@ -87,7 +101,7 @@ public class InfoflowResultPostProcessor {
 				// Check that we don't get any weird results
 				if (sourceAP == null || sinkAP == null)
 					throw new RuntimeException("Invalid access path");
-														
+				
 				// Process the flow from this source
 				if (!sinkAP.equals(sourceAP))
 					processFlowSource(flows, m, sinkAP, stmt, si.getSourceInfo());
@@ -151,6 +165,10 @@ public class InfoflowResultPostProcessor {
 		
 		// We need to reconstruct the original source access path
 		AccessPath sourceAP = reconstructSourceAP(ap, sourceInfo.getAbstractionPath());
+		if (sourceAP == null)
+			return;
+				
+		// Create the flow source data object
 		flowSource = sourceSinkFactory.createSource(flowSource.getType(),
 				flowSource.getParameterIndex(), sourceAP);
 		
@@ -185,11 +203,9 @@ public class InfoflowResultPostProcessor {
 	 */
 	private AccessPath reconstructSourceAP(AccessPath sinkAP, List<Abstraction> path) {
 		// Dump the path
-		/*
+		List<Stmt> stmts = new ArrayList<Stmt>();
 		for (Abstraction abs : path)
-			System.out.println(abs.getCurrentStmt());
-		*/
-		
+			stmts.add(abs.getCurrentStmt());
 		
 		// TODO: Static fields?
 		
@@ -200,7 +216,7 @@ public class InfoflowResultPostProcessor {
 			final Stmt stmt = abs.getCurrentStmt();
 			final Stmt callSite = abs.getCorrespondingCallSite();
 			boolean matched = false;
-			
+												
 			// In case of a call-to-return edge, we have no information about
 			// what happened in the callee, so we take the incoming access path
 			if (stmt.containsInvokeExpr()) {
@@ -217,7 +233,9 @@ public class InfoflowResultPostProcessor {
 				continue;
 
 			// Our call stack may run empty if we have a follow-returns-past-seeds case
-			if (stmt.containsInvokeExpr() && !callees.isEmpty()/* && abs.isAbstractionActive()*/) {
+			if (stmt.containsInvokeExpr() && !callees.isEmpty()
+					
+					/* && abs.isAbstractionActive()*/) {
 				// Forward propagation, backwards reconstruction: We leave
 				// methods when we reach the call site.
 				SootMethod callee = callees.remove(0);
@@ -228,8 +246,10 @@ public class InfoflowResultPostProcessor {
 					curAP = newAP;
 					matched = true;
 				}
+				else
+					return null;
 			}
-			else if (callSite != null/* && abs.isAbstractionActive()*/) {
+			else if (callSite != null /* && abs.isAbstractionActive()*/) {
 				// Forward propagation, backwards reconstruction: We enter
 				// methods at the return site when we have a corresponding call site.
 				SootMethod callee = cfg.getMethodOf(stmt);
@@ -242,6 +262,8 @@ public class InfoflowResultPostProcessor {
 					curAP = newAP;
 					matched = true;
 				}
+				else
+					return null;
 			}
 			else if (stmt instanceof AssignStmt) {
 				final AssignStmt assignStmt = (AssignStmt) stmt;
@@ -249,7 +271,8 @@ public class InfoflowResultPostProcessor {
 				
 				// If the access path must matches on the left side, we
 				// continue with the value from the right side.
-				if (leftOp instanceof Local && leftOp == curAP.getPlainValue()) {
+				if (leftOp instanceof Local && leftOp == curAP.getPlainValue()
+						&& !assignStmt.containsInvokeExpr()) {
 					// Get the next value from the right side of the assignment
 					final Value[] rightOps = BaseSelector.selectBaseList(assignStmt.getRightOp(), false);
 					Value rightOp = null;
@@ -273,8 +296,8 @@ public class InfoflowResultPostProcessor {
 				}
 				else if (assignStmt.getLeftOp() instanceof InstanceFieldRef) {
 					InstanceFieldRef ifref = (InstanceFieldRef) assignStmt.getLeftOp();
-					if (ifref.getBase() == curAP.getPlainValue()
-							&& (ifref.getField() == curAP.getFirstField() || curAP.isLocal())) {
+					AccessPath matchedAP = matchAccessPath(curAP, ifref.getBase(), ifref.getField());
+					if (matchedAP != null) {
 						curAP = curAP.copyWithNewValue(assignStmt.getRightOp(), null, true);
 						matched = true;
 					}
@@ -293,12 +316,77 @@ public class InfoflowResultPostProcessor {
 						matched = true;
 					}
 				}
+				else if (assignStmt.getRightOp() instanceof ArrayRef) {
+					ArrayRef aref = (ArrayRef) assignStmt.getRightOp();
+					if (curAP.getPlainValue() == aref.getBase()) {
+						curAP = curAP.copyWithNewValue(assignStmt.getLeftOp());
+						matched = true;
+					}
+				}
 				
 			}
+			
+			if (stmt.toString().equals("$r4 = o[1]")
+					&& curAP.toString().startsWith("o"))
+				System.out.println("x");
+			
 		}
 		return curAP;
 	}
-	
+
+	private AccessPath matchAccessPath(AccessPath curAP, Value base, SootField field) {
+		// The base object must match in any case
+		if (curAP.getPlainValue() != base)
+			return null;
+				
+		// If we have no field, we may have a taint-all flag
+		if (curAP.isLocal()) {
+			if (curAP.getTaintSubFields() || field == null)
+				return new AccessPath(base, field, true);
+		}
+		
+		// If we have a field, it must match
+		if (curAP.isInstanceFieldRef()) {
+			if (curAP.getFirstField() == field)
+				return curAP.copyWithNewValue(base, base.getType(), true);
+			else {
+				// Get the bases for this type
+				final Collection<BasePair> bases =
+						AccessPath.getBaseForType(base.getType());
+				if (bases != null) {
+					for (BasePair xbase : bases) {
+						if (xbase.getFields()[0] == field) {
+							// Build the access path against which we have
+							// actually matched
+							SootField[] cutFields = new SootField
+									[curAP.getFieldCount() + xbase.getFields().length];
+							Type[] cutFieldTypes = new Type[cutFields.length];
+							
+							final int fieldIdx = 1;
+							
+							System.arraycopy(curAP.getFields(), 0, cutFields, 0, fieldIdx);
+							System.arraycopy(xbase.getFields(), 0, cutFields, fieldIdx, xbase.getFields().length);
+							System.arraycopy(curAP.getFields(), fieldIdx, cutFields,
+									fieldIdx + xbase.getFields().length, curAP.getFieldCount() - fieldIdx);
+							
+							System.arraycopy(curAP.getFieldTypes(), 0, cutFieldTypes, 0, fieldIdx);
+							System.arraycopy(xbase.getTypes(), 0, cutFieldTypes, fieldIdx, xbase.getTypes().length);
+							System.arraycopy(curAP.getFieldTypes(), fieldIdx, cutFieldTypes,
+									fieldIdx + xbase.getFields().length, curAP.getFieldCount() - fieldIdx);
+
+							return new AccessPath(curAP.getPlainValue(),
+									cutFields, curAP.getBaseType(), cutFieldTypes,
+									curAP.getTaintSubFields(), false, false);
+						}
+					}
+				}
+				
+			}
+		}
+		
+		return null;
+	}
+
 	/**
 	 * Maps an access path from a call site into the respective callee
 	 * @param curAP The current access path in the scope of the caller
@@ -335,13 +423,14 @@ public class InfoflowResultPostProcessor {
 		
 		// Map the parameters into the callee. Note that parameters as
 		// such cannot return taints from methods, only fields reachable
-		// through them
-		if (!curAP.isLocal())
+		// through them. (nope, not true for alias propagation)
+		if (!curAP.isLocal() || cfg.isExitStmt(stmt))
 			for (int i = 0; i < callSite.getInvokeExpr().getArgCount(); i++) {
 				if (callSite.getInvokeExpr().getArg(i) == curAP.getPlainValue()) {
 					Local paramLocal = callee.getActiveBody().getParameterLocal(i);
 					curAP = curAP.copyWithNewValue(paramLocal);
 					matched = true;
+					break;
 				}
 			}
 		
@@ -364,7 +453,7 @@ public class InfoflowResultPostProcessor {
 		// Make sure that we don't end up with a senseless callee
 		if (!callee.getSubSignature().equals(stmt.getInvokeExpr().getMethod().getSubSignature()))
 			throw new RuntimeException("Invalid callee on stack"); 
-		
+				
 		// Map the parameters back into the caller
 		for (int i = 0; i < stmt.getInvokeExpr().getArgCount(); i++) {
 			Local paramLocal = callee.getActiveBody().getParameterLocal(i);
@@ -383,6 +472,25 @@ public class InfoflowResultPostProcessor {
 				matched = true;
 			}
 		}
+		
+		if (matched)
+			return curAP;
+		
+		// Map the return value into the scope of the caller. If we are inside
+		// the aliasing part of the path, we might leave methods "the wrong way".
+		if (stmt instanceof AssignStmt) {
+			AssignStmt assign = (AssignStmt) stmt;
+			for (Unit u : callee.getActiveBody().getUnits()) {
+				if (u instanceof ReturnStmt) {
+					ReturnStmt rStmt = (ReturnStmt) u;
+					if (rStmt.getOp() == curAP.getPlainValue()) {
+						curAP = curAP.copyWithNewValue(assign.getLeftOp());
+						matched = true;
+					}
+				}
+			}
+		}
+		
 		return matched ? curAP : null;
 	}
 
@@ -420,13 +528,14 @@ public class InfoflowResultPostProcessor {
 		}
 		
 		// The sink may be a parameter
-		for (int i = 0; i < m.getParameterCount(); i++) {
-			Local p = m.getActiveBody().getParameterLocal(i);
-			if (apAtReturn.getPlainValue() == p) {
-				FlowSink sink = sourceSinkFactory.createParameterSink(i, apAtReturn);
-				addFlow(source, sink, flows);
+		if (!apAtReturn.isLocal() || apAtReturn.getBaseType() instanceof ArrayType)
+			for (int i = 0; i < m.getParameterCount(); i++) {
+				Local p = m.getActiveBody().getParameterLocal(i);
+				if (apAtReturn.getPlainValue() == p) {
+					FlowSink sink = sourceSinkFactory.createParameterSink(i, apAtReturn);
+					addFlow(source, sink, flows);
+				}
 			}
-		}
 
 		// The sink may be a local field
 		if (!m.isStatic() && apAtReturn.getPlainValue() == m.getActiveBody().getThisLocal()) {
