@@ -46,6 +46,31 @@ public class SummaryPathBuilder extends ContextSensitivePathBuilder {
 		public List<Abstraction> getAbstractionPath() {
 			return this.abstractionPath;
 		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = super.hashCode();
+			result = prime * result + ((abstractionPath == null) ? 0 : abstractionPath.hashCode());
+			return result;
+		}
+		
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (!super.equals(obj))
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			SummarySourceInfo other = (SummarySourceInfo) obj;
+			if (abstractionPath == null) {
+				if (other.abstractionPath != null)
+					return false;
+			} else if (!abstractionPath.equals(other.abstractionPath))
+				return false;
+			return true;
+		}
 		
 	}
 	
@@ -56,6 +81,7 @@ public class SummaryPathBuilder extends ContextSensitivePathBuilder {
 	 * @author Steven Arzt
 	 */
 	public class SummaryResultInfo {
+		
 		private final SummarySourceInfo sourceInfo;
 		private final ResultSinkInfo sinkInfo;
 		
@@ -84,6 +110,37 @@ public class SummaryPathBuilder extends ContextSensitivePathBuilder {
 		 */
 		public ResultSinkInfo getSinkInfo() {
 			return this.sinkInfo;
+		}
+
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result + ((sinkInfo == null) ? 0 : sinkInfo.hashCode());
+			result = prime * result + ((sourceInfo == null) ? 0 : sourceInfo.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			SummaryResultInfo other = (SummaryResultInfo) obj;
+			if (sinkInfo == null) {
+				if (other.sinkInfo != null)
+					return false;
+			} else if (!sinkInfo.equals(other.sinkInfo))
+				return false;
+			if (sourceInfo == null) {
+				if (other.sourceInfo != null)
+					return false;
+			} else if (!sourceInfo.equals(other.sourceInfo))
+				return false;
+			return true;
 		}
 		
 	}

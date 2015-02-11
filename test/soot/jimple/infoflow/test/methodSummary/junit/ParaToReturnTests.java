@@ -10,7 +10,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
-import org.junit.Ignore;
 import org.junit.Test;
 
 import soot.jimple.infoflow.methodSummary.data.MethodFlow;
@@ -57,7 +56,6 @@ public class ParaToReturnTests extends TestHelper {
 		assertEquals(1,flow.size());
 	}
 	
-	@Ignore //list.node.item is not identified as source
 	@Test(timeout = 100000)
 	public void list2() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToReturn: java.lang.Object return31(java.util.List)>";
