@@ -291,7 +291,7 @@ public class InfoflowResultPostProcessor {
 						}
 					}
 					
-					curAP = curAP.copyWithNewValue(rightOp);
+					curAP = curAP.copyWithNewValue(rightOp, null, false);
 					matched = true;
 				}
 				else if (assignStmt.getLeftOp() instanceof InstanceFieldRef) {
@@ -458,7 +458,8 @@ public class InfoflowResultPostProcessor {
 		for (int i = 0; i < stmt.getInvokeExpr().getArgCount(); i++) {
 			Local paramLocal = callee.getActiveBody().getParameterLocal(i);
 			if (paramLocal == curAP.getPlainValue()) {
-				curAP = curAP.copyWithNewValue(stmt.getInvokeExpr().getArg(i));
+				curAP = curAP.copyWithNewValue(stmt.getInvokeExpr().getArg(i),
+						callee.getParameterType(i), false);
 				matched = true;
 			}
 		}
