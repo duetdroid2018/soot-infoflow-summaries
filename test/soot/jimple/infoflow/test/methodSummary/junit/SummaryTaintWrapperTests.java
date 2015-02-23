@@ -119,7 +119,7 @@ public class SummaryTaintWrapperTests {
 					Arrays.asList(source),
 					java.util.Collections.singletonList(sink));
 		} catch (Exception e) {
-			fail("failed to calc path for test" + e.toString());
+			throw new RuntimeException(e);
 		}
 		checkInfoflow(iFlow, 1);
 	}
