@@ -51,6 +51,14 @@
 		</javac>
 	</target>
 	
+		<target name="testjar" depends="settings,compiletests">
+
+	    	<jar destfile="${infoflow-summaries-tests.jar}" >
+	            <fileset dir="build/testclasses"/>
+	        </jar>
+
+	</target>
+	
 	<target name="runtests" depends="compiletests">
 		<mkdir dir="reports" />
 		<junit printsummary="yes" fork="true" maxmemory="4G">

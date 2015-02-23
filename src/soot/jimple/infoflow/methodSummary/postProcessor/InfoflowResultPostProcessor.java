@@ -69,6 +69,7 @@ public class InfoflowResultPostProcessor {
 		SummaryPathBuilder pathBuilder = new SummaryPathBuilder(cfg,
 				Runtime.getRuntime().availableProcessors());
 		
+		int analyzedPaths = 0;
 		for (Entry<Abstraction, Stmt> entry : collectedAbstractions.entrySet()) {
 			Abstraction a = entry.getKey();
 			Stmt stmt = entry.getValue();
@@ -102,8 +103,10 @@ public class InfoflowResultPostProcessor {
 					throw new RuntimeException("Invalid access path");
 				
 				// Process the flow from this source
-				if (!sinkAP.equals(sourceAP))
+				if (!sinkAP.equals(sourceAP)) {
 					processFlowSource(flows, m, sinkAP, stmt, si.getSourceInfo());
+					analyzedPaths++;
+				}
 			}
 		}
 		
@@ -113,7 +116,8 @@ public class InfoflowResultPostProcessor {
 		// other flows
 		compactFlowSet(flows);
 		
-		logger.info("Result processing finished");
+		logger.info("Result processing finished, analyzed {} paths from {} stored "
+				+ "abstractions", analyzedPaths, collectedAbstractions.size());
 		return flows;
 	}
 	
