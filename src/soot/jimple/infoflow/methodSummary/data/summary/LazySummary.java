@@ -4,7 +4,6 @@ import java.io.File;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
@@ -52,8 +51,14 @@ public class LazySummary {
 		for(File f : files) {
 			if (f.isFile())
 				this.files.add(f);
+			else if (f.isDirectory()) {
+				File[] filesInDir = f.listFiles();
+				if (filesInDir == null)
+					throw new RuntimeException("Could not get files in directory " + f);
+				files.addAll(Arrays.asList(filesInDir));
+			}
 			else
-				this.files.addAll(Arrays.asList(f.listFiles()));
+				throw new RuntimeException("Invalid input file: " + f);
 		}
 		
 		init();
