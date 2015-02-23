@@ -133,14 +133,13 @@ public class SummaryTaintWrapperTests {
 					 Arrays.asList(source),
 					java.util.Collections.singletonList(sink));
 		} catch (Exception e) {
-			fail("failed to calc path for test" + e.toString());
+			throw new RuntimeException(e);
 		}
 		checkNoInfoflow(iFlow);
 	}
 
 	private void checkNoInfoflow(Infoflow infoflow) {
 		assertTrue(!infoflow.isResultAvailable() || infoflow.getResults().size() == 0);
-
 	}
 
 	private void checkInfoflow(Infoflow infoflow, int resultCount) {
@@ -154,7 +153,6 @@ public class SummaryTaintWrapperTests {
 		} else {
 			fail("result is not available");
 		}
-
 	}
 
 	protected Infoflow initInfoflow() throws FileNotFoundException, XMLStreamException {

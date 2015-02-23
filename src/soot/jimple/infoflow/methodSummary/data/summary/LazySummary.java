@@ -2,6 +2,7 @@ package soot.jimple.infoflow.methodSummary.data.summary;
 
 import java.io.File;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
@@ -22,31 +23,35 @@ public class LazySummary {
 	private MethodSummaries flows = new MethodSummaries();
 	private Set<String> supportedClasses = new HashSet<String>();
 	private Set<String> loadableClasses = new HashSet<String>();
-	private List<File> files;
+	private Set<File> files;
 
 	/**
 	 * Loads a file or all files in a dir (not recursively)
 	 * @param source
 	 */
 	public LazySummary(File source) {
-		if (source.isFile()) {
-			files = java.util.Collections.singletonList(source);
-		} else {
-			files = Arrays.asList(source.listFiles());
-		}
+		if (!source.exists())
+			throw new RuntimeException("Source directory " + source + " does not exist");
+		
+		if (source.isFile())
+			files = Collections.singleton(source);
+		else if (source.isDirectory())
+			files = new HashSet<File>(Arrays.asList(source.listFiles()));
+		else
+			throw new RuntimeException("Invalid input file: " + source);
+		
 		init();
 	}
 
 	public LazySummary(List<File> files) {
-		this.files = new LinkedList<File>();
-		for(File f : files){
-			if(f.isFile()){
+		this.files = new HashSet<File>();
+		for(File f : files) {
+			if (f.isFile())
 				this.files.add(f);
-			}else{
+			else
 				this.files.addAll(Arrays.asList(f.listFiles()));
-			}
 		}
-		//this.files = files;
+		
 		init();
 	}
 
@@ -57,7 +62,6 @@ public class LazySummary {
 				loadableClasses.add(f.getName().replace(".xml", ""));
 			}
 		}
-		
 	}
 
 	public boolean supportsClass(String clazz) {
