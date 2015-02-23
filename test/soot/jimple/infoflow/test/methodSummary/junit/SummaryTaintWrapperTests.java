@@ -161,7 +161,7 @@ public class SummaryTaintWrapperTests {
 		result.setSootConfig(testConfig);
 
 		summaryWrapper = (SummaryTaintWrapper) TaintWrapperFactory.createTaintWrapper
-				("./TestSummaries/soot.jimple.infoflow.test.methodSummary.ApiClass.xml");
+				("./testSummaries/soot.jimple.infoflow.test.methodSummary.ApiClass.xml");
 		result.setTaintWrapper(summaryWrapper);
 		return result;
 	}
