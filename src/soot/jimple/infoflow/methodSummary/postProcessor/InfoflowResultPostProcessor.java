@@ -19,7 +19,6 @@ import soot.SootMethod;
 import soot.Type;
 import soot.Unit;
 import soot.Value;
-import soot.jimple.ArrayRef;
 import soot.jimple.AssignStmt;
 import soot.jimple.InstanceFieldRef;
 import soot.jimple.InstanceInvokeExpr;
@@ -83,7 +82,7 @@ public class InfoflowResultPostProcessor {
 								Collections.singletonList(a)));
 				continue;
 			}
-			
+						
 			// In case we have the same abstraction in multiple places and we
 			// extend it with external sink information regardless of the
 			// original propagation, we need to clean up first
@@ -165,9 +164,11 @@ public class InfoflowResultPostProcessor {
 		
 		// We need to reconstruct the original source access path
 		AccessPath sourceAP = reconstructSourceAP(ap, sourceInfo.getAbstractionPath());
-		if (sourceAP == null)
+		if (sourceAP == null) {
+			System.out.println("failed for: " + ap);
 			return;
-				
+		}
+		
 		// Create the flow source data object
 		flowSource = sourceSinkFactory.createSource(flowSource.getType(),
 				flowSource.getParameterIndex(), sourceAP);
@@ -216,7 +217,7 @@ public class InfoflowResultPostProcessor {
 			final Stmt stmt = abs.getCurrentStmt();
 			final Stmt callSite = abs.getCorrespondingCallSite();
 			boolean matched = false;
-												
+			
 			// In case of a call-to-return edge, we have no information about
 			// what happened in the callee, so we take the incoming access path
 			if (stmt.containsInvokeExpr()) {
@@ -231,14 +232,20 @@ public class InfoflowResultPostProcessor {
 			
 			if (matched)
 				continue;
-
+			
 			// Our call stack may run empty if we have a follow-returns-past-seeds case
-			if (stmt.containsInvokeExpr() && !callees.isEmpty()
-					
-					/* && abs.isAbstractionActive()*/) {
+			if (stmt.containsInvokeExpr()) {
 				// Forward propagation, backwards reconstruction: We leave
 				// methods when we reach the call site.
-				SootMethod callee = callees.remove(0);
+				SootMethod callee = callees.isEmpty() ? null : callees.remove(0);
+				if (callee == null) {
+					if (pathIdx < path.size())
+						callee = cfg.getMethodOf(path.get(pathIdx + 1).getCurrentStmt());
+					else
+						// If we are at the end of our path, this must be the
+						// method for which we are generating summaries
+						callee = Scene.v().getMethod(method);
+				}
 				
 				// Match the access path from the caller back into the callee
 				AccessPath newAP = mapAccessPathBackIntoCaller(curAP, stmt, callee);
@@ -249,15 +256,19 @@ public class InfoflowResultPostProcessor {
 				else
 					return null;
 			}
-			else if (callSite != null /* && abs.isAbstractionActive()*/) {
+			else if (callSite != null && callSite.containsInvokeExpr()) {
 				// Forward propagation, backwards reconstruction: We enter
 				// methods at the return site when we have a corresponding call site.
 				SootMethod callee = cfg.getMethodOf(stmt);
 				if (callees.isEmpty() || callee != callees.get(0))
 					callees.add(0, callee);
 				
+				// Backwards propagation (aliases), forward reconstruction: We
+				// enter a method at the beginning
+				
 				// Map the access path into the scope of the callee
-				AccessPath newAP = mapAccessPathIntoCallee(curAP, stmt, callSite, callee);
+				AccessPath newAP = mapAccessPathIntoCallee(curAP, stmt, callSite, callee,
+						!abs.isAbstractionActive());
 				if (newAP != null) {
 					curAP = newAP;
 					matched = true;
@@ -268,16 +279,18 @@ public class InfoflowResultPostProcessor {
 			else if (stmt instanceof AssignStmt) {
 				final AssignStmt assignStmt = (AssignStmt) stmt;
 				final Value leftOp = BaseSelector.selectBase(assignStmt.getLeftOp(), false);
+				final Value rightOp = BaseSelector.selectBase(assignStmt.getRightOp(), false);
 				
 				// If the access path must matches on the left side, we
 				// continue with the value from the right side.
-				if (leftOp instanceof Local && leftOp == curAP.getPlainValue()
+				if (leftOp instanceof Local
+						&& leftOp == curAP.getPlainValue()
 						&& !assignStmt.containsInvokeExpr()) {
 					// Get the next value from the right side of the assignment
 					final Value[] rightOps = BaseSelector.selectBaseList(assignStmt.getRightOp(), false);
-					Value rightOp = null;
+					Value rop = null;
 					if (rightOps.length == 1)
-						rightOp = rightOps[0];
+						rop = rightOps[0];
 					else {
 						int prevIdx = pathIdx - 1;
 						scan : while (pathIdx >= 0) {
@@ -285,20 +298,20 @@ public class InfoflowResultPostProcessor {
 							Value base = prevAbs.getAccessPath().getPlainValue();
 							for (Value rv : rightOps)
 								if (base == rv) {
-									rightOp = rv;
+									rop = rv;
 									break scan;
 								}
 						}
 					}
 					
-					curAP = curAP.copyWithNewValue(rightOp, null, false);
+					curAP = curAP.copyWithNewValue(rop, null, false);
 					matched = true;
 				}
 				else if (assignStmt.getLeftOp() instanceof InstanceFieldRef) {
 					InstanceFieldRef ifref = (InstanceFieldRef) assignStmt.getLeftOp();
 					AccessPath matchedAP = matchAccessPath(curAP, ifref.getBase(), ifref.getField());
 					if (matchedAP != null) {
-						curAP = curAP.copyWithNewValue(assignStmt.getRightOp(), null, true);
+						curAP = matchedAP.copyWithNewValue(assignStmt.getRightOp(), null, true);
 						matched = true;
 					}
 				}
@@ -308,7 +321,31 @@ public class InfoflowResultPostProcessor {
 				
 				// For aliasing relationships, we also need to check the right
 				// side
-				if (assignStmt.getRightOp() instanceof InstanceFieldRef) {
+				if (rightOp instanceof Local
+						&& rightOp == curAP.getPlainValue()
+						&& !assignStmt.containsInvokeExpr()) {
+					// Get the next value from the right side of the assignment
+					final Value[] leftOps = BaseSelector.selectBaseList(assignStmt.getLeftOp(), false);
+					Value lop = null;
+					if (leftOps.length == 1)
+						lop = leftOps[0];
+					else {
+						int prevIdx = pathIdx - 1;
+						scan : while (pathIdx >= 0) {
+							Abstraction prevAbs = path.get(prevIdx);
+							Value base = prevAbs.getAccessPath().getPlainValue();
+							for (Value rv : leftOps)
+								if (base == rv) {
+									lop = rv;
+									break scan;
+								}
+						}
+					}
+					
+					curAP = curAP.copyWithNewValue(lop, null, false);
+					matched = true;
+				}
+				else if (assignStmt.getRightOp() instanceof InstanceFieldRef) {
 					InstanceFieldRef ifref = (InstanceFieldRef) assignStmt.getRightOp();
 					if (ifref.getBase() == curAP.getPlainValue()
 							&& ifref.getField() == curAP.getFirstField()) {
@@ -316,21 +353,9 @@ public class InfoflowResultPostProcessor {
 						matched = true;
 					}
 				}
-				else if (assignStmt.getRightOp() instanceof ArrayRef) {
-					ArrayRef aref = (ArrayRef) assignStmt.getRightOp();
-					if (curAP.getPlainValue() == aref.getBase()) {
-						curAP = curAP.copyWithNewValue(assignStmt.getLeftOp());
-						matched = true;
-					}
-				}
-				
 			}
-			
-			if (stmt.toString().equals("$r4 = o[1]")
-					&& curAP.toString().startsWith("o"))
-				System.out.println("x");
-			
 		}
+				
 		return curAP;
 	}
 
@@ -362,17 +387,13 @@ public class InfoflowResultPostProcessor {
 									[curAP.getFieldCount() + xbase.getFields().length];
 							Type[] cutFieldTypes = new Type[cutFields.length];
 							
-							final int fieldIdx = 1;
+							System.arraycopy(xbase.getFields(), 0, cutFields, 0, xbase.getFields().length);
+							System.arraycopy(curAP.getFields(), 0, cutFields,
+									xbase.getFields().length, curAP.getFieldCount());
 							
-							System.arraycopy(curAP.getFields(), 0, cutFields, 0, fieldIdx);
-							System.arraycopy(xbase.getFields(), 0, cutFields, fieldIdx, xbase.getFields().length);
-							System.arraycopy(curAP.getFields(), fieldIdx, cutFields,
-									fieldIdx + xbase.getFields().length, curAP.getFieldCount() - fieldIdx);
-							
-							System.arraycopy(curAP.getFieldTypes(), 0, cutFieldTypes, 0, fieldIdx);
-							System.arraycopy(xbase.getTypes(), 0, cutFieldTypes, fieldIdx, xbase.getTypes().length);
-							System.arraycopy(curAP.getFieldTypes(), fieldIdx, cutFieldTypes,
-									fieldIdx + xbase.getFields().length, curAP.getFieldCount() - fieldIdx);
+							System.arraycopy(xbase.getTypes(), 0, cutFieldTypes, 0, xbase.getTypes().length);
+							System.arraycopy(curAP.getFieldTypes(), 0, cutFieldTypes,
+									xbase.getFields().length, curAP.getFieldCount());
 
 							return new AccessPath(curAP.getPlainValue(),
 									cutFields, curAP.getBaseType(), cutFieldTypes,
@@ -398,16 +419,14 @@ public class InfoflowResultPostProcessor {
 	 * callee.
 	 */
 	private AccessPath mapAccessPathIntoCallee(AccessPath curAP,
-			final Stmt stmt, final Stmt callSite, SootMethod callee) {
-		boolean matched = false;
-		
+			final Stmt stmt, final Stmt callSite, SootMethod callee,
+			boolean isBackwards) {
 		// Map the return value into the scope of the callee
 		if (stmt instanceof ReturnStmt) {
 			ReturnStmt retStmt = (ReturnStmt) stmt;
 			if (callSite instanceof AssignStmt
 					&& ((AssignStmt) callSite).getLeftOp() == curAP.getPlainValue()) {
-				curAP = curAP.copyWithNewValue(retStmt.getOp());
-				matched = true;
+				return curAP.copyWithNewValue(retStmt.getOp());
 			}
 		}
 						
@@ -416,27 +435,37 @@ public class InfoflowResultPostProcessor {
 			InstanceInvokeExpr iiExpr = (InstanceInvokeExpr) callSite.getInvokeExpr();
 			if (iiExpr.getBase() == curAP.getPlainValue()) {
 				Local thisLocal = callee.getActiveBody().getThisLocal();
-				curAP = curAP.copyWithNewValue(thisLocal);
-				matched = true;
+				return curAP.copyWithNewValue(thisLocal);
 			}
 		}
 		
 		// Map the parameters into the callee. Note that parameters as
 		// such cannot return taints from methods, only fields reachable
 		// through them. (nope, not true for alias propagation)
-		if (!curAP.isLocal() || cfg.isExitStmt(stmt))
+		if (!curAP.isLocal() || isBackwards)
 			for (int i = 0; i < callSite.getInvokeExpr().getArgCount(); i++) {
 				if (callSite.getInvokeExpr().getArg(i) == curAP.getPlainValue()) {
 					Local paramLocal = callee.getActiveBody().getParameterLocal(i);
-					curAP = curAP.copyWithNewValue(paramLocal);
-					matched = true;
-					break;
+					return curAP.copyWithNewValue(paramLocal);
 				}
 			}
+				
+		// Map the parameters back to arguments when we are entering a method
+		// during backwards propagation
+		if (!curAP.isLocal() && !isBackwards) {
+			SootMethod curMethod = cfg.getMethodOf(stmt);
+			for (int i = 0; i < callSite.getInvokeExpr().getArgCount(); i++) {
+				Local paramLocal = curMethod.getActiveBody().getParameterLocal(i);
+				if (paramLocal == curAP.getPlainValue()) {
+					return curAP.copyWithNewValue(callSite.getInvokeExpr().getArg(i),
+							curMethod.getParameterType(i), false);
+				}
+			}
+		}
 		
-		return matched ? curAP : null;
+		return null;
 	}
-
+	
 	/**
 	 * Matches an access path from the scope of the callee back into the scope
 	 * of the caller

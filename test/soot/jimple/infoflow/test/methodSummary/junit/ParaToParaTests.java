@@ -26,7 +26,7 @@ public class ParaToParaTests extends TestHelper {
 		assertEquals(1,flow.size());
 	}
 
-	@Test//(timeout = 100000)
+	@Test(timeout = 100000)
 	public void arrayRec() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToParaFlows: void arrayRec(java.lang.Object,java.lang.Object[],int)>";
 		Set<MethodFlow> flow = createSummaries(mSig);
@@ -41,6 +41,7 @@ public class ParaToParaTests extends TestHelper {
 
 		assertTrue(containsFlow(flow, Parameter,1,new String[] {}, Parameter,0,new String[] {LINKEDLIST_FIRST,LINKEDLIST_ITEM}));
 		assertTrue(containsFlow(flow, Parameter,1,new String[] {}, Parameter,0,new String[] {LINKEDLIST_LAST,LINKEDLIST_ITEM}));
+		assertTrue(containsFlow(flow, Parameter,0,new String[] {LINKEDLIST_LAST}, Parameter,0,new String[] {LINKEDLIST_FIRST}));
 		assertEquals(3,flow.size());
 	}
 
@@ -51,7 +52,7 @@ public class ParaToParaTests extends TestHelper {
 		
 		assertTrue(containsFlow(flow, Parameter,1,new String[] {}, Parameter,1,new String[] {LINKEDLIST_FIRST,LINKEDLIST_ITEM}));
 		assertTrue(containsFlow(flow, Parameter,1,new String[] {}, Parameter,1,new String[] {LINKEDLIST_LAST,LINKEDLIST_ITEM}));
-		assertTrue(flow.size() ==2);
+		assertEquals(2, flow.size());
 	}
 	
 	@Test(timeout = 100000)

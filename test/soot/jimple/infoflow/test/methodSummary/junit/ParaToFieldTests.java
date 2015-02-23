@@ -98,7 +98,7 @@ public class ParaToFieldTests extends TestHelper {
 		assertEquals(9,flow.size());
 	}
 
-	@Test//(timeout = 100000)
+	@Test(timeout = 100000)
 	public void arrayParas() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToField: void arrayParas(int[],java.lang.Object[])>";
 		Set<MethodFlow> flow = createSummaries(mSig);
@@ -109,8 +109,11 @@ public class ParaToFieldTests extends TestHelper {
 		assertTrue(containsFlow(flow, Parameter,1,new String[] {}, Field,new String[] {OBJECT_FIELD}));
 		assertTrue(containsFlow(flow, Parameter,1,new String[] {}, Field,new String[] {DATA_FIELD,DATACLASS_OBJECT_FIELD}));	
 		assertTrue(containsFlow(flow, Parameter,1,new String[] {}, Field,new String[] {OBJ_ARRAY_FIELD}));
+		
 		assertTrue(containsFlow(flow, Parameter,1,new String[] {}, Field,new String[] {LIST_FIELD,LINKEDLIST_FIRST,LINKEDLIST_ITEM}));
 		assertTrue(containsFlow(flow, Parameter,1,new String[] {}, Field,new String[] {LIST_FIELD,LINKEDLIST_LAST,LINKEDLIST_ITEM}));
+		assertTrue(containsFlow(flow, Field,0,new String[] {LIST_FIELD,LINKEDLIST_LAST}, Field,new String[] {LIST_FIELD,LINKEDLIST_FIRST}));		
+		
 		assertEquals(9,flow.size());
 	}
 
@@ -138,36 +141,18 @@ public class ParaToFieldTests extends TestHelper {
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {DATACLASS_INT_FIELD}, Field,new String[] {DATA_FIELD,DATACLASS_INT_FIELD}));
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {DATACLASS_INT_FIELD}, Field,new String[] {IARRAY_FIELD}));		
 
-		assertTrue(containsFlow(flow, Parameter,1,new String[] {LINKEDLIST_FIRST, LINKEDLIST_ITEM}, Field,new String[] {OBJECT_FIELD}));
+		assertTrue(containsFlow(flow, Parameter,1,new String[] {LINKEDLIST_FIRST, LINKEDLIST_ITEM}, Field,new String[] {OBJECT_FIELD})
+			 	|| containsFlow(flow, Parameter,1,new String[] {LINKEDLIST_LAST, LINKEDLIST_ITEM}, Field,new String[] {OBJECT_FIELD}));
 
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {DATACLASS_OBJECT_FIELD}, Field,new String[] {DATA_FIELD,DATACLASS_OBJECT_FIELD}));
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {DATACLASS_OBJECT_FIELD}, Field,new String[] {OBJ_ARRAY_FIELD}));
 		
-		assertTrue(containsFlow(flow, Parameter,1,new String[] {LINKEDLIST_FIRST, LINKEDLIST_ITEM}, Field,new String[] {LIST_FIELD, LINKEDLIST_FIRST, LINKEDLIST_ITEM}));
-		assertTrue(containsFlow(flow, Parameter,1,new String[] {LINKEDLIST_FIRST, LINKEDLIST_ITEM}, Field,new String[] {LIST_FIELD, LINKEDLIST_LAST, LINKEDLIST_ITEM}));
+		assertTrue(containsFlow(flow, Parameter,1,new String[] {LINKEDLIST_FIRST, LINKEDLIST_ITEM}, Field,new String[] {LIST_FIELD, LINKEDLIST_LAST, LINKEDLIST_ITEM})
+				|| containsFlow(flow, Parameter,1,new String[] {LINKEDLIST_LAST, LINKEDLIST_ITEM}, Field,new String[] {LIST_FIELD, LINKEDLIST_LAST, LINKEDLIST_ITEM}));
 		assertTrue(containsFlow(flow, Field,0,new String[] {LIST_FIELD, LINKEDLIST_LAST}, Field,new String[] {LIST_FIELD, LINKEDLIST_FIRST}));
 		
-		assertEquals(9,flow.size());
-	}
-
-	@Test(timeout = 400000)
-	public void dataAndListParameter2() {
-		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToField: void dataAndList(soot.jimple.infoflow.test.methodSummary.Data,java.util.List)>";
-		Set<MethodFlow> flow = createSummaries(mSig);
-		
-		assertTrue(containsFlow(flow, Parameter,0,new String[] {DATACLASS_INT_FIELD}, Field,new String[] {INT_FIELD}));
-		assertTrue(containsFlow(flow, Parameter,0,new String[] {DATACLASS_INT_FIELD}, Field,new String[] {DATA_FIELD,DATACLASS_INT_FIELD}));
-		assertTrue(containsFlow(flow, Parameter,0,new String[] {DATACLASS_INT_FIELD}, Field,new String[] {IARRAY_FIELD}));
-		assertTrue(containsFlow(flow, Parameter,0,new String[] {DATACLASS_OBJECT_FIELD}, Field,new String[] {DATA_FIELD, DATACLASS_OBJECT_FIELD}));
-		assertTrue(containsFlow(flow, Parameter,0,new String[] {DATACLASS_OBJECT_FIELD}, Field,new String[] {OBJ_ARRAY_FIELD}));
-		
-		assertTrue(containsFlow(flow, Parameter,1,new String[] {LINKEDLIST_FIRST,LINKEDLIST_ITEM}, Field,new String[] {OBJECT_FIELD}));
-		
-		assertTrue(containsFlow(flow, Parameter,1,new String[] {LINKEDLIST_FIRST, LINKEDLIST_ITEM}, Field,new String[] {LIST_FIELD, LINKEDLIST_FIRST, LINKEDLIST_ITEM}));
-		assertTrue(containsFlow(flow, Parameter,1,new String[] {LINKEDLIST_FIRST, LINKEDLIST_ITEM}, Field,new String[] {LIST_FIELD, LINKEDLIST_LAST, LINKEDLIST_ITEM}));
-		assertTrue(containsFlow(flow, Field,0,new String[] {LIST_FIELD, LINKEDLIST_LAST}, Field,new String[] {LIST_FIELD, LINKEDLIST_FIRST}));
-		
-		assertEquals(9, flow.size());
+		// +1, p.first.item -> p.last.item
+		assertTrue(flow.size() >= 9);
 	}
 	
 	@Override
