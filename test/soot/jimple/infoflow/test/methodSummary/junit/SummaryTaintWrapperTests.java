@@ -37,7 +37,6 @@ public class SummaryTaintWrapperTests {
 	public void resetSootAndStream() throws IOException {
 		soot.G.reset();
 		System.gc();
-
 	}
 
 	@Ignore("kill flow")

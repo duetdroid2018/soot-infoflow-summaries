@@ -35,8 +35,12 @@ public class LazySummary {
 		
 		if (source.isFile())
 			files = Collections.singleton(source);
-		else if (source.isDirectory())
-			files = new HashSet<File>(Arrays.asList(source.listFiles()));
+		else if (source.isDirectory()) {
+			File[] filesInDir = source.listFiles();
+			if (filesInDir == null)
+				throw new RuntimeException("Could not get files in directory " + source);
+			files = new HashSet<File>(Arrays.asList(filesInDir));
+		}
 		else
 			throw new RuntimeException("Invalid input file: " + source);
 		
