@@ -113,9 +113,9 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 			BiDiInterproceduralCFG<Unit, SootMethod> cfg,
 			FlowFunctionType type) {
 		// Do not propagate through excluded methods
-//		SootMethod sm = cfg.getMethodOf(u);
-//		if (excludedMethods.contains(sm.getSignature()))
-//			return Collections.emptySet();
+		SootMethod sm = cfg.getMethodOf(u);
+		if (excludedMethods.contains(sm.getSignature()))
+			return Collections.emptySet();
 		
 		/*
 		if (outgoing == null || outgoing.isEmpty())
