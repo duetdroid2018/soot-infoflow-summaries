@@ -80,7 +80,7 @@ public abstract class AbstractFlowSinkSource {
 		return accessPath != null && accessPath.length > 0;
 	}
 
-	public int getAccessPathLenght() {
+	public int getAccessPathLength() {
 		if (hasAccessPath())
 			return accessPath.length;
 		return 0;
@@ -89,9 +89,7 @@ public abstract class AbstractFlowSinkSource {
 	public SourceSinkType getType() {
 		return this.type;
 	}
-
-	// public abstract Map<String, String> xmlAttributes();
-	//
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;

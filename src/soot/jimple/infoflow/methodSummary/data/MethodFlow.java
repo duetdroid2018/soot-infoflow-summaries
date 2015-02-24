@@ -1,6 +1,7 @@
 package soot.jimple.infoflow.methodSummary.data;
 
 
+
 public class MethodFlow {
 
 	public String methodSig() {
@@ -17,10 +18,18 @@ public class MethodFlow {
 		this.to = to;
 	}
 	
+	/**
+	 * Gets the source, i.e., the incoming flow
+	 * @return The incoming flow
+	 */
 	public FlowSource source() {
 		return from;
 	}
 	
+	/**
+	 * Gets the sink, i.e., the outgoing flow
+	 * @return The outgoing flow
+	 */
 	public FlowSink sink() {
 		return to;
 	}

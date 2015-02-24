@@ -1,14 +1,13 @@
 package soot.jimple.infoflow.methodSummary.taintWrappers;
 
-import java.util.Collection;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
 
 import soot.Local;
 import soot.Scene;
-import soot.SootClass;
 import soot.SootField;
 import soot.SootMethod;
 import soot.Value;
@@ -26,8 +25,11 @@ import soot.jimple.infoflow.taintWrappers.AbstractTaintWrapper;
 
 public class SummaryTaintWrapper extends AbstractTaintWrapper {
 	private LazySummary flows;
-	private boolean interfaceHandling = true;
-
+	
+	/**
+	 * Creates a new instance of the {@link SummaryTaintWrapper} class
+	 * @param flows The flows loaded from disk
+	 */
 	public SummaryTaintWrapper(LazySummary flows) {
 		this.flows = flows;
 	}
@@ -35,96 +37,86 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 	@Override
 	public Set<AccessPath> getTaintsForMethod(Stmt stmt,
 			AccessPath taintedPath, IInfoflowCFG icfg) {
+		// We only care about method invocations
+		if (!stmt.containsInvokeExpr())
+			return Collections.singleton(taintedPath);
+		
 		// We always retain the incoming taint
 		Set<AccessPath> res = new HashSet<AccessPath>();
-
-		if (isExclusiveInternal(stmt, taintedPath, icfg)) {
-			res.add(taintedPath);
-		} else {
-			return res;
-		}
-		SootMethod m = stmt.getInvokeExpr().getMethod();
+		res.add(taintedPath);
 		
-		Set<SootMethod> callees = calcAllRelevantMethods(m,stmt,icfg);
-		Collection<MethodFlow> methodFlows = getAllFlows(callees);
-
-		// calc taints
-		for (MethodFlow mFlow : methodFlows) {
-			final FlowSource flowSource = mFlow.source();
-			final FlowSink flowSink = mFlow.sink();
-
-			if (flowSource.isParameter()) {
-				int paraIdx = flowSource.getParameterIndex();
-				if (stmt.getInvokeExpr().getArg(paraIdx)
-						.equals(taintedPath.getPlainValue())) {
-					if (compareFields(taintedPath, flowSource))
-						addSinkTaint(res, flowSource, flowSink, stmt,
-								taintedPath);
-				}
-			}
-
-			// There may be a flow from a field to e.g. a return value
-			if (flowSource.isField()
-					&& (taintedPath.isLocal() || taintedPath
-							.isInstanceFieldRef())
-					&& taintedPath.getPlainValue().equals(getMethodBase(stmt))) {
-				if (compareFields(taintedPath, flowSource))
-					addSinkTaint(res, flowSource, flowSink, stmt, taintedPath);
-			}
-			if (flowSource.isThis()
-					&& (taintedPath.isLocal() || taintedPath
-							.isInstanceFieldRef())
-					&& taintedPath.getPlainValue().equals(getMethodBase(stmt))) {
-				addSinkTaint(res, flowSource, flowSink, stmt, taintedPath);
+		// Get the flows in the target method
+		SootMethod callee = stmt.getInvokeExpr().getMethod();
+		Set<MethodFlow> flowsInCallee = new HashSet<MethodFlow>(flows.getMethodFlows(callee));
+		for (SootMethod sm : icfg.getCalleesOfCallAt(stmt))
+			flowsInCallee.addAll(flows.getMethodFlows(sm));
+		
+		// Apply the data flows until we reach a fixed point
+		List<AccessPath> workList = new ArrayList<AccessPath>();
+		workList.add(taintedPath);
+		while (!workList.isEmpty()) {
+			AccessPath curAP = workList.remove(0);
+			for (MethodFlow flow : flowsInCallee) {
+				AccessPath newAP = applyFlow(flow, stmt, curAP);
+				if (newAP != null && res.add(newAP))
+					workList.add(newAP);
 			}
 		}
+		
 		return res;
 	}
-
-	private Set<SootMethod> calcAllRelevantMethods(SootMethod m, Stmt stmt,
-			IInfoflowCFG icfg) {
-		Set<SootMethod> callees = new HashSet<SootMethod>();
-		callees.addAll(icfg.getCalleesOfCallAt(stmt));
-		callees.add(m);
+	
+	private AccessPath applyFlow(MethodFlow flow, Stmt stmt, AccessPath curAP) {		
+		final FlowSource flowSource = flow.source();
+		final FlowSink flowSink = flow.sink();
 		
-
-		if (interfaceHandling) {
-			callees.addAll(getMethodsInterfaceCall(m));
-		} 
-
-		// simple inherited method handling
-		// if we call a method of class c which is not implemented in c but is
-		// inherited we need to check the summaries for the parent classes
-		// we only need to do that if c doesnt override the method
-		// TODO at the moment we do that even if c override the method => add a
-		// check if c override the method
-		callees.addAll(handleInheritedMethods(m));
-		return callees;
-	}
-
-	private Set<SootMethod> handleInheritedMethods(SootMethod m) {
-		// build class chain
-		List<SootClass> classes = new LinkedList<>();
-		SootClass c = m.getDeclaringClass();
-		// classes.add(c);
-		do {
-			c = c.getSuperclass();
-			classes.add(c);
-		} while (c.hasSuperclass());
-
-		// look for methods
-		Set<SootMethod> methods = new HashSet<>();
-		for (SootClass clz : classes) {
-			try {
-				SootMethod method = clz.getMethod(m.getName(),
-						m.getParameterTypes(), m.getReturnType());
-				methods.add(method);
-			} catch (Exception e) {
-
+		if (flowSource.isParameter()) {
+			// Get the parameter index from the call and compare it to the
+			// parameter index in the flow summary
+			final int paramIdx = getParameterIndex(stmt, curAP);
+			if (paramIdx == flowSource.getParameterIndex()) {
+				if (compareFields(curAP, flowSource))
+					return addSinkTaint(flowSource, flowSink, stmt, curAP);
 			}
 		}
+		else if (flowSource.isField()) {
+			// Flows from a field can either be applied to the same field or
+			// the base object in total
+			boolean taint = (curAP.isLocal() || curAP.isInstanceFieldRef())
+					&& curAP.getPlainValue().equals(getMethodBase(stmt));
+			
+			if (taint && compareFields(curAP, flowSource))
+				return addSinkTaint(flowSource, flowSink, stmt, curAP);
+		}
+		else if (flowSource.isThis()) {
+			if (curAP.isLocal() || curAP.isInstanceFieldRef())
+				if (curAP.getPlainValue().equals(getMethodBase(stmt)))
+					return addSinkTaint(flowSource, flowSink, stmt, curAP);
+		}
+		
+		// Nothing matched
+		return null;
+	}
 
-		return methods;
+	/**
+	 * Gets the parameter index to which the given access path refers
+	 * @param stmt The invocation statement
+	 * @param curAP The access path
+	 * @return The parameter index to which the given access path refers if it
+	 * exists. Otherwise, if the given access path does not refer to a parameter,
+	 * -1 is returned.
+	 */
+	private int getParameterIndex(Stmt stmt, AccessPath curAP) {
+		if (!stmt.containsInvokeExpr())
+			return -1;
+		if (curAP.isStaticFieldRef())
+			return -1;
+		
+		final InvokeExpr iexpr = stmt.getInvokeExpr();
+		for (int i = 0; i < iexpr.getArgCount(); i++)
+			if (iexpr.getArg(i) == curAP.getPlainValue())
+				return i;
+		return -1;
 	}
 
 	private boolean compareFields(AccessPath taintedPath, FlowSource flowSource) {
@@ -133,14 +125,15 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 		if (taintedPath.getFieldCount() == 0)
 			return !flowSource.isField() || taintedPath.getTaintSubFields();
 
-		// if we have x.f....fn and the source is x.f'.f1'...f'n+1 and we dont
-		// taint sub, we cant have a match
-		if (taintedPath.getFieldCount() < flowSource.getAccessPathLenght()
+		// if we have x.f....fn and the source is x.f'.f1'...f'n+1 and we don't
+		// taint sub, we can't have a match
+		if (taintedPath.getFieldCount() < flowSource.getAccessPathLength()
 				&& !taintedPath.getTaintSubFields())
 			return false;
-
+		
+		// Compare the shared sub-path
 		for (int i = 0; i < taintedPath.getFieldCount()
-				&& i < flowSource.getAccessPathLenght(); i++) {
+				&& i < flowSource.getAccessPathLength(); i++) {
 			SootField taintField = taintedPath.getFields()[i];
 			String sourceField = flowSource.getAccessPath()[i];
 			if (!sourceField.equals(taintField.toString()))
@@ -187,71 +180,48 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 
 	}
 
-	private void addSinkTaint(Set<AccessPath> res, FlowSource flowSource,
+	private AccessPath addSinkTaint(FlowSource flowSource,
 			FlowSink flowSink, Stmt stmt, AccessPath taintedPath) {
 		boolean taintSubFields = flowSink.taintSubFields()
 				|| taintedPath.getTaintSubFields();
 
 		// Do we need to taint the return value?
 		if (flowSink.isReturn()) {
-			if (stmt instanceof DefinitionStmt) {
-				DefinitionStmt defStmt = (DefinitionStmt) stmt;
-				if (flowSource.isThis()) {
-					res.add(new AccessPath(defStmt.getLeftOp(), true));
-				}
-				if (flowSink.hasAccessPath()) {
-					SootField[] fields = safeGetFields(flowSink.getAccessPath());
-					if (fields == null)
-						taintSubFields = true;
-					res.add(new AccessPath(defStmt.getLeftOp(), fields,
-							taintSubFields));
-				} else {
-					res.add(new AccessPath(defStmt.getLeftOp(), taintSubFields));
-				}
-			}
+			// If the return value is never used, we can abort
+			if (!(stmt instanceof DefinitionStmt))
+				return null;
+			
+			DefinitionStmt defStmt = (DefinitionStmt) stmt;
+			if (flowSink.hasAccessPath()) {
+				SootField[] fields = safeGetFields(flowSink.getAccessPath());
+				return new AccessPath(defStmt.getLeftOp(), fields,
+							taintSubFields || fields == null);
+			} else
+				return new AccessPath(defStmt.getLeftOp(), taintSubFields);
 		}
 		// Do we need to taint a field of the base object?
-		else if (flowSink.isField() && stmt.containsInvokeExpr()
+		else if (flowSink.isField()
+				&& stmt.containsInvokeExpr()
 				&& stmt.getInvokeExpr() instanceof InstanceInvokeExpr) {
-			// TODO check
 			InstanceInvokeExpr iinv = (InstanceInvokeExpr) stmt.getInvokeExpr();
-			SootField[] sinkFields = safeGetFields(flowSink.getAccessPath());
-			if (sinkFields == null) {
-				taintSubFields = true;
-			}
-			res.add(new AccessPath(iinv.getBase(), sinkFields, taintSubFields));
+			SootField[] fields = safeGetFields(flowSink.getAccessPath());
+			return new AccessPath(iinv.getBase(), fields, taintSubFields || fields == null);
 		}
 		// Do we need to taint a field of the parameter?
-		else if (flowSink.isParameter()) {
-			Value arg = stmt.getInvokeExpr().getArg(
-					flowSink.getParameterIndex());
-			if (arg instanceof Local) {
-				res.add(new AccessPath(arg, safeGetFields(flowSink
-						.getAccessPath()), taintSubFields));
-			} else {
-				System.err.println("paramter is not a local " + arg);
-			}
-
+		else if (flowSink.isParameter()
+				&& stmt.containsInvokeExpr()) {
+			Value arg = stmt.getInvokeExpr().getArg(flowSink.getParameterIndex());
+			if (arg instanceof Local)
+				return new AccessPath(arg, safeGetFields(flowSink
+						.getAccessPath()), taintSubFields);
+			else
+				throw new RuntimeException("Cannot taint non-local parameter");
 		}
 		// We dont't know what this is
 		else
 			throw new RuntimeException("Unknown summary sink type: " + flowSink);
 	}
-
-	/**
-	 * Gets all flow summaries for the given set of methods
-	 * 
-	 * @param methods
-	 *            The set of methods for which to get flow summaries
-	 * @return The set of flow summaries for the given methods
-	 */
-	private Collection<MethodFlow> getAllFlows(Collection<SootMethod> methods) {
-		List<MethodFlow> methodFlows = new LinkedList<MethodFlow>();
-		for (SootMethod m : methods)
-			methodFlows.addAll(flows.getMethodFlows(m));
-		return methodFlows;
-	}
-
+	
 	/**
 	 * Gets the base object on which the method is invoked
 	 * 
@@ -272,59 +242,17 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 	@Override
 	protected boolean isExclusiveInternal(Stmt stmt, AccessPath taintedPath,
 			IInfoflowCFG icfg) {
-		boolean returnVal = false;
-
-		SootMethod method = stmt.getInvokeExpr().getMethod();
-		if (method.isConstructor() && method.getParameterCount() == 0)
-			return false;
-		if (checkIsExclusive(method)) {
-			returnVal = true;
-		}
-		for (SootMethod m2 : icfg.getCalleesOfCallAt(stmt)) {
-			if (checkIsExclusive(m2)) {
-				returnVal = true;
-			}
-		}
-		return returnVal;
+		// If we support the method, we are exclusive for it
+		return supportsCallee(stmt, icfg);
 	}
-
-	private boolean checkIsExclusive(SootMethod m) {
-		if (flows.supportsClass(m.getDeclaringClass().getName()))
-			return true;
-		if (interfaceHandling) {
-			if (m.getDeclaringClass().isInterface()) {
-				for (SootClass c : Scene.v().getActiveHierarchy()
-						.getImplementersOf(m.getDeclaringClass())) {
-					if (flows.supportsClass(c.getName()))
-						return true;
-				}
-			}
-		}
-		return false;
-	}
-
-	private Set<SootMethod> getMethodsInterfaceCall(SootMethod m) {
-		Set<SootMethod> res = new HashSet<>();
-		if (m.getDeclaringClass().isInterface()) {
-			for (SootClass c : Scene.v().getActiveHierarchy()
-					.getImplementersOf(m.getDeclaringClass())) {
-				try {
-					SootMethod tmp = c.getMethod(m.getName(),
-							m.getParameterTypes(), m.getReturnType());
-					if (tmp != null)
-						res.add(tmp);
-				} catch (Exception e) {
-
-				}
-			}
-		}
-		return res;
-	}
-	
 	
 	@Override
 	public boolean supportsCallee(SootMethod method) {
-		return checkIsExclusive(method);
+		// Check whether we directly support that class
+		if (flows.supportsClass(method.getDeclaringClass().getName()))
+			return true;
+		
+		return false;
 	}
 	
 	@Override
@@ -333,14 +261,14 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 			return false;
 
 		SootMethod method = callSite.getInvokeExpr().getMethod();
-		if (!supportsCallee(method))
-			return false;
-				
-		//check if we can create an taint for that method
-		Set<SootMethod> callees = calcAllRelevantMethods(method,callSite,icfg);
-		if(getAllFlows(callees).size() > 0)
+		if (supportsCallee(method))
 			return true;
-
+		
+		// Check all callees
+		for (SootMethod sm : icfg.getCalleesOfCallAt(callSite))
+			if (supportsCallee(sm))
+				return true;
+		
 		return false;
 	}
 
