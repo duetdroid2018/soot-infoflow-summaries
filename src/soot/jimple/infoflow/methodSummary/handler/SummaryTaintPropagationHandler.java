@@ -23,19 +23,35 @@ import soot.jimple.toolkits.ide.icfg.BiDiInterproceduralCFG;
 public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 	
 	private final String methodSig;
+	private final String parentClass;
 	private final Set<String> excludedMethods;
 	private SootMethod method = null;
 	
 	private Map<Abstraction, Stmt> result = new ConcurrentHashMap<>();
 	
-	public SummaryTaintPropagationHandler(String m) {
-		this.methodSig = m;
-		this.excludedMethods = Collections.emptySet();
+	public SummaryTaintPropagationHandler(String m, String parentClass) {
+		this(m, parentClass, Collections.<String>emptySet());
 	}
 	
-	public SummaryTaintPropagationHandler(String m, Set<String> excludedMethods) {
+	public SummaryTaintPropagationHandler(String m, String parentClass,
+			Set<String> excludedMethods) {
 		this.methodSig = m;
+		this.parentClass = parentClass;
 		this.excludedMethods = excludedMethods;
+	}
+	
+	private boolean isMethodToSummarize(SootMethod currentMethod) {
+		// Initialize the method we are interested in
+		if(method == null)
+			method = Scene.v().getMethod(methodSig);
+		
+		// This must either be the method defined by signature or the
+		// corresponding one in the parent class
+		if (currentMethod == method)
+			return true;
+		
+		return currentMethod.getDeclaringClass().getName().equals(parentClass)
+					&& currentMethod.getSubSignature().equals(method.getSubSignature());
 	}
 	
 	@Override
@@ -43,15 +59,11 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 			Abstraction result,
 			BiDiInterproceduralCFG<Unit, SootMethod> cfg,
 			FlowFunctionType type) {
-		// Get the method for which we should create the summary
-		if (method == null)
-			method = Scene.v().getMethod(methodSig);
-		
 		// Get the method containing the current statement. If this does
 		// not match the method for which we shall create a summary, we
 		// ignore it.
 		SootMethod m = cfg.getMethodOf(stmt);
-		if (!method.equals(m))
+		if (!isMethodToSummarize(m))
 			return;
 
 		// Handle the flow function

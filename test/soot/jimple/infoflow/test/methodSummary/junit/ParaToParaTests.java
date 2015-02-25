@@ -88,7 +88,6 @@ public class ParaToParaTests extends TestHelper {
 		List<String> sub = new LinkedList<String>();
 		sub.add("java.util.LinkedList");
 		sg.setSubstitutedWith(sub);
-		sg.setUseRecursiveAccessPaths(true);
 		sg.setAnalyseMethodsTogether(false);
 		sg.setAccessPathLength(3);
 		sg.setIgnoreFlowsInSystemPackages(false);

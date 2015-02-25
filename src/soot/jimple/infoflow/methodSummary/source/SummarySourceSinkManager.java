@@ -55,24 +55,34 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 
 	private final Logger logger = LoggerFactory.getLogger(SummarySourceSinkManager.class);
 	private final String methodSig;
+	private final String parentClass;
 	private final SourceSinkFactory sourceSinkFactory;
 	
 	private SootMethod method = null;
 	
-	public SummarySourceSinkManager(String mSig, SourceSinkFactory sourceSinkFactory) {
+	/**
+	 * Creates a new instance of the {@link SummarySourceSinkManager} class
+	 * @param mSig The signature of the method for which summaries shall be
+	 * created
+	 * @param parentClass The parent class containing the method for which
+	 * summaries shall be created. If mSig is the signature of a method
+	 * inherited from a base class, this parameter receives the class on
+	 * which the method denoted by mSig is called.
+	 * @param sourceSinkFactory The {@link SourceSinkFactory} to create
+	 * source and sink data objects
+	 */
+	public SummarySourceSinkManager(String mSig, String parentClass,
+			SourceSinkFactory sourceSinkFactory) {
 		this.methodSig = mSig;
+		this.parentClass = parentClass;
 		this.sourceSinkFactory = sourceSinkFactory;
 	}
 	
 	@Override
 	public SourceInfo getSourceInfo(Stmt sCallSite, InterproceduralCFG<Unit, SootMethod> cfg) {
-		// Initialize the method we are interested in
-		if(method == null)
-			method = Scene.v().getMethod(methodSig);
-		
 		// If this is not the method we are looking for, we skip it
 		SootMethod currentMethod = cfg.getMethodOf(sCallSite);
-		if (currentMethod != method)
+		if (!isMethodToSummarize(currentMethod))
 			return null;
 		
 		if (sCallSite instanceof DefinitionStmt) {
@@ -80,7 +90,7 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 			Value rightOp = jstmt.getRightOp();
 			
 			//check if we have a source with apl = 0 (this or parameter source)
-			if (currentMethod == method && rightOp instanceof ParameterRef) {
+			if (rightOp instanceof ParameterRef) {
 				ParameterRef pref = (ParameterRef) rightOp;
 				logger.debug("source: " + sCallSite + " " + currentMethod.getSignature());
 				if(debug)
@@ -88,7 +98,7 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 				return new SourceInfo(true, Collections.singletonList(
 						sourceSinkFactory.createParameterSource(pref.getIndex())));
 			}
-			else if (currentMethod == method && rightOp instanceof ThisRef) {
+			else if (rightOp instanceof ThisRef) {
 				if(debug)
 					System.out.println("source: (this)" + sCallSite + " " + currentMethod.getSignature());				
 				return new SourceInfo(true, Collections.singletonList(
@@ -98,15 +108,25 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 		return null;
 	}
 	
-	@Override
-	public boolean isSink(Stmt sCallSite, InterproceduralCFG<Unit, SootMethod> cfg) {
+	private boolean isMethodToSummarize(SootMethod currentMethod) {
 		// Initialize the method we are interested in
 		if(method == null)
 			method = Scene.v().getMethod(methodSig);
 		
+		// This must either be the method defined by signature or the
+		// corresponding one in the parent class
+		if (currentMethod == method)
+			return true;
+		
+		return currentMethod.getDeclaringClass().getName().equals(parentClass)
+					&& currentMethod.getSubSignature().equals(method.getSubSignature());
+	}
+
+	@Override
+	public boolean isSink(Stmt sCallSite, InterproceduralCFG<Unit, SootMethod> cfg) {
 		// If this is not the method we are looking for, we skip it
 		SootMethod currentMethod = cfg.getMethodOf(sCallSite);
-		if (currentMethod != method)
+		if (!isMethodToSummarize(currentMethod))
 			return false;
 		
 		return sCallSite instanceof ReturnStmt

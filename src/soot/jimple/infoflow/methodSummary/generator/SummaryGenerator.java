@@ -58,7 +58,7 @@ public class SummaryGenerator {
 	protected boolean enableExceptionTracking = false;
 	protected boolean enableStaticFieldTracking = false;
 	protected boolean flowSensitiveAliasing = true;
-	protected boolean useRecursiveAccessPaths = false;
+	protected boolean useRecursiveAccessPaths = true;
 
 	protected CallgraphAlgorithm cfgAlgo = CallgraphAlgorithm.SPARK;
 	protected boolean debug = false;
@@ -119,7 +119,21 @@ public class SummaryGenerator {
 
 			SootClass sc = Scene.v().getSootClass(className);
 			for (SootMethod sm : sc.getMethods())
-				methods.add(sm.getSignature());
+				if (sm.isPublic() || sm.isProtected())
+					methods.add(sm.getSignature());
+			
+			// We also need to analyze methods of parent classes
+			SootClass curClass = sc;
+			while (curClass.hasSuperclass()) {
+				curClass = curClass.getSuperclass();
+				if (!curClass.isAbstract())
+					break;
+				
+				for (SootMethod sm : curClass.getMethods())
+					if (!sm.isConstructor())
+						if (sm.isPublic() || sm.isProtected())
+							methods.add(sm.getSignature());
+			}
 		}
 
 		// Do the actual analysis
@@ -129,7 +143,7 @@ public class SummaryGenerator {
 			MethodSummaries classSummaries = new MethodSummaries();
 			for (String methodSig : entry.getValue()) {
 				MethodSummaries newSums = createMethodSummary(classpath,
-						methodSig);
+						methodSig, entry.getKey());
 				if (handler != null)
 					handler.onMethodFinished(methodSig, classSummaries);
 				classSummaries.merge(newSums);
@@ -161,6 +175,32 @@ public class SummaryGenerator {
 	public MethodSummaries createMethodSummary(String classpath,
 			String methodSig) {
 		return createMethodSummary(classpath, methodSig,
+				"", Collections.<String> emptyList());
+	}
+	
+	/**
+	 * Creates a method summary for the method m
+	 * 
+	 * It is assumed that only the default constructor of c is executed before m
+	 * is called.
+	 * 
+	 * The result of that assumption is that some fields of c may be null. A
+	 * null field is not identified as a source and there for will not create a
+	 * Field -> X flow.
+	 * 
+	 * @param classpath
+	 *            The classpath containing the classes to summarize
+	 * @param methodSig
+	 *            method for which a summary will be created
+	 * @param parentClass
+	 * 			  The parent class on which the method to be analyzed shall be
+	 * 			  invoked
+	 * @return summary of method m
+	 */
+	public MethodSummaries createMethodSummary(String classpath,
+			String methodSig, String parentClass) {
+		return createMethodSummary(classpath, methodSig,
+				parentClass,
 				Collections.<String> emptyList());
 	}
 
@@ -177,22 +217,27 @@ public class SummaryGenerator {
 	 *            The classpath containing the classes to summarize
 	 * @param methodSig
 	 *            method for which a summary will be created
+	 * @param parentClass
+	 * 			  The parent class on which the method to be analyzed shall be
+	 * 			  invoked
 	 * @param mDependencies
 	 *            all methods which will be "executed" before m
 	 * @return summary of method m
 	 */
 	public MethodSummaries createMethodSummary(String classpath,
-			final String methodSig, List<String> mDependencies) {
+			final String methodSig, final String parentClass,
+			List<String> mDependencies) {
+		System.out.println("Computing method summary for " + methodSig);
 
 		final SourceSinkFactory sourceSinkFactory = new SourceSinkFactory(
 				summaryAPLength);
 		final SummarySourceSinkManager manager = new SummarySourceSinkManager(
-				methodSig, sourceSinkFactory);
+				methodSig, parentClass, sourceSinkFactory);
 		final MethodSummaries summaries = new MethodSummaries();
 		final Infoflow infoflow = initInfoflow();
 
 		final SummaryTaintPropagationHandler listener = new SummaryTaintPropagationHandler(
-				methodSig, Collections.singleton(DUMMY_MAIN_SIG));
+				methodSig, parentClass, Collections.singleton(DUMMY_MAIN_SIG));
 		infoflow.addTaintPropagationHandler(listener);
 
 		infoflow.addResultsAvailableHandler(new ResultsAvailableHandler() {
@@ -211,12 +256,17 @@ public class SummaryGenerator {
 			addDependentMethods(methodSig, ms, mDependencies);
 		}
 		try{
-			infoflow.computeInfoflow(null, classpath, createEntryPoint(ms), manager);
+			
+			if (methodSig.contains("Abstract"))
+				System.out.println("x");
+			
+			infoflow.computeInfoflow(null, classpath, createEntryPoint(ms, parentClass), manager);
 		}catch(Exception e){
 			e.printStackTrace();
 			return new MethodSummaries();
 		}
-		
+		if (methodSig.contains("Abstract"))
+			System.out.println("x");
 		return summaries;
 	}
 
@@ -231,11 +281,16 @@ public class SummaryGenerator {
 	}
 
 	private BaseEntryPointCreator createEntryPoint(
-			Collection<String> entryPoints) {
+			Collection<String> entryPoints, String parentClass) {
 		SequentialEntryPointCreator dEntryPointCreater = new SequentialEntryPointCreator(
 				entryPoints);
-		dEntryPointCreater.setSubstituteClasses(substitutedWith);
+		
+		List<String> substClasses = new ArrayList<String>(substitutedWith);
+		if (parentClass != null && !parentClass.isEmpty())
+			substClasses.add(parentClass);
+		dEntryPointCreater.setSubstituteClasses(substClasses);
 		dEntryPointCreater.setSubstituteCallParams(true);
+		
 		return dEntryPointCreater;
 	}
 

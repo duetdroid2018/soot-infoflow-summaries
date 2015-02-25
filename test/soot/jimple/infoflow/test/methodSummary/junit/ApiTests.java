@@ -506,7 +506,6 @@ public class ApiTests extends ApiTestHelper {
 		List<String> sub = new LinkedList<String>();
 		sub.add("java.util.ArrayList");
 		sg.setSubstitutedWith(sub);
-		sg.setUseRecursiveAccessPaths(false);
 		sg.setAnalyseMethodsTogether(true);
 		sg.setAccessPathLength(5);
 		sg.setIgnoreFlowsInSystemPackages(false);

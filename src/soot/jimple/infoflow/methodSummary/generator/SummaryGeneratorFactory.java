@@ -15,7 +15,7 @@ public class SummaryGeneratorFactory {
 	private final boolean enableImplicitFlows = false;
 	private final boolean enableExceptionTracking = true;
 	private final boolean flowSensitiveAliasing = true;
-	private final boolean useRecursiveAccessPaths = false;
+	private final boolean useRecursiveAccessPaths = true;
 	private final boolean analyseMethodsTogether = true;
 	private final boolean useTaintWrapper = false;
 	

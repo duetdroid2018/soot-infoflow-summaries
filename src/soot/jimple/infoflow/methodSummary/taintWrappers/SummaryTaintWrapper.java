@@ -1,15 +1,26 @@
 package soot.jimple.infoflow.methodSummary.taintWrappers;
 
+import heros.solver.IDESolver;
+
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import soot.BooleanType;
+import soot.DoubleType;
+import soot.FloatType;
+import soot.IntType;
 import soot.Local;
+import soot.LongType;
+import soot.RefType;
 import soot.Scene;
+import soot.SootClass;
 import soot.SootField;
 import soot.SootMethod;
+import soot.Type;
 import soot.Value;
 import soot.jimple.DefinitionStmt;
 import soot.jimple.InstanceInvokeExpr;
@@ -23,8 +34,28 @@ import soot.jimple.infoflow.methodSummary.data.summary.LazySummary;
 import soot.jimple.infoflow.solver.IInfoflowCFG;
 import soot.jimple.infoflow.taintWrappers.AbstractTaintWrapper;
 
+import com.google.common.cache.CacheLoader;
+import com.google.common.cache.LoadingCache;
+
 public class SummaryTaintWrapper extends AbstractTaintWrapper {
 	private LazySummary flows;
+	
+	protected final LoadingCache<SootMethod, Set<MethodFlow>> methodToFlows =
+			IDESolver.DEFAULT_CACHE_BUILDER.build(new CacheLoader<SootMethod, Set<MethodFlow>>() {
+				@Override
+				public Set<MethodFlow> load(SootMethod method) throws Exception {
+					// Get the flows in the target method
+					Set<MethodFlow> flowsInCallee = new HashSet<MethodFlow>(flows.getMethodFlows(method));
+
+					// We look into parent classes and interfaces if we did not find
+					// anything for the class itself
+					if (flowsInCallee.isEmpty())
+						for (SootMethod callee : getAllCallees(method))
+							flowsInCallee.addAll(flows.getMethodFlows(callee));
+					
+					return flowsInCallee;
+				}
+			});
 	
 	/**
 	 * Creates a new instance of the {@link SummaryTaintWrapper} class
@@ -45,11 +76,28 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 		Set<AccessPath> res = new HashSet<AccessPath>();
 		res.add(taintedPath);
 		
-		// Get the flows in the target method
-		SootMethod callee = stmt.getInvokeExpr().getMethod();
-		Set<MethodFlow> flowsInCallee = new HashSet<MethodFlow>(flows.getMethodFlows(callee));
-		for (SootMethod sm : icfg.getCalleesOfCallAt(stmt))
-			flowsInCallee.addAll(flows.getMethodFlows(sm));
+		// Get the cached data flows
+		final SootMethod method = stmt.getInvokeExpr().getMethod();
+		Set<MethodFlow> flowsInCallee = methodToFlows.getUnchecked(method);
+		
+		// If we have no direct entry, check the CG
+		if (flowsInCallee.isEmpty()) {
+			flowsInCallee = new HashSet<MethodFlow>();
+			for (SootMethod callee : icfg.getCalleesOfCallAt(stmt))
+				flowsInCallee.addAll(methodToFlows.getUnchecked(callee));
+		}
+		
+		// If we did not find any flows for an interface, we take all flows from
+		// all implementors
+		if (flowsInCallee.isEmpty()) {
+			for (SootMethod implementor : getAllImplementors(method))
+				if (implementor.toString().contains("ArrayList"))
+					flowsInCallee.addAll(flows.getMethodFlows(implementor));
+		}
+		
+		// If we have no data flows, we can abort early
+		if (flowsInCallee.isEmpty())
+			return Collections.emptySet();
 		
 		// Apply the data flows until we reach a fixed point
 		List<AccessPath> workList = new ArrayList<AccessPath>();
@@ -57,7 +105,7 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 		while (!workList.isEmpty()) {
 			AccessPath curAP = workList.remove(0);
 			for (MethodFlow flow : flowsInCallee) {
-				AccessPath newAP = applyFlow(flow, stmt, curAP);
+				AccessPath newAP = applyFlow(flow, stmt, curAP);	// carry over fields
 				if (newAP != null && res.add(newAP))
 					workList.add(newAP);
 			}
@@ -66,6 +114,73 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 		return res;
 	}
 	
+	private Collection<SootMethod> getAllImplementors(SootMethod method) {
+		final String subSig = method.getSubSignature();
+		Set<SootMethod> implementors = new HashSet<SootMethod>();
+		
+		List<SootClass> workList = new ArrayList<SootClass>();
+		workList.add(method.getDeclaringClass());
+		Set<SootClass> doneSet = new HashSet<SootClass>();
+		
+		while (!workList.isEmpty()) {
+			SootClass curClass = workList.remove(0);
+			if (!doneSet.add(curClass))
+				continue;
+			
+			if (curClass.isInterface())
+				workList.addAll(Scene.v().getActiveHierarchy().getImplementersOf(curClass));
+			else
+				workList.addAll(Scene.v().getActiveHierarchy().getSubclassesOf(curClass));
+			
+			SootMethod ifm = curClass.getMethodUnsafe(subSig);
+			if (ifm != null)
+				implementors.add(ifm);
+		}
+		
+		return implementors;
+	}
+	
+	/**
+	 * Gets an over-approximation of all methods that can be called when the
+	 * given method is called. This includes all methods with matching signatures
+	 * in all parent classes as well as those in the implemented interfaces.
+	 * @param method The method for which to get the targets
+	 * @return The targets that could be called for the given method
+	 */
+	private Set<SootMethod> getAllCallees(SootMethod method) {
+		Set<SootMethod> callees = new HashSet<SootMethod>();
+		final String subSig = method.getSubSignature();
+		
+		List<SootClass> workList = new ArrayList<SootClass>();
+		workList.add(method.getDeclaringClass());
+		Set<SootClass> doneSet = new HashSet<SootClass>();
+		
+		while (!workList.isEmpty()) {
+			SootClass ifc = workList.remove(0);
+			if (!doneSet.add(ifc))
+				continue;
+			
+			SootMethod ifm = ifc.getMethodUnsafe(subSig);
+			if (ifm != null)
+				callees.add(ifm);
+			
+			if (ifc.hasSuperclass())
+				workList.add(ifc.getSuperclass());
+			workList.addAll(ifc.getInterfaces());
+		}
+		
+		return callees;
+	}
+	
+	/**
+	 * Applies a data flow summary to a given tainted access path
+	 * @param flow The data flow summary to apply
+	 * @param stmt The call site that calls the summarized library method
+	 * @param curAP The currently tainted access path
+	 * @return The access path obtained by applying the given data flow summary
+	 * to the given access path. if the summary is not applicable, null is
+	 * returned.
+	 */
 	private AccessPath applyFlow(MethodFlow flow, Stmt stmt, AccessPath curAP) {		
 		final FlowSource flowSource = flow.source();
 		final FlowSink flowSink = flow.sink();
@@ -86,16 +201,33 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 					&& curAP.getPlainValue().equals(getMethodBase(stmt));
 			
 			if (taint && compareFields(curAP, flowSource))
-				return addSinkTaint(flowSource, flowSink, stmt, curAP);
+				if (isCastCompatible(curAP.getBaseType(), stmt))
+					return addSinkTaint(flowSource, flowSink, stmt, curAP);
 		}
 		else if (flowSource.isThis()) {
 			if (curAP.isLocal() || curAP.isInstanceFieldRef())
 				if (curAP.getPlainValue().equals(getMethodBase(stmt)))
-					return addSinkTaint(flowSource, flowSink, stmt, curAP);
+					if (isCastCompatible(curAP.getBaseType(), stmt))
+						return addSinkTaint(flowSource, flowSink, stmt, curAP);
 		}
 		
 		// Nothing matched
 		return null;
+	}
+	
+	/**
+	 * Checks whether the type tracked in the access path is compatible with the
+	 * type of the base object expected by the flow summary
+	 * @param baseType The base type tracked in the access path
+	 * @param stmt The call site
+	 * @return True if the tracked base type is compatible with the tye expected
+	 * by the flow summary, otherwise false
+	 */
+	private boolean isCastCompatible(Type baseType, Stmt stmt) {
+		Type callType = stmt.getInvokeExpr().getMethod().getDeclaringClass().getType();
+		
+		return Scene.v().getOrMakeFastHierarchy().canStoreType(baseType, callType)
+				|| Scene.v().getOrMakeFastHierarchy().canStoreType(baseType, callType);
 	}
 
 	/**
@@ -154,9 +286,37 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 	private SootField safeGetField(String fieldSig) {
 		if (fieldSig == null || fieldSig.equals(""))
 			return null;
-		if (Scene.v().containsField(fieldSig))
-			return Scene.v().getField(fieldSig);
-		return null;
+		
+		SootField sf = Scene.v().grabField(fieldSig);
+		if (sf != null)
+			return sf;
+		
+		// This field does not exist, so we need to create it
+		String className = fieldSig.substring(1);
+		className = className.substring(0, className.indexOf(":"));
+		SootClass sc = Scene.v().forceResolve(className, SootClass.BODIES);
+		
+		String type = fieldSig.substring(fieldSig.indexOf(": ") + 2);
+		type = type.substring(0, type.indexOf(" "));
+		
+		String fieldName = fieldSig.substring(fieldSig.lastIndexOf(" ") + 1);
+		fieldName = fieldName.substring(0, fieldName.length() - 1);
+		
+		return Scene.v().makeFieldRef(sc, fieldName, getTypeFromString(type), false).resolve();
+	}
+
+	private Type getTypeFromString(String type) {
+		if (type.equals("int"))
+			return IntType.v();
+		else if (type.equals("long"))
+			return LongType.v();
+		else if (type.equals("float"))
+			return FloatType.v();
+		else if (type.equals("double"))
+			return DoubleType.v();
+		else if (type.equals("boolean"))
+			return BooleanType.v();
+		return RefType.v(type);
 	}
 
 	/**

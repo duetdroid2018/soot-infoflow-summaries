@@ -201,8 +201,8 @@ public class ArbitraryAccessPathTests  extends TestHelper{
 		SummaryGenerator sg = new SummaryGenerator();
 		List<String> sub = new LinkedList<String>();
 		sub.add("java.util.ArrayList");
-		sg.setSubstitutedWith(sub);
 		sg.setUseRecursiveAccessPaths(false);
+		sg.setSubstitutedWith(sub);
 		sg.setAnalyseMethodsTogether(true);
 		sg.setAccessPathLength(6);
 		sg.setSummaryAPLength(5);

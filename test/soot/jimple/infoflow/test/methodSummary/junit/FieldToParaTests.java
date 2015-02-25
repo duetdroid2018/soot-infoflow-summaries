@@ -213,7 +213,6 @@ public class FieldToParaTests extends TestHelper {
 		List<String> sub = new LinkedList<String>();
 		sub.add("java.util.ArrayList");
 		sg.setSubstitutedWith(sub);
-		sg.setUseRecursiveAccessPaths(false);
 		sg.setAnalyseMethodsTogether(false);
 		sg.setAccessPathLength(5);
 		sg.setIgnoreFlowsInSystemPackages(false);
