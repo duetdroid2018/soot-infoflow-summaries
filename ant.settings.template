@@ -10,5 +10,6 @@ infoflow-tests.jar=
 # Target JAR file
 infoflow-summaries.jar=
 infoflow-summaries-tests.jar=
+infoflow-summaries-javadoc.jar=
 
 # TODO: compile with projects checked out and recompile them with build.xml

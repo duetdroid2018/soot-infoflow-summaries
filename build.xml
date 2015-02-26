@@ -106,7 +106,22 @@
 		</junitreport>
 	</target>
 
-    <target name="generateJDKSummaries" depends="compile">
+    <target name="javadoc">
+        <javadoc
+            classpath="build/classes:${soot.jar}:${heros.jar}:${infoflow.jar}"
+            sourcepath="src"
+			destdir="javadoc"
+            maxmemory="400m"
+            windowtitle="StubDroid API"
+            use="true"
+            useexternalfile="true"
+        >
+            <fileset dir="src" includes="**/*.java"/>
+        </javadoc>
+		<jar basedir="javadoc" destfile="${infoflow-summaries-javadoc.jar}" />
+	</target>
+	
+	<target name="generateJDKSummaries" depends="compile">
         <java
             classname="soot.jimple.infoflow.methodSummary.Main"
             maxmemory="4g"

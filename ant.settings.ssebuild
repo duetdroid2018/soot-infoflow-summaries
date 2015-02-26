@@ -3,3 +3,4 @@ infoflow.jar=lib/soot-infoflow.jar
 infoflow-tests.jar=lib/soot-infoflow-tests.jar
 infoflow-summaries.jar=build/jar/soot-infoflow-summaries.jar
 infoflow-summaries-tests.jar=build/jar/soot-infoflow-summaries-tests.jar
+infoflow-summaries-javadoc.jar=build/jar/soot-infoflow-summaries-javadoc.jar
