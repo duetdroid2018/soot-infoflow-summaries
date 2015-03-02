@@ -96,7 +96,6 @@ public class LazySummary {
 					flows.merge(reader.read(f));
 					loadableClasses.remove(clazz);
 					supportedClasses.add(clazz);
-					//System.out.println();
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -106,6 +105,14 @@ public class LazySummary {
 
 	private String fileToClass(File f) {
 		return f.getName().replace(".xml", "");
+	}
+	
+	public Set<String> getSupportedClasses() {
+		return this.supportedClasses;
+	}
+	
+	public Set<String> getLoadableClasses() {
+		return this.loadableClasses;
 	}
 
 }

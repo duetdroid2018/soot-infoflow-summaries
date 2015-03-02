@@ -243,7 +243,7 @@ public class InfoflowResultPostProcessor {
 				// methods when we reach the call site.
 				SootMethod callee = callees.isEmpty() ? null : callees.remove(0);
 				if (callee == null) {
-					if (pathIdx < path.size())
+					if (pathIdx < path.size() - 1)
 						callee = cfg.getMethodOf(path.get(pathIdx + 1).getCurrentStmt());
 					else
 						// If we are at the end of our path, this must be the

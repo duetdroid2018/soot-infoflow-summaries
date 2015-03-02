@@ -21,6 +21,11 @@ import soot.jimple.infoflow.taintWrappers.AbstractTaintWrapper;
 public class SummaryGenerationTaintWrapper extends AbstractTaintWrapper {
 	
 	@Override
+	public void initialize() {
+		
+	}
+	
+	@Override
 	public Set<AccessPath> getTaintsForMethod(Stmt stmt, AccessPath taintedPath, IInfoflowCFG icfg) {
 		// If we have callees, we analyze them as usual
 		Collection<SootMethod> callees = icfg.getCalleesOfCallAt(stmt);

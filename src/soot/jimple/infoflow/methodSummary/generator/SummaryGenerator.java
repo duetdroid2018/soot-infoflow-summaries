@@ -317,7 +317,12 @@ public class SummaryGenerator {
 			iFlow.setTaintWrapper(summaryWrapper);
 		else {
 			ITaintPropagationWrapper wrapper = new AbstractTaintWrapper() {
-
+				
+				@Override
+				public void initialize() {
+					
+				}
+				
 				@Override
 				public Set<AccessPath> getTaintsForMethod(Stmt stmt,
 						AccessPath taintedPath, IInfoflowCFG icfg) {
