@@ -18,13 +18,20 @@ import soot.jimple.infoflow.methodSummary.data.MethodFlow;
 public class MethodSummaries implements Iterable<MethodFlow> {
 	
 	private final Map<String, Set<MethodFlow>> flows;
+	private final Set<String> dependencies;
 	
 	public MethodSummaries() {
-		this.flows = new ConcurrentHashMap<String, Set<MethodFlow>>();
+		this(new ConcurrentHashMap<String, Set<MethodFlow>>());
 	}
 	
 	public MethodSummaries(Map<String, Set<MethodFlow>> flows) {
+		this(flows, new ConcurrentHashSet<String>());
+	}
+	
+	public MethodSummaries(Map<String, Set<MethodFlow>> flows,
+			Set<String> dependencies) {
 		this.flows = flows;
+		this.dependencies = dependencies;
 	}
 	
 	/**
@@ -129,6 +136,29 @@ public class MethodSummaries implements Iterable<MethodFlow> {
 				}
 			}
 		};
+	}
+	
+	/**
+	 * Adds a dependency to this flow set
+	 * @param className The name of the dependency clsas
+	 * @return True if this dependency class has been added, otherwise
+	 * (dependency already registered or summaries loaded for this class)
+	 * false
+	 */
+	public boolean addDependency(String className) {
+		if (this.flows.containsKey(className))
+			return false;
+		return this.dependencies.add(className);
+	}
+	
+	/**
+	 * Gets all dependencies of the flows in this object. Dependencies are classes
+	 * which are references in a flow summary (e.g., through a field type), but
+	 * do not have summaries on their own in this object.
+	 * @return The set of depdendency objects for this flow set
+	 */
+	public Set<String> getDependencies() {
+		return this.dependencies;
 	}
 	
 }

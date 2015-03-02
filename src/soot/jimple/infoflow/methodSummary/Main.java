@@ -32,7 +32,8 @@ class Main {
 		
 		// Run it
 		SummaryGenerator generator = new SummaryGeneratorFactory().initSummaryGenerator();
-		generator.createMethodSummaries(args[0], classesToAnalyze, new IClassSummaryHandler() {
+		MethodSummaries summaries = generator.createMethodSummaries(args[0],
+				classesToAnalyze, new IClassSummaryHandler() {
 			
 			@Override
 			public void onMethodFinished(String methodSignature, MethodSummaries summaries) {
@@ -50,6 +51,11 @@ class Main {
 		});
 		
 		System.out.println("Done.");
+		if (!summaries.getDependencies().isEmpty()) {
+			System.out.println("Dependencies:");
+			for (String className : summaries.getDependencies())
+				System.out.println("\t" + className);
+		}
 	}
 	
 	/**

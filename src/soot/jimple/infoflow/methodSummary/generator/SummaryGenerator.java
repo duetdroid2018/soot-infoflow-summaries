@@ -26,6 +26,7 @@ import soot.jimple.infoflow.entryPointCreators.BaseEntryPointCreator;
 import soot.jimple.infoflow.entryPointCreators.SequentialEntryPointCreator;
 import soot.jimple.infoflow.handlers.ResultsAvailableHandler;
 import soot.jimple.infoflow.methodSummary.DefaultSummaryConfig;
+import soot.jimple.infoflow.methodSummary.data.MethodFlow;
 import soot.jimple.infoflow.methodSummary.data.factory.SourceSinkFactory;
 import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
 import soot.jimple.infoflow.methodSummary.handler.SummaryTaintPropagationHandler;
@@ -152,9 +153,29 @@ public class SummaryGenerator {
 				handler.onClassFinished(entry.getKey(), classSummaries);
 			summaries.merge(classSummaries);
 		}
+		
+		// Calculate the dependencies
+		calculateDependencies(summaries);
+		
 		return summaries;
 	}
-
+	
+	/**
+	 * Calculates the external dependencies of the given summary set
+	 * @param summaries The summary set for which to calculate the
+	 * dependencies
+	 */
+	private void calculateDependencies(MethodSummaries summaries) {
+		for (MethodFlow flow : summaries) {
+			if (flow.source().hasAccessPath())
+				for (String className : flow.source().getAccessPath())
+					summaries.addDependency(Scene.v().signatureToClass(className));
+			if (flow.sink().hasAccessPath())
+				for (String className : flow.sink().getAccessPath())
+					summaries.addDependency(Scene.v().signatureToClass(className));
+		}
+	}
+	
 	/**
 	 * Creates a method summary for the method m
 	 * 

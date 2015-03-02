@@ -74,15 +74,31 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 	public void initialize() {
 		// Load all classes for which we have summaries to signatures
 		for (String className : flows.getLoadableClasses())
-			Scene.v().forceResolve(className, SootClass.SIGNATURES);
+			loadClass(className);
 		for (String className : flows.getSupportedClasses())
-			Scene.v().forceResolve(className, SootClass.SIGNATURES);
+			loadClass(className);
 		
 		// Get the hierarchy
 		this.hierarchy = Scene.v().getActiveHierarchy();
 		this.fastHierarchy = Scene.v().getOrMakeFastHierarchy();
 	}
 	
+	/**
+	 * Loads the class with the given name into the scene. This makes sure that
+	 * there is at least a phantom class with the given name
+	 * @param className The name of the class to load
+	 */
+	private void loadClass(String className) {
+		SootClass sc = Scene.v().getSootClassUnsafe(className);
+		if (sc == null) {
+			sc = new SootClass(className);
+			sc.setPhantom(true);
+			Scene.v().addClass(sc);
+		}
+		else if (sc.resolvingLevel() < SootClass.HIERARCHY)
+			Scene.v().forceResolve(className, SootClass.HIERARCHY);
+	}
+
 	@Override
 	public Set<AccessPath> getTaintsForMethod(Stmt stmt,
 			AccessPath taintedPath, IInfoflowCFG icfg) {		
@@ -145,9 +161,9 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 				continue;
 			
 			if (curClass.isInterface())
-				workList.addAll(hierarchy.getImplementersOfUnsafe(curClass));
+				workList.addAll(hierarchy.getImplementersOf(curClass));
 			else
-				workList.addAll(hierarchy.getSubclassesOfUnsafe(curClass));
+				workList.addAll(hierarchy.getSubclassesOf(curClass));
 			
 			SootMethod ifm = curClass.getMethodUnsafe(subSig);
 			if (ifm != null)
@@ -320,8 +336,11 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 		String className = fieldSig.substring(1);
 		className = className.substring(0, className.indexOf(":"));
 		SootClass sc = Scene.v().getSootClassUnsafe(className);
-		if (sc.resolvingLevel() < SootClass.SIGNATURES)
-			Scene.v().forceResolve(className, SootClass.SIGNATURES);
+		if (sc.resolvingLevel() < SootClass.SIGNATURES
+				&& !sc.isPhantom()) {
+			System.err.println("WARNING: Class not loaded: " + sc);
+			return null;
+		}
 		
 		String type = fieldSig.substring(fieldSig.indexOf(": ") + 2);
 		type = type.substring(0, type.indexOf(" "));
