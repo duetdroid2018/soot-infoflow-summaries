@@ -2,6 +2,7 @@ package soot.jimple.infoflow.methodSummary.data.factory;
 
 import soot.ArrayType;
 import soot.SootField;
+import soot.Type;
 import soot.jimple.infoflow.data.AccessPath;
 import soot.jimple.infoflow.methodSummary.data.FlowSink;
 import soot.jimple.infoflow.methodSummary.data.FlowSource;
@@ -23,7 +24,7 @@ public class SourceSinkFactory {
 	/**
 	 * Cuts the given array of fields to the maximum access path length
 	 * @param fields The array of fields to cut
-	 * @return
+	 * @return The cut array of fields
 	 */
 	private SootField[] cutAPLength(SootField[] fields) {
 		if (fields == null || fields.length == 0)
@@ -36,12 +37,30 @@ public class SourceSinkFactory {
 		return f;
 	}
 	
-	public FlowSource createParameterSource(int parameterIdx) {
-		return new FlowSource(SourceSinkType.Parameter, parameterIdx);
+	/**
+	 * Cuts the given array of types to the maximum access path length
+	 * @param fields The array of types to cut
+	 * @return The cut array of types
+	 */
+	private Type[] cutAPLength(Type[] fields) {
+		if (fields == null || fields.length == 0)
+			return null;
+		if (fields.length <= summaryAPLength)
+			return fields;
+		
+		Type f[] = new Type[summaryAPLength];
+		System.arraycopy(fields, 0, f, 0, summaryAPLength);
+		return f;
 	}
 	
-	public FlowSource createThisSource() {
-		return new FlowSource(SourceSinkType.Field);
+	public FlowSource createParameterSource(int parameterIdx,
+			String baseType) {
+		return new FlowSource(SourceSinkType.Parameter, parameterIdx,
+				baseType);
+	}
+	
+	public FlowSource createThisSource(String baseType) {
+		return new FlowSource(SourceSinkType.Field, baseType);
 	}
 	
 	/**
@@ -54,8 +73,9 @@ public class SourceSinkFactory {
 	 */
 	public FlowSource createSource(SourceSinkType type, int parameterIdx,
 			AccessPath accessPath) {
-		return new FlowSource(type, parameterIdx,
-				sootFieldsToString(cutAPLength(accessPath.getFields())));
+		return new FlowSource(type, parameterIdx, accessPath.getBaseType().toString(),
+				sootFieldsToString(cutAPLength(accessPath.getFields())),
+				sootTypesToString(cutAPLength(accessPath.getFieldTypes())));
 	}
 	
 	/**
@@ -72,15 +92,20 @@ public class SourceSinkFactory {
 				throw new RuntimeException("Parameter locals cannot directly be sinks");
 			else
 				return new FlowSink(SourceSinkType.Parameter, paraIdx,
+						accessPath.getBaseType().toString(),
 						accessPath.getTaintSubFields());
 		}
 		else if (accessPath.getFieldCount() < summaryAPLength)
 			return new FlowSink(SourceSinkType.Parameter, paraIdx,
+					accessPath.getBaseType().toString(),
 					sootFieldsToString(accessPath.getFields()),
+					sootTypesToString(accessPath.getFieldTypes()),
 					accessPath.getTaintSubFields());
 		else
 			return new FlowSink(SourceSinkType.Parameter, paraIdx,
+					accessPath.getBaseType().toString(),
 					sootFieldsToString(cutAPLength(accessPath.getFields())),
+					sootTypesToString(cutAPLength(accessPath.getFieldTypes())),
 					true);
 	}
 		
@@ -93,14 +118,19 @@ public class SourceSinkFactory {
 	public FlowSink createReturnSink(AccessPath accessPath) {
 		if (accessPath.isLocal())
 			return new FlowSink(SourceSinkType.Return, -1,
+					accessPath.getBaseType().toString(),
 					accessPath.getTaintSubFields());
 		else if (accessPath.getFieldCount() < summaryAPLength)
 			return new FlowSink(SourceSinkType.Return, -1,
+					accessPath.getBaseType().toString(),
 					sootFieldsToString(accessPath.getFields()),
+					sootTypesToString(accessPath.getFieldTypes()),
 					accessPath.getTaintSubFields());
 		else
 			return new FlowSink(SourceSinkType.Return, -1,
+					accessPath.getBaseType().toString(),
 					sootFieldsToString(cutAPLength(accessPath.getFields())),
+					sootTypesToString(cutAPLength(accessPath.getFieldTypes())),
 					true);
 	}
 	
@@ -112,14 +142,19 @@ public class SourceSinkFactory {
 	public FlowSink createFieldSink(AccessPath accessPath) {
 		if (accessPath.isLocal())
 			return new FlowSink(SourceSinkType.Field, -1,
+					accessPath.getBaseType().toString(),
 					accessPath.getTaintSubFields());
 		else if (accessPath.getFieldCount() < summaryAPLength)
 			return new FlowSink(SourceSinkType.Field, -1,
+					accessPath.getBaseType().toString(),
 					sootFieldsToString(accessPath.getFields()),
+					sootTypesToString(accessPath.getFieldTypes()),
 					accessPath.getTaintSubFields());
 		else
 			return new FlowSink(SourceSinkType.Field, -1,
+					accessPath.getBaseType().toString(),
 					sootFieldsToString(cutAPLength(accessPath.getFields())),
+					sootTypesToString(cutAPLength(accessPath.getFieldTypes())),
 					true);
 	}
 	
@@ -133,4 +168,14 @@ public class SourceSinkFactory {
 		return res;
 	}
 	
+	private String[] sootTypesToString(Type[] types){
+		if (types == null || types.length == 0)
+			return null;
+		
+		String[] res = new String[types.length];
+		for (int i = 0; i < types.length; i++)
+			res[i] = types[i].toString();
+		return res;
+	}
+
 }

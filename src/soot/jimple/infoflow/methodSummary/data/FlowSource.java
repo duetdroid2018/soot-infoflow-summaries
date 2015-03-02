@@ -9,19 +9,22 @@ import java.util.Arrays;
  */
 public class FlowSource extends AbstractFlowSinkSource {
 
-	public FlowSource(SourceSinkType type) {
-		super(type, -1, null);
-	}
-	public FlowSource(SourceSinkType type, String[] fields) {
-		super(type, -1, fields);
+	public FlowSource(SourceSinkType type, String baseType) {
+		super(type, -1, baseType, null, null);
 	}
 	
-	public FlowSource(SourceSinkType type, int parameterIdx) {
-		super(type, parameterIdx, null);
+	public FlowSource(SourceSinkType type, String baseType, String[] fields,
+			String[] fieldTypes) {
+		super(type, -1, baseType, fields, fieldTypes);
 	}
 	
-	public FlowSource(SourceSinkType type, int parameterIdx, String[] fields) {
-		super(type, parameterIdx, fields);
+	public FlowSource(SourceSinkType type, int parameterIdx, String baseType) {
+		super(type, parameterIdx, baseType, null, null);
+	}
+	
+	public FlowSource(SourceSinkType type, int parameterIdx, String baseType,
+			String[] fields, String[] fieldTypes) {
+		super(type, parameterIdx, baseType, fields, fieldTypes);
 	}
 		
 	@Override

@@ -27,6 +27,8 @@ public class XMLConstants {
 	public static final String ATTRIBUTE_FLOWTYPE = "sourceSinkType";
 	public static final String ATTRIBUTE_PARAMTER_INDEX = "ParameterIndex";
 	public static final String ATTRIBUTE_ACCESSPATH = "AccessPath";
+	public static final String ATTRIBUTE_ACCESSPATHTYPES = "AccessPathTypes";
+	public static final String ATTRIBUTE_BASETYPE = "BaseType";
 	public static final String ATTRIBUTE_ERROR = "ERROR";
 	public static final String ATTRIBUTE_RETURN = "ReturnLocal";
 	public static final String ATTRIBUTE_TAINT_SUB_FIELDS = "taintSubFields";

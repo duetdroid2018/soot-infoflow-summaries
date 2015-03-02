@@ -14,20 +14,21 @@ public class FlowSink extends AbstractFlowSinkSource {
 	private final boolean taintSubFields;
 	
 	public FlowSink(SourceSinkType type, int paramterIdx,
-			String[] fields, boolean taintSubFields) {
-		super(type, paramterIdx, fields);
+			String baseType, String[] fields, String[] fieldTypes,
+			boolean taintSubFields) {
+		super(type, paramterIdx, baseType, fields, fieldTypes);
 		this.taintSubFields = taintSubFields;
 	}
 	
 	public FlowSink(SourceSinkType type, int paramterIdx,
-			boolean taintSubFields) {
-		super(type, paramterIdx, null);
+			String baseType, boolean taintSubFields) {
+		super(type, paramterIdx, baseType, null, null);
 		this.taintSubFields = taintSubFields;
 	}
 	
-	public FlowSink(SourceSinkType type, String[] accessPath,
-			boolean taintSubFields2) {
-		super(type,-1,accessPath);
+	public FlowSink(SourceSinkType type, String baseType, String[] accessPath,
+			String[] accessPathTypes, boolean taintSubFields2) {
+		super(type, -1, baseType, accessPath, accessPathTypes);
 		this.taintSubFields = taintSubFields2;
 	}
 

@@ -130,9 +130,8 @@ public class SummaryGenerator {
 					break;
 				
 				for (SootMethod sm : curClass.getMethods())
-					if (!sm.isConstructor())
-						if (sm.isPublic() || sm.isProtected())
-							methods.add(sm.getSignature());
+					if (sm.isPublic() || sm.isProtected())
+						methods.add(sm.getSignature());
 			}
 		}
 

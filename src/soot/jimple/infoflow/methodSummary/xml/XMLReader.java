@@ -1,6 +1,6 @@
 package soot.jimple.infoflow.methodSummary.xml;
 
-import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.ATTRIBUTE_ACCESSPATH;
+import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.ATTRIBUTE_BASETYPE;
 import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.ATTRIBUTE_FLOWTYPE;
 import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.ATTRIBUTE_PARAMTER_INDEX;
 import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.ATTRIBUTE_TAINT_SUB_FIELDS;
@@ -123,9 +123,16 @@ public class XMLReader {
 	
 	public FlowSource createSource(Map<String, String> attributes) throws SummaryXMLException{
 		if(isField(attributes)){
-			return new FlowSource(SourceSinkType.Field ,getAccessPath(attributes));
+			return new FlowSource(SourceSinkType.Field,
+					getBaseType(attributes),
+					getAccessPath(attributes),
+					getAccessPathTypes(attributes));
 		}else if(isParameter(attributes)){
-			return new FlowSource(SourceSinkType.Parameter, paramterIdx(attributes), getAccessPath(attributes));
+			return new FlowSource(SourceSinkType.Parameter,
+					paramterIdx(attributes),
+					getBaseType(attributes), 
+					getAccessPath(attributes),
+					getAccessPathTypes(attributes));
 		}else if(isMethod(attributes)){
 			//TODO not yet specified
 		}
@@ -133,11 +140,24 @@ public class XMLReader {
 	}
 	public FlowSink createSink(Map<String, String> attributes) throws SummaryXMLException{
 		if(isField(attributes)){
-			return new FlowSink(SourceSinkType.Field, getAccessPath(attributes),taintSubFields(attributes));
+			return new FlowSink(SourceSinkType.Field,
+					getBaseType(attributes),
+					getAccessPath(attributes),
+					getAccessPathTypes(attributes),
+					taintSubFields(attributes));
 		}else if(isParameter(attributes)){
-			return new FlowSink(SourceSinkType.Parameter, paramterIdx(attributes), getAccessPath(attributes), taintSubFields(attributes));
+			return new FlowSink(SourceSinkType.Parameter,
+					paramterIdx(attributes),
+					getBaseType(attributes),
+					getAccessPath(attributes),
+					getAccessPathTypes(attributes),
+					taintSubFields(attributes));
 		}else if(isReturn(attributes)){
-			return new FlowSink(SourceSinkType.Return, getAccessPath(attributes),taintSubFields(attributes));
+			return new FlowSink(SourceSinkType.Return,
+					getBaseType(attributes),
+					getAccessPath(attributes),
+					getAccessPathTypes(attributes),
+					taintSubFields(attributes));
 		}else if(isMethod(attributes)){
 			//TODO not yet specified
 		}
@@ -155,16 +175,29 @@ public class XMLReader {
 	private boolean isField(Map<String, String> attributes){
 		return attributes.get(ATTRIBUTE_FLOWTYPE).equals(SourceSinkType.Field.toString());
 	}
+	
 	private String[] getAccessPath(Map<String, String> attributes){
-		if(attributes.containsKey(XMLConstants.ATTRIBUTE_ACCESSPATH)){
-
-			if(attributes.get(ATTRIBUTE_ACCESSPATH).length() > 3){
-				 String[] res = attributes.get(ATTRIBUTE_ACCESSPATH).substring(1, attributes.get(ATTRIBUTE_ACCESSPATH).length()-1).split(",");
-				 for(int i =0; i < res.length; i++)
+		String ap = attributes.get(XMLConstants.ATTRIBUTE_ACCESSPATH);
+		if(ap != null){
+			if(ap.length() > 3){
+				 String[] res = ap.substring(1, ap.length()-1).split(",");
+				 for(int i = 0; i < res.length; i++)
 					 res[i] = res[i].trim();
 				 return res;
 			}
-				
+		}
+		return null;
+	}
+	
+	private String[] getAccessPathTypes(Map<String, String> attributes){
+		String ap = attributes.get(XMLConstants.ATTRIBUTE_ACCESSPATHTYPES);
+		if(ap != null){
+			if(ap.length() > 3){
+				 String[] res = ap.substring(1, ap.length()-1).split(",");
+				 for(int i = 0; i < res.length; i++)
+					 res[i] = res[i].trim();
+				 return res;
+			}
 		}
 		return null;
 	}
@@ -176,6 +209,11 @@ public class XMLReader {
 	private int paramterIdx(Map<String, String> attributes){
 		return  Integer.parseInt(attributes.get(ATTRIBUTE_PARAMTER_INDEX));
 	}
+	
+	private String getBaseType(Map<String, String> attributes) {
+		return attributes.get(ATTRIBUTE_BASETYPE);
+	}
+	
 	private boolean taintSubFields(Map<String, String> attributes){
 		String val = attributes.get(ATTRIBUTE_TAINT_SUB_FIELDS);
 		return val != null && val.equals(VALUE_TRUE);

@@ -1,6 +1,8 @@
 package soot.jimple.infoflow.methodSummary.xml;
 
 import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.ATTRIBUTE_ACCESSPATH;
+import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.ATTRIBUTE_ACCESSPATHTYPES;
+import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.ATTRIBUTE_BASETYPE;
 import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.ATTRIBUTE_ERROR;
 import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.ATTRIBUTE_FLOWTYPE;
 import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.ATTRIBUTE_PARAMTER_INDEX;
@@ -95,8 +97,10 @@ public class XMLWriter  {
 			writer.writeAttribute(ATTRIBUTE_ERROR, "no valied source");
 			System.err.println("ERROR: the summary for " + data.methodSig() + " is corrupted");
 		}
+		writer.writeAttribute(ATTRIBUTE_BASETYPE, currentFlow.getBaseType());
 		if(currentFlow.hasAccessPath() && currentFlow.getAccessPath() != null){
 			writer.writeAttribute(ATTRIBUTE_ACCESSPATH, Arrays.toString(currentFlow.getAccessPath()));
+			writer.writeAttribute(ATTRIBUTE_ACCESSPATHTYPES, Arrays.toString(currentFlow.getAccessPathTypes()));
 		}
 		if(!source && data.sink().taintSubFields()){
 			writer.writeAttribute(ATTRIBUTE_TAINT_SUB_FIELDS, VALUE_TRUE);

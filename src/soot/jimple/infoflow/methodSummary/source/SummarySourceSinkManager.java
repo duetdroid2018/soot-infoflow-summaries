@@ -96,13 +96,14 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 				if(debug)
 					System.out.println("source: " + sCallSite + " " + currentMethod.getSignature());
 				return new SourceInfo(true, Collections.singletonList(
-						sourceSinkFactory.createParameterSource(pref.getIndex())));
+						sourceSinkFactory.createParameterSource(pref.getIndex(), pref.getType().toString())));
 			}
 			else if (rightOp instanceof ThisRef) {
+				ThisRef tref = (ThisRef) rightOp;
 				if(debug)
 					System.out.println("source: (this)" + sCallSite + " " + currentMethod.getSignature());				
 				return new SourceInfo(true, Collections.singletonList(
-						sourceSinkFactory.createThisSource()));
+						sourceSinkFactory.createThisSource(tref.getType().toString())));
 			}
 		}
 		return null;

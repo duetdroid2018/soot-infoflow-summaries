@@ -13,15 +13,24 @@ import soot.jimple.infoflow.methodSummary.xml.XMLConstants;
 public abstract class AbstractFlowSinkSource {
 	protected final SourceSinkType type;
 	protected final int parameterIdx;
+	protected final String baseType;
 	protected final String[] accessPath;
+	protected final String[] accessPathTypes;
 
 	public AbstractFlowSinkSource(SourceSinkType type, int parameterIdx,
-			String[] accessPath) {
-		this.type = type;
-		this.parameterIdx = parameterIdx;
-		this.accessPath = accessPath;
+			String baseType) {
+		this(type, parameterIdx, baseType, null, null);
 	}
 	
+	public AbstractFlowSinkSource(SourceSinkType type, int parameterIdx,
+			String baseType, String[] accessPath, String[] accessPathTypes) {
+		this.type = type;
+		this.parameterIdx = parameterIdx;
+		this.baseType = baseType;
+		this.accessPath = accessPath;
+		this.accessPathTypes = accessPathTypes;
+	}
+		
 	/**
 	 * Checks whether the current source or sink is coarser than the given one,
 	 * i.e., if all elements referenced by the given source or sink are also
@@ -34,9 +43,9 @@ public abstract class AbstractFlowSinkSource {
 		if (this.equals(other))
 			return true;
 		
-		if (this.type != other.type)
-			return false;
-		if (this.parameterIdx != other.parameterIdx)
+		if (this.type != other.type
+				|| this.parameterIdx != other.parameterIdx
+				|| (this.baseType != null && !this.baseType.equals(other.baseType)))
 			return false;
 		if (this.accessPath != null && other.accessPath != null) {
 			if (this.accessPath.length > other.accessPath.length)
@@ -59,6 +68,10 @@ public abstract class AbstractFlowSinkSource {
 	public int getParameterIndex() {
 		return parameterIdx;
 	}
+	
+	public String getBaseType() {
+		return baseType;
+	}
 
 	public boolean isField() {
 		return type().equals(SourceSinkType.Field);
@@ -70,6 +83,10 @@ public abstract class AbstractFlowSinkSource {
 
 	public String[] getAccessPath() {
 		return accessPath;
+	}
+	
+	public String[] getAccessPathTypes() {
+		return accessPathTypes;
 	}
 
 	public boolean isReturn() {
@@ -97,6 +114,7 @@ public abstract class AbstractFlowSinkSource {
 		result = prime * result
 				+ ((accessPath == null) ? 0 : Arrays.hashCode(accessPath));
 		result = prime * result + parameterIdx;
+		result = prime * result + (baseType == null ? 0 : baseType.hashCode());
 		result = prime * result + ((type == null) ? 0 : type.hashCode());
 		return result;
 	}
@@ -117,6 +135,12 @@ public abstract class AbstractFlowSinkSource {
 			return false;
 		if (parameterIdx != other.parameterIdx)
 			return false;
+		if (baseType == null) {
+			if (other.baseType != null)
+				return false;
+		}
+		else if (baseType.equals(other.baseType))
+			return false;
 		if (type != other.type)
 			return false;
 		return true;
@@ -134,6 +158,9 @@ public abstract class AbstractFlowSinkSource {
 			res.put(XMLConstants.ATTRIBUTE_FLOWTYPE, XMLConstants.VALUE_RETURN);
 		else
 			throw new RuntimeException("Invalid source type");
+		
+		if (baseType != null)
+			res.put(XMLConstants.ATTRIBUTE_BASETYPE, baseType);
 		
 		if(hasAccessPath())
 			res.put(XMLConstants.ATTRIBUTE_ACCESSPATH, getAccessPath().toString());

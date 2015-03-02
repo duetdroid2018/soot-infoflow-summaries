@@ -80,6 +80,11 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 		final SootMethod method = stmt.getInvokeExpr().getMethod();
 		Set<MethodFlow> flowsInCallee = methodToFlows.getUnchecked(method);
 		
+		// TODO: copy over fields for *
+		
+		if (stmt.toString().contains("next("))
+			System.out.println("x");
+		
 		// If we have no direct entry, check the CG
 		if (flowsInCallee.isEmpty()) {
 			flowsInCallee = new HashSet<MethodFlow>();
@@ -91,8 +96,7 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 		// all implementors
 		if (flowsInCallee.isEmpty()) {
 			for (SootMethod implementor : getAllImplementors(method))
-				if (implementor.toString().contains("ArrayList"))
-					flowsInCallee.addAll(flows.getMethodFlows(implementor));
+				flowsInCallee.addAll(flows.getMethodFlows(implementor));
 		}
 		
 		// If we have no data flows, we can abort early
@@ -185,11 +189,19 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 		final FlowSource flowSource = flow.source();
 		final FlowSink flowSink = flow.sink();
 		
+		// Make sure that the base type of the incoming taint and the one of
+		// the summary are compatible
+		boolean typesCompatible = Scene.v().getOrMakeFastHierarchy().canStoreType(
+					curAP.getBaseType(), RefType.v(flowSource.getBaseType()))
+				|| Scene.v().getOrMakeFastHierarchy().canStoreType(
+						RefType.v(flowSource.getBaseType()), curAP.getBaseType());
+
 		if (flowSource.isParameter()) {
 			// Get the parameter index from the call and compare it to the
 			// parameter index in the flow summary
 			final int paramIdx = getParameterIndex(stmt, curAP);
-			if (paramIdx == flowSource.getParameterIndex()) {
+			if (paramIdx == flowSource.getParameterIndex()
+					&& typesCompatible) {
 				if (compareFields(curAP, flowSource))
 					return addSinkTaint(flowSource, flowSink, stmt, curAP);
 			}
@@ -201,13 +213,13 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 					&& curAP.getPlainValue().equals(getMethodBase(stmt));
 			
 			if (taint && compareFields(curAP, flowSource))
-				if (isCastCompatible(curAP.getBaseType(), stmt))
+				if (typesCompatible && isCastCompatible(curAP.getBaseType(), stmt))
 					return addSinkTaint(flowSource, flowSink, stmt, curAP);
 		}
 		else if (flowSource.isThis()) {
 			if (curAP.isLocal() || curAP.isInstanceFieldRef())
 				if (curAP.getPlainValue().equals(getMethodBase(stmt)))
-					if (isCastCompatible(curAP.getBaseType(), stmt))
+					if (typesCompatible && isCastCompatible(curAP.getBaseType(), stmt))
 						return addSinkTaint(flowSource, flowSink, stmt, curAP);
 		}
 		
@@ -323,7 +335,7 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 	 * Gets an array of fields with the specified signatures
 	 * 
 	 * @param fieldSigs
-	 *            , list of the field signatures to retriev
+	 *            , list of the field signatures to retrieve
 	 * @return The Array of fields with the given signature if all exists,
 	 *         otherwise null
 	 */
@@ -337,9 +349,25 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 				return null;
 		}
 		return fields;
-
 	}
 
+	/**
+	 * Gets an array of types with the specified class names
+	 * 
+	 * @param fieldTypes
+	 *            , list of the type names to retrieve
+	 * @return The Array of fields with the given signature if all exists,
+	 *         otherwise null
+	 */
+	private Type[] safeGetTypes(String[] fieldTypes) {
+		if (fieldTypes == null || fieldTypes.length == 0)
+			return null;
+		Type[] types = new Type[fieldTypes.length];
+		for (int i = 0; i < fieldTypes.length; i++)
+			types[i] = RefType.v(fieldTypes[i]);
+		return types;
+	}
+	
 	private AccessPath addSinkTaint(FlowSource flowSource,
 			FlowSink flowSink, Stmt stmt, AccessPath taintedPath) {
 		boolean taintSubFields = flowSink.taintSubFields()
@@ -355,25 +383,46 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 			if (flowSink.hasAccessPath()) {
 				SootField[] fields = safeGetFields(flowSink.getAccessPath());
 				return new AccessPath(defStmt.getLeftOp(), fields,
-							taintSubFields || fields == null);
+						RefType.v(flowSink.getBaseType()), null,
+						taintSubFields || fields == null);
 			} else
-				return new AccessPath(defStmt.getLeftOp(), taintSubFields);
+				return new AccessPath(defStmt.getLeftOp(), null,
+						RefType.v(flowSink.getBaseType()), null,
+						taintSubFields);
 		}
 		// Do we need to taint a field of the base object?
 		else if (flowSink.isField()
 				&& stmt.containsInvokeExpr()
 				&& stmt.getInvokeExpr() instanceof InstanceInvokeExpr) {
+			// If we taint something in the base object, its type must match. We
+			// might have a taint for "a" in o.add(a) and need to check whether
+			// "o" matches the expected type in our summary.
 			InstanceInvokeExpr iinv = (InstanceInvokeExpr) stmt.getInvokeExpr();
+			if (!Scene.v().getOrMakeFastHierarchy().canStoreType(RefType.v(flowSink.getBaseType()),
+					iinv.getBase().getType()))
+				return null;
+			
 			SootField[] fields = safeGetFields(flowSink.getAccessPath());
-			return new AccessPath(iinv.getBase(), fields, taintSubFields || fields == null);
+			Type[] fieldTypes = safeGetTypes(flowSink.getAccessPathTypes());
+			return new AccessPath(iinv.getBase(),
+					fields,
+					RefType.v(flowSink.getBaseType()),
+					fieldTypes,
+					taintSubFields || fields == null);
 		}
 		// Do we need to taint a field of the parameter?
 		else if (flowSink.isParameter()
 				&& stmt.containsInvokeExpr()) {
 			Value arg = stmt.getInvokeExpr().getArg(flowSink.getParameterIndex());
-			if (arg instanceof Local)
-				return new AccessPath(arg, safeGetFields(flowSink
-						.getAccessPath()), taintSubFields);
+			if (arg instanceof Local) {
+				SootField[] fields = safeGetFields(flowSink.getAccessPath());
+				Type[] fieldTypes = safeGetTypes(flowSink.getAccessPathTypes());
+				return new AccessPath(arg,
+						fields,
+						RefType.v(flowSink.getBaseType()),
+						fieldTypes,
+						taintSubFields);
+			}
 			else
 				throw new RuntimeException("Cannot taint non-local parameter");
 		}
