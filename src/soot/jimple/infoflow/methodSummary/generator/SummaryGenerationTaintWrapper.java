@@ -9,6 +9,8 @@ import soot.jimple.Stmt;
 import soot.jimple.infoflow.data.AccessPath;
 import soot.jimple.infoflow.solver.IInfoflowCFG;
 import soot.jimple.infoflow.taintWrappers.AbstractTaintWrapper;
+import soot.util.ConcurrentHashMultiMap;
+import soot.util.MultiMap;
 
 /**
  * Taint wrapper to be used during summary construction. If we find a call for
@@ -20,6 +22,9 @@ import soot.jimple.infoflow.taintWrappers.AbstractTaintWrapper;
  */
 public class SummaryGenerationTaintWrapper extends AbstractTaintWrapper {
 	
+	private MultiMap<Stmt, AccessPath> gapAccessPaths =
+			new ConcurrentHashMultiMap<Stmt, AccessPath>();
+	
 	@Override
 	public void initialize() {
 		
@@ -27,15 +32,38 @@ public class SummaryGenerationTaintWrapper extends AbstractTaintWrapper {
 	
 	@Override
 	public Set<AccessPath> getTaintsForMethod(Stmt stmt, AccessPath taintedPath, IInfoflowCFG icfg) {
+		// This must be a method invocation
+		if (!stmt.containsInvokeExpr())
+			return null;
+		
 		// If we have callees, we analyze them as usual
 		Collection<SootMethod> callees = icfg.getCalleesOfCallAt(stmt);
 		if (callees != null && !callees.isEmpty())
 			return null;
 		
-		// Produce a continuation
-		// TODO
-		
 		return Collections.emptySet();
+		/*
+		
+		// Produce a continuation
+		Set<AccessPath> res = new HashSet<AccessPath>();
+		if (stmt.getInvokeExpr() instanceof InstanceInvokeExpr) {
+			AccessPath ap = new AccessPath(((InstanceInvokeExpr) stmt.getInvokeExpr()).getBase(), true);
+			res.add(ap);
+			gapAccessPaths.put(stmt, ap);
+		}
+		for (Value paramVal : stmt.getInvokeExpr().getArgs()) {
+			AccessPath ap = new AccessPath(paramVal, true);
+			res.add(ap);
+			gapAccessPaths.put(stmt, ap);
+		}
+		if (stmt instanceof DefinitionStmt) {
+			AccessPath ap = new AccessPath(((DefinitionStmt) stmt).getLeftOp(), true);
+			res.add(ap);
+			gapAccessPaths.put(stmt, ap);
+		}
+		
+		return res;
+		*/
 	}
 
 	@Override
@@ -54,6 +82,10 @@ public class SummaryGenerationTaintWrapper extends AbstractTaintWrapper {
 		// We only wrap calls that have no callees
 		Collection<SootMethod> callees = icfg.getCalleesOfCallAt(callSite);
 		return callees == null || callees.isEmpty();
+	}
+	
+	public MultiMap<Stmt, AccessPath> getGapAccessPaths() {
+		return this.gapAccessPaths;
 	}
 
 }

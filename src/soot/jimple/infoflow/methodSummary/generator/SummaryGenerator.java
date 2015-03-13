@@ -258,6 +258,8 @@ public class SummaryGenerator {
 
 		final SummaryTaintPropagationHandler listener = new SummaryTaintPropagationHandler(
 				methodSig, parentClass, Collections.singleton(DUMMY_MAIN_SIG));
+		listener.setGapAccessPaths(((SummaryGenerationTaintWrapper) infoflow.getTaintWrapper())
+				.getGapAccessPaths());
 		infoflow.addTaintPropagationHandler(listener);
 
 		infoflow.addResultsAvailableHandler(new ResultsAvailableHandler() {
@@ -381,7 +383,6 @@ public class SummaryGenerator {
 		}
 
 		iFlow.setCallgraphAlgorithm(cfgAlgo);
-		// iFlow.setMethodsExcludedFromFlowPropagation(java.util.Collections.singletonList(DUMMY_MAIN_SIG));
 		iFlow.setIgnoreFlowsInSystemPackages(ignoreFlowsInSystemPackages);
 		Infoflow.setUseRecursiveAccessPaths(useRecursiveAccessPaths);
 

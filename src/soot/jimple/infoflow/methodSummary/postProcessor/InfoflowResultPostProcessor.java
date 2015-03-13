@@ -3,10 +3,12 @@ package soot.jimple.infoflow.methodSummary.postProcessor;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
-import java.util.Map.Entry;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -30,24 +32,30 @@ import soot.jimple.infoflow.data.AccessPath;
 import soot.jimple.infoflow.data.AccessPath.BasePair;
 import soot.jimple.infoflow.methodSummary.data.FlowSink;
 import soot.jimple.infoflow.methodSummary.data.FlowSource;
+import soot.jimple.infoflow.methodSummary.data.GapDefinition;
 import soot.jimple.infoflow.methodSummary.data.MethodFlow;
+import soot.jimple.infoflow.methodSummary.data.SourceSinkType;
 import soot.jimple.infoflow.methodSummary.data.factory.SourceSinkFactory;
 import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
 import soot.jimple.infoflow.methodSummary.postProcessor.SummaryPathBuilder.SummaryResultInfo;
 import soot.jimple.infoflow.methodSummary.postProcessor.SummaryPathBuilder.SummarySourceInfo;
 import soot.jimple.infoflow.solver.IInfoflowCFG;
 import soot.jimple.infoflow.util.BaseSelector;
+import soot.util.MultiMap;
 
 public class InfoflowResultPostProcessor {
+	private final boolean DEBUG = true;
 	private final Logger logger = LoggerFactory.getLogger(InfoflowResultPostProcessor.class);
 
 	private final IInfoflowCFG cfg;
-	private final Map<Abstraction, Stmt> collectedAbstractions;
-	private final boolean DEBUG = true;
+	private final MultiMap<Abstraction, Stmt> collectedAbstractions;
 	private final String method;
 	private final SourceSinkFactory sourceSinkFactory;
 	
-	public InfoflowResultPostProcessor(Map<Abstraction, Stmt> collectedAbstractions,
+	private final Map<Stmt, GapDefinition> gaps = new HashMap<Stmt, GapDefinition>();
+	private int lastGapID = 0;
+	
+	public InfoflowResultPostProcessor(MultiMap<Abstraction, Stmt> collectedAbstractions,
 			IInfoflowCFG cfg, String m, SourceSinkFactory sourceSinkFactory) {
 		this.collectedAbstractions = collectedAbstractions;
 		this.cfg = cfg;
@@ -60,9 +68,9 @@ public class InfoflowResultPostProcessor {
 	 * Extract all summary flow from collectedAbstractions.
 	 */
 	public MethodSummaries postProcess() {
-		MethodSummaries flows = new MethodSummaries();
 		logger.info("start processing infoflow abstractions");
 		final SootMethod m = Scene.v().getMethod(method);
+		MethodSummaries flows = new MethodSummaries();
 		
 		// Create a context-sensitive path builder. Without context-sensitivity,
 		// we get quite some false positives here.
@@ -70,45 +78,46 @@ public class InfoflowResultPostProcessor {
 				Runtime.getRuntime().availableProcessors());
 		
 		int analyzedPaths = 0;
-		for (Entry<Abstraction, Stmt> entry : collectedAbstractions.entrySet()) {
-			Abstraction a = entry.getKey();
-			Stmt stmt = entry.getValue();
-			
-			// If this abstraction is directly the source abstraction, we do not
-			// need to construct paths
-			if (a.getSourceContext() != null) {
-				processFlowSource(flows, m, a.getAccessPath(), stmt,
-						pathBuilder.new SummarySourceInfo(a.getAccessPath(), a.getCurrentStmt(),
-								a.getSourceContext().getUserData(), Collections.singletonList(a.getCurrentStmt()),
-								Collections.singletonList(a)));
-				continue;
-			}
-						
-			// In case we have the same abstraction in multiple places and we
-			// extend it with external sink information regardless of the
-			// original propagation, we need to clean up first
-			a.clearPathCache();
-			
-			// Get the source info and process the flow
-			pathBuilder.clear();
-			pathBuilder.computeTaintPaths(Collections.singleton(new AbstractionAtSink(a,
-					a.getCurrentStmt())));
-			
-			for (SummaryResultInfo si : pathBuilder.getResultInfos()) {
-				final AccessPath sourceAP = si.getSourceInfo().getAccessPath();
-				final AccessPath sinkAP = si.getSinkInfo().getAccessPath();
+		int abstractionCount = 0;
+		for (Abstraction a : collectedAbstractions.keySet())
+			for (Stmt stmt : collectedAbstractions.get(a)) {
+				abstractionCount++;
 				
-				// Check that we don't get any weird results
-				if (sourceAP == null || sinkAP == null)
-					throw new RuntimeException("Invalid access path");
+				// If this abstraction is directly the source abstraction, we do not
+				// need to construct paths
+				if (a.getSourceContext() != null) {
+					processFlowSource(flows, m, a.getAccessPath(), stmt,
+							pathBuilder.new SummarySourceInfo(a.getAccessPath(), a.getCurrentStmt(),
+									a.getSourceContext().getUserData(), Collections.singletonList(a.getCurrentStmt()),
+									Collections.singletonList(a)));
+					continue;
+				}
+							
+				// In case we have the same abstraction in multiple places and we
+				// extend it with external sink information regardless of the
+				// original propagation, we need to clean up first
+				a.clearPathCache();
 				
-				// Process the flow from this source
-				if (!sinkAP.equals(sourceAP)) {
-					processFlowSource(flows, m, sinkAP, stmt, si.getSourceInfo());
-					analyzedPaths++;
+				// Get the source info and process the flow
+				pathBuilder.clear();
+				pathBuilder.computeTaintPaths(Collections.singleton(new AbstractionAtSink(a,
+						a.getCurrentStmt())));
+				
+				for (SummaryResultInfo si : pathBuilder.getResultInfos()) {
+					final AccessPath sourceAP = si.getSourceInfo().getAccessPath();
+					final AccessPath sinkAP = si.getSinkInfo().getAccessPath();
+					
+					// Check that we don't get any weird results
+					if (sourceAP == null || sinkAP == null)
+						throw new RuntimeException("Invalid access path");
+					
+					// Process the flow from this source
+					if (!sinkAP.equals(sourceAP)) {
+						processFlowSource(flows, m, sinkAP, stmt, si.getSourceInfo());
+						analyzedPaths++;
+					}
 				}
 			}
-		}
 		
 		pathBuilder.shutdown();
 		
@@ -116,11 +125,50 @@ public class InfoflowResultPostProcessor {
 		// other flows
 		compactFlowSet(flows);
 		
+		// Check the gaps for validity
+		checkGapValidity(flows);
+		
 		logger.info("Result processing finished, analyzed {} paths from {} stored "
-				+ "abstractions", analyzedPaths, collectedAbstractions.size());
+				+ "abstractions", analyzedPaths, abstractionCount);
 		return flows;
 	}
 	
+	/**
+	 * Checks whether the gaps in the given method summary are valid
+	 * @param flows The flow summary to check
+	 */
+	private void checkGapValidity(MethodSummaries flows) {
+		// For method that has a flow into a gap, we must also have one flow to
+		// the base object of that gap
+		for (String methodName : flows.getFlows().keySet()) {
+			Set<GapDefinition> gapsWithFlows = new HashSet<GapDefinition>();
+			Set<GapDefinition> gapsWithBases = new HashSet<GapDefinition>();
+			
+			for (MethodFlow flow : flows.getFlows().get(methodName)) {
+				// For the source, record all flows to gaps and all flows to bases
+				if (flow.source().getGap() != null) {
+					if (flow.source().getType() == SourceSinkType.GapBaseObject)
+						gapsWithBases.add(flow.source().getGap());
+					else
+						gapsWithFlows.add(flow.source().getGap());
+				}
+
+				// For the sink, record all flows to gaps and all flows to bases
+				if (flow.sink().getGap() != null) {
+					if (flow.sink().getType() == SourceSinkType.GapBaseObject)
+						gapsWithBases.add(flow.sink().getGap());
+					else
+						gapsWithFlows.add(flow.sink().getGap());
+				}
+			}
+			
+			// Check whether we have some flow for which we don't have a base
+			for (GapDefinition gd : gapsWithFlows)
+				if (!gapsWithBases.contains(gd))
+					throw new RuntimeException("Flow to/from a gap without a base detected");
+		}
+	}
+
 	/**
 	 * Compacts the flow set by removing flows that are over-approximations of
 	 * others
@@ -182,7 +230,7 @@ public class InfoflowResultPostProcessor {
 		if (cfg.isExitStmt(stmt))
 			processAbstractionAtReturn(flows, ap, m, flowSource, stmt, sourceAP);
 		else if (cfg.isCallStmt(stmt))
-			processAbstractionAtCall(flows, ap, flowSource, stmt);
+			processAbstractionAtCall(flows, ap, m, flowSource, stmt, sourceAP);
 		else
 			throw new RuntimeException("Invalid statement for flow "
 					+ "termination: " + stmt);
@@ -533,12 +581,65 @@ public class InfoflowResultPostProcessor {
 	 * ends at a gap which can for instance be a callback into unknown code.
 	 * @param flows The flows object to which to add the newly found flow
 	 * @param apAtCall The access path that has reached the method call
+	 * @param m The method in which the flow has been found
 	 * @param source The source at which the data flow started
 	 * @param stmt The statement at which the call happened
+	 * @param sourceAP The access path of the flow source
 	 */
 	private void processAbstractionAtCall(MethodSummaries flows, AccessPath apAtCall,
-			FlowSource source, Stmt stmt) {
-		System.out.println("x");
+			SootMethod m, FlowSource source, Stmt stmt, AccessPath sourceAP) {
+		// Create a gap
+		GapDefinition gd = getIDForGapCall(flows, stmt);
+		
+		// Check whether we have the base object
+		if (apAtCall.isLocal())
+			if (stmt.getInvokeExpr() instanceof InstanceInvokeExpr) {
+				InstanceInvokeExpr iinv = (InstanceInvokeExpr) stmt.getInvokeExpr();
+				Local baseLocal = (Local) iinv.getBase();
+				if (baseLocal == apAtCall.getPlainValue()) {
+					FlowSink sink = sourceSinkFactory.createGapBaseObjectSink(gd,
+							apAtCall.getBaseType());
+					addFlow(source, sink, flows);
+				}
+			}
+		
+		// The sink may be a parameter in the call to the gap method
+		for (int i = 0; i < stmt.getInvokeExpr().getArgCount(); i++) {
+			Value p = stmt.getInvokeExpr().getArg(i);
+			if (apAtCall.getPlainValue() == p) {
+				FlowSink sink = sourceSinkFactory.createParameterSink(i, apAtCall, gd);
+				addFlow(source, sink, flows);
+			}
+		}
+
+		// The sink may be a local field on the base object
+		if (sourceAP.getFieldCount() > 0 && stmt.getInvokeExpr() instanceof InstanceInvokeExpr) {
+			InstanceInvokeExpr iinv = (InstanceInvokeExpr) stmt.getInvokeExpr();
+			if (apAtCall.getPlainValue() == iinv.getBase()) {
+				FlowSink sink = sourceSinkFactory.createFieldSink(apAtCall);
+				addFlow(source, sink, flows);
+			}
+		}
+	}
+	
+	/**
+	 * Gets the data object of the given call into a gap method
+	 * @param flows The flow set in which to register the gap
+	 * @param gapCall The gap to be called
+	 * @return The data object of the given gap call. If this call site has
+	 * already been processed, the old object is returned. Otherwise, a new
+	 * object is generated.
+	 */
+	private GapDefinition getIDForGapCall(MethodSummaries flows, Stmt gapCall) {
+		GapDefinition gd = this.gaps.get(gapCall);
+		if (gd == null) {
+			// Generate a new gap ID
+			// Register it in the summary object
+			gd = flows.getOrCreateGap(lastGapID++,
+					gapCall.getInvokeExpr().getMethod().getSignature());
+			this.gaps.put(gapCall, gd);
+		}
+		return gd;
 	}
 	
 	/**
@@ -549,6 +650,7 @@ public class InfoflowResultPostProcessor {
 	 * @param m The method in which the flow has been found
 	 * @param source The source at which the data flow started
 	 * @param stmt The statement at which the flow left the method
+	 * @param sourceAP The access path of the flow source
 	 */
 	private void processAbstractionAtReturn(MethodSummaries flows, AccessPath apAtReturn,
 			SootMethod m, FlowSource source, Stmt stmt, AccessPath sourceAP) {
@@ -566,24 +668,34 @@ public class InfoflowResultPostProcessor {
 			for (int i = 0; i < m.getParameterCount(); i++) {
 				Local p = m.getActiveBody().getParameterLocal(i);
 				if (apAtReturn.getPlainValue() == p) {
-					FlowSink sink = sourceSinkFactory.createParameterSink(i, apAtReturn);
+					 FlowSink sink = sourceSinkFactory.createParameterSink(i, apAtReturn);
 					addFlow(source, sink, flows);
 				}
 			}
 
 		// The sink may be a local field
-		if (!m.isStatic() && apAtReturn.getPlainValue() == m.getActiveBody().getThisLocal()) {
+		if (!m.isStatic() && apAtReturn.getPlainValue() ==
+				m.getActiveBody().getThisLocal()) {
 			FlowSink sink = sourceSinkFactory.createFieldSink(apAtReturn);
 			addFlow(source, sink, flows);
 		}
 	}
 	
+	/**
+	 * Checks whether this flow has equal sources and sinks, i.e. is propagated
+	 * through the method as-is.
+	 * @param source The source to check
+	 * @param sink The sink to check
+	 * @return True if the source is equivalent to the sink, otherwise false
+	 */
 	private boolean isIdentityFlow(FlowSource source, FlowSink sink) {
 		if (sink.isReturn())
 			return false;
 		if (sink.isField() && source.isParameter())
 			return false;
 		if (sink.isParameter() && (source.isField() || source.isThis()))
+			return false;
+		if (source.getGap() != sink.getGap())
 			return false;
 		
 		if (sink.getParameterIndex() != source.getParameterIndex())

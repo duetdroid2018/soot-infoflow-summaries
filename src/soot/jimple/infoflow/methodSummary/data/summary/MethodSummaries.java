@@ -1,6 +1,8 @@
 package soot.jimple.infoflow.methodSummary.data.summary;
 
+import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Map.Entry;
@@ -8,6 +10,7 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import soot.jimple.infoflow.collect.ConcurrentHashSet;
+import soot.jimple.infoflow.methodSummary.data.GapDefinition;
 import soot.jimple.infoflow.methodSummary.data.MethodFlow;
 
 /**
@@ -18,6 +21,7 @@ import soot.jimple.infoflow.methodSummary.data.MethodFlow;
 public class MethodSummaries implements Iterable<MethodFlow> {
 	
 	private final Map<String, Set<MethodFlow>> flows;
+	private final Map<Integer, GapDefinition> gaps;
 	private final Set<String> dependencies;
 	
 	public MethodSummaries() {
@@ -25,12 +29,16 @@ public class MethodSummaries implements Iterable<MethodFlow> {
 	}
 	
 	public MethodSummaries(Map<String, Set<MethodFlow>> flows) {
-		this(flows, new ConcurrentHashSet<String>());
+		this(flows,
+				new ConcurrentHashMap<Integer, GapDefinition>(),
+				new ConcurrentHashSet<String>());
 	}
 	
 	public MethodSummaries(Map<String, Set<MethodFlow>> flows,
+			Map<Integer, GapDefinition> gaps,
 			Set<String> dependencies) {
 		this.flows = flows;
+		this.gaps = gaps;
 		this.dependencies = dependencies;
 	}
 	
@@ -54,6 +62,8 @@ public class MethodSummaries implements Iterable<MethodFlow> {
 	 */
 	public void merge(MethodSummaries newFlows) {
 		merge(newFlows.flows);
+		if (newFlows.gaps != null)
+			this.gaps.putAll(newFlows.gaps);
 	}
 	
 	/**
@@ -96,9 +106,55 @@ public class MethodSummaries implements Iterable<MethodFlow> {
 		}
 		methodFlows.addAll(newFlows);
 	}
-
+	
+	/**
+	 * Gets the gaps in this method summary. Gap definitions are mappings
+	 * between unique IDs and definition objects
+	 * @return The gap mapping for this method summary
+	 */
+	public Map<Integer, GapDefinition> getGaps() {
+		return this.gaps;
+	}
+	
+	/**
+	 * Gets the gap definition with the given id. If no such gap definition
+	 * exists, null is returned
+	 * @param id The id for which to retrieve the gap definition
+	 * @return The gap with the given id if it exists, otherwise null
+	 */
+	public GapDefinition getGap(int id) {
+		if (this.gaps == null)
+			return null;
+		return this.gaps.get(id);
+	}
+	
+	/**
+	 * Gets all gaps defined in this method summary
+	 * @return All gaps defined in this method summary
+	 */
+	public Collection<GapDefinition> getAllGaps() {
+		return this.gaps.values();
+	}
+	
+	/**
+	 * Gets all flows registered in this method summary as a mapping from method
+	 * signature to flow set
+	 * @return The individual flows in this method summary
+	 */
 	public Map<String, Set<MethodFlow>> getFlows() {
 		return this.flows;
+	}
+	
+	/**
+	 * Gets a set containing all flows in this summary object regardless of the
+	 * method they are in
+	 * @return A flat set of all flows contained in this summary object
+	 */
+	public Set<MethodFlow> getAllFlows() {
+		Set<MethodFlow> flows = new HashSet<MethodFlow>();
+		for (Set<MethodFlow> methodFlows : this.flows.values())
+			flows.addAll(methodFlows);
+		return flows;
 	}
 
 	@Override
@@ -152,6 +208,22 @@ public class MethodSummaries implements Iterable<MethodFlow> {
 	}
 	
 	/**
+	 * Retrieves the gap definition with the given ID if it exists, otherwise
+	 * creates a new gap definition with this ID
+	 * @param gapID The unique ID of the gap
+	 * @param signature The signature of the callee
+	 * @return The gap definition with the given ID
+	 */
+	public GapDefinition getOrCreateGap(int gapID, String signature) {
+		GapDefinition gd = this.gaps.get(gapID);
+		if (gd == null) {
+			gd = new GapDefinition(gapID, signature);
+			this.gaps.put(gapID, gd);
+		}
+		return gd;
+	}
+	
+	/**
 	 * Gets all dependencies of the flows in this object. Dependencies are classes
 	 * which are references in a flow summary (e.g., through a field type), but
 	 * do not have summaries on their own in this object.
@@ -159,6 +231,29 @@ public class MethodSummaries implements Iterable<MethodFlow> {
 	 */
 	public Set<String> getDependencies() {
 		return this.dependencies;
+	}
+	
+	/**
+	 * Clears all flows from this method summary
+	 */
+	public void clear() {
+		if (this.dependencies != null)
+			this.dependencies.clear();
+		if (this.flows != null)
+			this.flows.clear();
+		if (this.gaps != null)
+			this.gaps.clear();
+	}
+	
+	/**
+	 * Gets the total number of flows in this summary object
+	 * @return The total number of flows in this summary object
+	 */
+	public int getFlowCount() {
+		int cnt = 0;
+		for (Set<MethodFlow> methodFlows : this.flows.values())
+			cnt += methodFlows.size();
+		return cnt;
 	}
 	
 }

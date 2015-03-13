@@ -23,7 +23,7 @@ public class ParaToReturnTests extends TestHelper {
 	@Test(timeout = 100000)
 	public void primitiv() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToReturn: int return1(int)>";
-		Set<MethodFlow> flow = createSummaries(mSig);
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 
 		assertTrue(containsFlow(flow, Parameter, 0, new String[] {}, Return, new String[] {}));
 		assertEquals(1,flow.size());
@@ -32,7 +32,7 @@ public class ParaToReturnTests extends TestHelper {
 	@Test(timeout = 100000)
 	public void primitivRec() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToReturn: int returnRec(int,int)>";
-		Set<MethodFlow> flow = createSummaries(mSig);
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 
 		assertTrue(containsFlow(flow, Parameter, 0, new String[] {}, Return, new String[] {}));
 		assertEquals(1,flow.size());
@@ -41,7 +41,7 @@ public class ParaToReturnTests extends TestHelper {
 	@Test(timeout = 100000)
 	public void object() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToReturn: java.lang.Object return2(java.lang.Object)>";
-		Set<MethodFlow> flow = createSummaries(mSig);
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 
 		assertTrue(containsFlow(flow, Parameter, 0, new String[] {}, Return, new String[] {}));
 		assertEquals(1,flow.size());
@@ -50,7 +50,7 @@ public class ParaToReturnTests extends TestHelper {
 	@Test(timeout = 100000)
 	public void list() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToReturn: java.util.List return3(java.util.List)>";
-		Set<MethodFlow> flow = createSummaries(mSig);
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 
 		assertTrue(containsFlow(flow, Parameter, 0, new String[] {}, Return, new String[] {}));
 		assertEquals(1,flow.size());
@@ -59,7 +59,7 @@ public class ParaToReturnTests extends TestHelper {
 	@Test(timeout = 100000)
 	public void list2() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToReturn: java.lang.Object return31(java.util.List)>";
-		Set<MethodFlow> flow = createSummaries(mSig);
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 
 		assertTrue(containsFlow(flow, Parameter, 0, new String[] {LINKEDLIST_FIRST,LINKEDLIST_ITEM}, Return, new String[] {}));
 		assertEquals(1,flow.size());
@@ -68,7 +68,7 @@ public class ParaToReturnTests extends TestHelper {
 	@Test(timeout = 100000)
 	public void array1() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToReturn: java.lang.Object return4(java.lang.Object[])>";
-		Set<MethodFlow> flow = createSummaries(mSig);
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 
 		assertTrue(containsFlow(flow, Parameter, 0, new String[] {}, Return, new String[] {}));
 		assertEquals(1,flow.size());
@@ -77,7 +77,7 @@ public class ParaToReturnTests extends TestHelper {
 	@Test(timeout = 100000)
 	public void array2() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToReturn: java.lang.Object[] return5(java.lang.Object[])>";
-		Set<MethodFlow> flow = createSummaries(mSig);
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 
 		assertTrue(containsFlow(flow, Parameter, 0, new String[] {}, Return, new String[] {}));
 		assertEquals(1,flow.size());
@@ -86,7 +86,7 @@ public class ParaToReturnTests extends TestHelper {
 	@Test(timeout = 100000)
 	public void data1() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToReturn: java.lang.Object return6(soot.jimple.infoflow.test.methodSummary.Data)>";
-		Set<MethodFlow> flow = createSummaries(mSig);
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 
 		assertTrue(containsFlow(flow, Parameter, 0, new String[] { DATACLASS_OBJECT_FIELD }, Return, new String[] {}));
 		assertEquals(1,flow.size());
@@ -95,7 +95,7 @@ public class ParaToReturnTests extends TestHelper {
 	@Test(timeout = 100000)
 	public void data2() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToReturn: java.lang.Object return7(soot.jimple.infoflow.test.methodSummary.Data)>";
-		Set<MethodFlow> flow = createSummaries(mSig);
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 
 		assertTrue(containsFlow(flow, Parameter, 0, new String[] { DATACLASS_OBJECT_FIELD }, Return, new String[] {}));
 		assertEquals(1,flow.size());

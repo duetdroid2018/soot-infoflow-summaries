@@ -13,6 +13,7 @@ import soot.jimple.infoflow.methodSummary.data.FlowSink;
 import soot.jimple.infoflow.methodSummary.data.FlowSource;
 import soot.jimple.infoflow.methodSummary.data.MethodFlow;
 import soot.jimple.infoflow.methodSummary.data.SourceSinkType;
+import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
 import soot.jimple.infoflow.methodSummary.generator.SummaryGenerator;
 
 public abstract class TestHelper {
@@ -55,11 +56,14 @@ public abstract class TestHelper {
 			SourceSinkType sinkTyp, String[] sinkFields) {
 		return containsFlow(flows, sourceTyp, -1 ,sourceFields, sinkTyp, -1,sinkFields);
 	}
+	
 	protected boolean containsFlow(Set<MethodFlow> flows, SourceSinkType sourceTyp, String[] sourceFields,
 			SourceSinkType sinkTyp, int sinkParameterIdx, String[] sinkFields) {
 		return containsFlow(flows, sourceTyp, -1 ,sourceFields, sinkTyp, sinkParameterIdx,sinkFields);
 	}
-	protected boolean containsFlow(Set<MethodFlow> flows, SourceSinkType sourceTyp, int sourceParamterIdx, String[] sourceFields,
+	
+	protected boolean containsFlow(Set<MethodFlow> flows,
+			SourceSinkType sourceTyp, int sourceParamterIdx, String[] sourceFields,
 			SourceSinkType sinkTyp, String[] sinkFields) {
 		return containsFlow(flows, sourceTyp, sourceParamterIdx,sourceFields,  sinkTyp, -1, sinkFields);
 	}
@@ -79,6 +83,27 @@ public abstract class TestHelper {
 	protected boolean containsFlow(Set<MethodFlow> flows,
 			SourceSinkType sourceTyp, int sourceParamterIdx, String[] sourceFields,
 			SourceSinkType sinkTyp, int sinkParamterIdx, String[] sinkFields) {
+		return containsFlow(flows, sourceTyp, sourceParamterIdx, sourceFields, null,
+				sinkTyp, sinkParamterIdx, sinkFields, null);
+	}
+	
+	/**
+	 * Checks whether the given set of flows contains a specific flow
+	 * @param flows The set of flows
+	 * @param sourceTyp The type of the source (parameter, field, etc.)
+	 * @param sourceParamterIdx The parameter index of the source
+	 * @param sourceFields The array of fields in the source
+	 * @param sinkTyp The type of the sink (parameter, field, etc.)
+	 * @param sinkParamterIdx The parameter index of the sink
+	 * @param sinkFields The array of fields in the sink
+	 * @return True if the given flow is contained in the given set of flows,
+	 * otherwise false
+	 */
+	protected boolean containsFlow(Set<MethodFlow> flows,
+			SourceSinkType sourceTyp, int sourceParamterIdx, String[] sourceFields,
+			String sourceGapSignature,
+			SourceSinkType sinkTyp, int sinkParamterIdx, String[] sinkFields,
+			String sinkGapSignature) {
 		for (MethodFlow mf : flows) {
 			FlowSource source = mf.source();
 			FlowSink sink = mf.sink();
@@ -86,14 +111,28 @@ public abstract class TestHelper {
 				if (checkParamter(source, sourceTyp, sourceParamterIdx)
 						&& checkParamter(sink, sinkTyp, sinkParamterIdx)) {
 					if (checkFields(source, sourceFields) && checkFields(sink, sinkFields))
-						return true;
+						if (checkGap(source, sourceGapSignature) &&  checkGap(sink, sinkGapSignature))
+							return true;
 				}
 			}
 		}
 		
 		return false;
 	}
-
+	
+	/**
+	 * Checks whether the given source or sink has the specified gap
+	 * @param sourceSink The source or sink to check
+	 * @param gapSignature The signature of the gap method
+	 * @return True if the given source or sink is associated with a gap that
+	 * has the given method signature, otherwise false
+	 */
+	private boolean checkGap(AbstractFlowSinkSource sourceSink, String gapSignature) {
+		if (sourceSink.getGap() == null)
+			return gapSignature == null || gapSignature.isEmpty();
+		return sourceSink.getGap().getSignature().equals(gapSignature);
+	}
+	
 	private boolean checkParamter(AbstractFlowSinkSource s, SourceSinkType sType, int parameterIdx) {
 		if (sType.equals(SourceSinkType.Parameter)) {
 			if (s.type().equals(SourceSinkType.Parameter)) {
@@ -139,16 +178,15 @@ public abstract class TestHelper {
 	protected abstract SummaryGenerator getSummary();
 	
 	/**
-	 * Creates flow summaries for the given method
-	 * @param methodSignature The signature ofthe method for which to compute
+	 * Creates a full summary for the given method
+	 * @param methodSignature The signature of the method for which to compute
 	 * the flow summaries
-	 * @return The set of flow summaries computed for the given method
+	 * @return The summary object computed for the given method
 	 */
-	protected Set<MethodFlow> createSummaries(String methodSignature) {
+	protected MethodSummaries createSummaries(String methodSignature) {
 		final String classpath = appPath + System.getProperty("path.separator")
 				+ libPath;
-		return getSummary().createMethodSummary(classpath, methodSignature)
-				.getFlowsForMethod(methodSignature);
+		return getSummary().createMethodSummary(classpath, methodSignature);
 	}
-	
+
 }

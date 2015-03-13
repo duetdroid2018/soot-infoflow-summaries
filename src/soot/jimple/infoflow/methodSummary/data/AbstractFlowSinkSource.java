@@ -16,6 +16,7 @@ public abstract class AbstractFlowSinkSource {
 	protected final String baseType;
 	protected final String[] accessPath;
 	protected final String[] accessPathTypes;
+	protected final GapDefinition gap;
 
 	public AbstractFlowSinkSource(SourceSinkType type, int parameterIdx,
 			String baseType) {
@@ -24,13 +25,20 @@ public abstract class AbstractFlowSinkSource {
 	
 	public AbstractFlowSinkSource(SourceSinkType type, int parameterIdx,
 			String baseType, String[] accessPath, String[] accessPathTypes) {
+		this(type, parameterIdx, baseType, accessPath, accessPathTypes, null);
+	}
+		
+	public AbstractFlowSinkSource(SourceSinkType type, int parameterIdx,
+			String baseType, String[] accessPath, String[] accessPathTypes,
+			GapDefinition gap) {
 		this.type = type;
 		this.parameterIdx = parameterIdx;
 		this.baseType = baseType;
 		this.accessPath = accessPath;
 		this.accessPathTypes = accessPathTypes;
+		this.gap = gap;
 	}
-		
+
 	/**
 	 * Checks whether the current source or sink is coarser than the given one,
 	 * i.e., if all elements referenced by the given source or sink are also
@@ -77,10 +85,6 @@ public abstract class AbstractFlowSinkSource {
 		return type().equals(SourceSinkType.Field);
 	}
 
-	public boolean isMethodCall() {
-		return type().equals(SourceSinkType.MethodCall);
-	}
-
 	public String[] getAccessPath() {
 		return accessPath;
 	}
@@ -91,6 +95,10 @@ public abstract class AbstractFlowSinkSource {
 
 	public boolean isReturn() {
 		return type().equals(SourceSinkType.Return);
+	}
+
+	public boolean isGapBaseObject() {
+		return type().equals(SourceSinkType.GapBaseObject);
 	}
 
 	public boolean hasAccessPath() {
@@ -107,6 +115,10 @@ public abstract class AbstractFlowSinkSource {
 		return this.type;
 	}
 	
+	public GapDefinition getGap() {
+		return this.gap;
+	}
+	
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -116,6 +128,7 @@ public abstract class AbstractFlowSinkSource {
 		result = prime * result + parameterIdx;
 		result = prime * result + (baseType == null ? 0 : baseType.hashCode());
 		result = prime * result + ((type == null) ? 0 : type.hashCode());
+		result = prime * result + ((gap == null) ? 0 : gap.hashCode());
 		return result;
 	}
 
@@ -143,6 +156,12 @@ public abstract class AbstractFlowSinkSource {
 			return false;
 		if (type != other.type)
 			return false;
+		if (gap == null) {
+			if (other.gap != null)
+				return false;
+		}
+		else if (gap.equals(other.gap))
+			return false;
 		return true;
 	}
 	
@@ -161,9 +180,10 @@ public abstract class AbstractFlowSinkSource {
 		
 		if (baseType != null)
 			res.put(XMLConstants.ATTRIBUTE_BASETYPE, baseType);
-		
-		if(hasAccessPath())
+		if (hasAccessPath())
 			res.put(XMLConstants.ATTRIBUTE_ACCESSPATH, getAccessPath().toString());
+		if (gap != null)
+			res.put(XMLConstants.ATTRIBUTE_GAP, getGap().getID() + "");
 		
 		return res;
 	}

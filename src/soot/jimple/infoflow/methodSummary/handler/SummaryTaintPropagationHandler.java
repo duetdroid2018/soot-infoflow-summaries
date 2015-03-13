@@ -2,9 +2,7 @@ package soot.jimple.infoflow.methodSummary.handler;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Map;
 import java.util.Set;
-import java.util.concurrent.ConcurrentHashMap;
 
 import soot.Scene;
 import soot.SootMethod;
@@ -13,8 +11,13 @@ import soot.Value;
 import soot.jimple.ReturnStmt;
 import soot.jimple.Stmt;
 import soot.jimple.infoflow.data.Abstraction;
+import soot.jimple.infoflow.data.AccessPath;
+import soot.jimple.infoflow.data.SourceContext;
 import soot.jimple.infoflow.handlers.TaintPropagationHandler;
+import soot.jimple.infoflow.methodSummary.data.FlowSource;
 import soot.jimple.toolkits.ide.icfg.BiDiInterproceduralCFG;
+import soot.util.ConcurrentHashMultiMap;
+import soot.util.MultiMap;
 
 /**
  * The SummaryTaintPropagationHandler collects all abstraction that reach the return statement of a specified method.
@@ -27,7 +30,8 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 	private final Set<String> excludedMethods;
 	private SootMethod method = null;
 	
-	private Map<Abstraction, Stmt> result = new ConcurrentHashMap<>();
+	private MultiMap<Abstraction, Stmt> result = new ConcurrentHashMultiMap<>();
+	private MultiMap<Stmt, AccessPath> gapAccessPaths = null;
 	
 	public SummaryTaintPropagationHandler(String m, String parentClass) {
 		this(m, parentClass, Collections.<String>emptySet());
@@ -129,61 +133,35 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 		if (excludedMethods.contains(sm.getSignature()))
 			return Collections.emptySet();
 		
-		/*
-		if (outgoing == null || outgoing.isEmpty())
-			return outgoing;
-		
-		// We only influence assignments from fields
-		if (!(u instanceof AssignStmt))
-			return outgoing;
-		
-		AssignStmt assignStmt = (AssignStmt) u;
-		final Value leftOp = assignStmt.getLeftOp();
-		final Value rightOp = assignStmt.getRightOp();
-
-		if (!(leftOp instanceof Local) || !(rightOp instanceof FieldRef))
-			return outgoing;
-		
-		// If this statement makes a source more concrete, we make it a source
-		// of its own.
-		Set<Abstraction> newOutgoing = new HashSet<>(outgoing.size());			
-		for (Abstraction outgoingAbs : outgoing) {
-			if (outgoingAbs.getAccessPath().getPlainValue() != leftOp)
-				continue;
-			
-			// Extend the right side
-			FieldRef rightRef = (FieldRef) rightOp;
-			boolean matches = incoming.getAccessPath().getFieldCount() > 0
-					&& incoming.getAccessPath().getFirstField() == rightRef.getField();
-			if (rightRef instanceof InstanceFieldRef)
-				matches = ((InstanceFieldRef) rightRef).getBase() == incoming.getAccessPath().getPlainValue();
-			
-			if (matches) {
-				// Extend the left side with the right side
-				AccessPath newAP = outgoingAbs.getAccessPath().copyWithNewValue(rightRef);
-				
-				// Connect to the previous source context
-				if (incoming.getSourceContext() != null) {
-					AccessPath sourceAP = incoming.getSourceContext().getAccessPath();
-					newAP = sourceAP.appendFields(newAP.getFields(),
-							newAP.getFieldTypes(), newAP.getTaintSubFields());
+		// If this is a gap access path, we remove the predecessor to cut the
+		// propagation path at the gap
+		if (gapAccessPaths != null)
+			for (Abstraction outAbs : outgoing)
+				if (outAbs.getCurrentStmt() != null
+						&& outAbs.getCurrentStmt() == outAbs.getCorrespondingCallSite()) {
+					Set<AccessPath> apSet = gapAccessPaths.get(outAbs.getCurrentStmt());
+					if (apSet != null && apSet.contains(outAbs.getAccessPath())) {
+						outAbs.setPredecessor(null);
+						
+						// Create the source information pointing to the gap
+						FlowSource sourceInfo = null;
+						
+						// If no longer have a predecessor, we must fake a
+						// source context
+						outAbs.setSourceContext(new SourceContext(outAbs.getAccessPath(),
+								outAbs.getCurrentStmt(), sourceInfo));
+					}
 				}
-				
-				Abstraction newAbs = outgoingAbs.injectSourceContext(new SourceContext(newAP, null));
-				newOutgoing.add(newAbs);
-			}
-			else
-				newOutgoing.add(outgoingAbs);
-		}
-		return newOutgoing;
-		*/
-		
 		
 		return outgoing;
 	}
 	
-	public Map<Abstraction, Stmt> getResult() {
+	public MultiMap<Abstraction, Stmt> getResult() {
 		return result;
+	}
+	
+	public void setGapAccessPaths(MultiMap<Stmt, AccessPath> gapAccessPaths) {
+		this.gapAccessPaths = gapAccessPaths;
 	}
 	
 }

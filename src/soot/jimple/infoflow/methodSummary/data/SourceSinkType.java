@@ -23,8 +23,7 @@ public enum SourceSinkType {
 	Return,
 	
 	/**
-	 * The flow starts or ends at a method call. This is used if there are
-	 * "gaps" in the flow that replace callbacks in unknown code.
+	 * The base object of a call to a gap method
 	 */
-	MethodCall
+	GapBaseObject
 }

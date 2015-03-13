@@ -27,7 +27,7 @@ public class FieldToReturnTests extends TestHelper{
 	@Test(timeout = 100000)
 	public void fieldToReturn1() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: int fieldToReturn()>";
-		Set<MethodFlow> flow = createSummaries(mSig);
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 		assertTrue(containsFlow(flow, Field,new String[] {INT_FIELD}, Return,new String[] {}));
 		assertTrue(flow.size() == 1);
 	}
@@ -35,7 +35,7 @@ public class FieldToReturnTests extends TestHelper{
 	@Test(timeout = 100000)
 	public void fieldToReturn2() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.lang.Object fieldToReturn2()>";
-		Set<MethodFlow> flow = createSummaries(mSig);
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 		assertTrue(containsFlow(flow, Field,new String[] {OBJ_FIELD}, Return,new String[] {}));
 		assertTrue(flow.size() == 1);
 	}
@@ -43,7 +43,7 @@ public class FieldToReturnTests extends TestHelper{
 	@Test(timeout = 100000)
 	public void fieldToReturn3() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.util.List fieldToReturn3()>";
-		Set<MethodFlow> flow = createSummaries(mSig);
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 		assertTrue(containsFlow(flow, Field,new String[] {LIST_FIELD}, Return,new String[] {}));
 		assertTrue(flow.size() == 1);
 	}
@@ -51,7 +51,7 @@ public class FieldToReturnTests extends TestHelper{
 	@Test(timeout = 100000)
 	public void fieldToReturn4() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.lang.Object fieldToReturn4()>";
-		Set<MethodFlow> flow = createSummaries(mSig);
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 		
 		boolean hasFirstFlow = containsFlow(flow, Field,new String[] {LIST_FIELD, LINKEDLIST_FIRST, LINKEDLIST_ITEM},
 				Return,new String[] {});
@@ -65,7 +65,7 @@ public class FieldToReturnTests extends TestHelper{
 	@Test(timeout = 100000)
 	public void fieldToReturn5() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.lang.Object fieldToReturn5()>";
-		Set<MethodFlow> flow = createSummaries(mSig);
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 		assertTrue(containsFlow(flow, Field,new String[] {OBJ_ARRAY}, Return,new String[] {}));
 		assertTrue(flow.size() == 1);
 	}
@@ -73,7 +73,7 @@ public class FieldToReturnTests extends TestHelper{
 	@Test(timeout = 100000)
 	public void fieldToReturn5Rec() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.lang.Object fieldToReturn5Rec(int)>";
-		Set<MethodFlow> flow = createSummaries(mSig);
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 		assertTrue(containsFlow(flow, Field,new String[] {OBJ_ARRAY}, Return,new String[] {}));
 		assertTrue(flow.size() ==1);
 	}
@@ -81,7 +81,7 @@ public class FieldToReturnTests extends TestHelper{
 	@Test(timeout = 100000)
 	public void fieldToReturn6() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.lang.Object[] fieldToReturn6()>";
-		Set<MethodFlow> flow = createSummaries(mSig);
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 		assertTrue(containsFlow(flow, Field,new String[] {OBJ_ARRAY}, Return,new String[] {}));
 		assertTrue(flow.size() == 1);
 	}
@@ -89,7 +89,7 @@ public class FieldToReturnTests extends TestHelper{
 	@Test(timeout = 100000)
 	public void fieldToReturn7() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: int fieldToReturn7()>";
-		Set<MethodFlow> flow = createSummaries(mSig);
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 		assertTrue(containsFlow(flow, Field,new String[] {INT_ARRAY}, Return,new String[] {}));
 		assertTrue(flow.size() == 1);
 	}
@@ -97,7 +97,7 @@ public class FieldToReturnTests extends TestHelper{
 	@Test(timeout = 100000)
 	public void fieldToReturn8() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: int[] fieldToReturn8()>";
-		Set<MethodFlow> flow = createSummaries(mSig);
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 		assertTrue(containsFlow(flow, Field,new String[] {INT_ARRAY}, Return,new String[] {}));
 		assertTrue(flow.size() == 1);
 	}
@@ -105,7 +105,7 @@ public class FieldToReturnTests extends TestHelper{
 	@Test(timeout = 100000)
 	public void fieldToReturn9() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: int fieldToReturn9()>";
-		Set<MethodFlow> flow = createSummaries(mSig);
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 		assertTrue(containsFlow(flow, Field,new String[] {DATA_FIELD,DATACLASS_INT_FIELD}, Return,new String[] {}));
 		assertTrue(flow.size() == 1);
 	}
@@ -113,7 +113,7 @@ public class FieldToReturnTests extends TestHelper{
 	@Test(timeout = 100000)
 	public void fieldToReturn10() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.lang.Object fieldToReturn10()>";
-		Set<MethodFlow> flow = createSummaries(mSig);
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 		assertTrue(containsFlow(flow, Field,new String[] {DATA_FIELD,DATACLASS_OBJECT_FIELD}, Return,new String[] {}));
 		assertTrue(flow.size() == 1);
 	}
@@ -121,7 +121,7 @@ public class FieldToReturnTests extends TestHelper{
 	@Test(timeout = 100000)
 	public void fieldToReturn11() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: java.lang.String fieldToReturn11()>";
-		Set<MethodFlow> flow = createSummaries(mSig);
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 		assertTrue(containsFlow(flow, Field,new String[] {DATA_FIELD,DATACLASS_STRING_FIELD}, Return,new String[] {}));
 		assertTrue(flow.size() == 1);
 	}
@@ -129,7 +129,7 @@ public class FieldToReturnTests extends TestHelper{
 	@Test(timeout = 100000)
 	public void fieldToReturn12() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: "+DATA_TYPE+" fieldToReturn12()>";
-		Set<MethodFlow> flow = createSummaries(mSig);
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 		assertTrue(containsFlow(flow, Field,new String[] {DATA_FIELD,DATACLASS_INT_FIELD}, Return,new String[] {DATACLASS_INT_FIELD}));
 		assertTrue(flow.size() == 1);
 	}
@@ -137,7 +137,7 @@ public class FieldToReturnTests extends TestHelper{
 	@Test(timeout = 100000)
 	public void fieldToReturn13() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: "+DATA_TYPE+" fieldToReturn13()>";
-		Set<MethodFlow> flow = createSummaries(mSig);
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 		assertTrue(containsFlow(flow, Field,new String[] {DATA_FIELD,DATACLASS_OBJECT_FIELD}, Return,new String[] {DATACLASS_OBJECT_FIELD}));
 		assertTrue(flow.size() == 1);
 	}
@@ -145,7 +145,7 @@ public class FieldToReturnTests extends TestHelper{
 	@Test(timeout = 100000)
 	public void fieldToReturn14() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: "+DATA_TYPE+" fieldToReturn14()>";
-		Set<MethodFlow> flow = createSummaries(mSig);
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 		assertTrue(containsFlow(flow, Field,new String[] {INT_FIELD}, Return,new String[] {DATACLASS_INT_FIELD}));
 		assertTrue(flow.size() == 1);
 	}	

@@ -29,7 +29,7 @@ public class ParaToFieldTests extends TestHelper {
 	@Test(timeout = 100000)
 	public void intParameter() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToField: void intPara(int)>";
-		Set<MethodFlow> flow = createSummaries(mSig);
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,new String[] {INT_FIELD}));
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,new String[] {DATA_FIELD, DATACLASS_INT_FIELD}));
@@ -41,7 +41,7 @@ public class ParaToFieldTests extends TestHelper {
 	@Test(timeout = 100000)
 	public void intParameterRec() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToField: void intParaRec(int,int)>";
-		Set<MethodFlow> flow = createSummaries(mSig);
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,new String[] {INT_FIELD}));
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,new String[] {DATA_FIELD,DATACLASS_INT_FIELD}));
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,new String[] {IARRAY_FIELD}));
@@ -52,7 +52,7 @@ public class ParaToFieldTests extends TestHelper {
 	@Test(timeout = 100000)
 	public void objectParameter() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToField: void objPara(java.lang.Object)>";
-		Set<MethodFlow> flow = createSummaries(mSig);
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 		
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,new String[] {OBJECT_FIELD}));
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,new String[] {OBJ_ARRAY_FIELD}));
@@ -61,7 +61,7 @@ public class ParaToFieldTests extends TestHelper {
 	@Test(timeout = 100000)
 	public void objectParameter2() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToField: void objPara(java.lang.Object)>";
-		Set<MethodFlow> flow = createSummaries(mSig);
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 		
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,new String[] {DATA_FIELD,DATACLASS_OBJECT_FIELD}));
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,LIST_ITEM));
@@ -72,7 +72,7 @@ public class ParaToFieldTests extends TestHelper {
 	@Test(timeout = 100000)
 	public void intAndObjectParameter() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToField: void intAndObj(int,java.lang.Object)>";
-		Set<MethodFlow> flow = createSummaries(mSig);
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 		
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,new String[] {INT_FIELD}));
 		assertTrue(containsFlow(flow, Parameter,1,new String[] {}, Field,new String[] {OBJECT_FIELD}));
@@ -85,7 +85,7 @@ public class ParaToFieldTests extends TestHelper {
 	@Test(timeout = 100000)
 	public void intAndObjectParameter2() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToField: void intAndObj(int,java.lang.Object)>";
-		Set<MethodFlow> flow = createSummaries(mSig);
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 		
 		assertTrue(containsFlow(flow, Parameter,1,new String[] {}, Field,new String[] {DATA_FIELD,DATACLASS_OBJECT_FIELD}));
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,new String[] {INT_FIELD}));
@@ -101,7 +101,7 @@ public class ParaToFieldTests extends TestHelper {
 	@Test(timeout = 100000)
 	public void arrayParas() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToField: void arrayParas(int[],java.lang.Object[])>";
-		Set<MethodFlow> flow = createSummaries(mSig);
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 		
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,new String[] {INT_FIELD}));
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,new String[] {DATA_FIELD,DATACLASS_INT_FIELD}));	
@@ -120,7 +120,7 @@ public class ParaToFieldTests extends TestHelper {
 	@Test(timeout = 300000)
 	public void arrayParas2() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToField: void arrayParas(int[],java.lang.Object[])>";
-		Set<MethodFlow> flow = createSummaries(mSig);
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 		
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,new String[] {INT_FIELD}));
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {}, Field,new String[] {DATA_FIELD,DATACLASS_INT_FIELD}));
@@ -135,7 +135,7 @@ public class ParaToFieldTests extends TestHelper {
 	@Test(timeout = 300000)
 	public void dataAndListParameter() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToField: void dataAndList(soot.jimple.infoflow.test.methodSummary.Data,java.util.List)>";
-		Set<MethodFlow> flow = createSummaries(mSig);
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 		
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {DATACLASS_INT_FIELD}, Field,new String[] {INT_FIELD}));
 		assertTrue(containsFlow(flow, Parameter,0,new String[] {DATACLASS_INT_FIELD}, Field,new String[] {DATA_FIELD,DATACLASS_INT_FIELD}));

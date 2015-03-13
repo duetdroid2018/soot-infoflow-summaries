@@ -6,6 +6,7 @@ import soot.Type;
 import soot.jimple.infoflow.data.AccessPath;
 import soot.jimple.infoflow.methodSummary.data.FlowSink;
 import soot.jimple.infoflow.methodSummary.data.FlowSource;
+import soot.jimple.infoflow.methodSummary.data.GapDefinition;
 import soot.jimple.infoflow.methodSummary.data.SourceSinkType;
 
 /**
@@ -87,28 +88,57 @@ public class SourceSinkFactory {
 	 * @return The sink object
 	 */
 	public FlowSink createParameterSink(int paraIdx, AccessPath accessPath) {
+		return createParameterSink(paraIdx, accessPath, null);
+	}
+	
+	/**
+	 * Creates a sink that models a value assigned to a field reachable through
+	 * a parameter value
+	 * @param paraIdx The index of the parameter
+	 * @param accessPath The access path modeling the field inside the parameter
+	 * value
+	 * @param gap The gap in whose parameter the flow ends
+	 * @return The sink object
+	 */
+	public FlowSink createParameterSink(int paraIdx, AccessPath accessPath,
+			GapDefinition gap) {
 		if (accessPath.isLocal()) {
-			if (!(accessPath.getBaseType() instanceof ArrayType))
+			if (gap == null && !(accessPath.getBaseType() instanceof ArrayType))
 				throw new RuntimeException("Parameter locals cannot directly be sinks");
 			else
 				return new FlowSink(SourceSinkType.Parameter, paraIdx,
 						accessPath.getBaseType().toString(),
-						accessPath.getTaintSubFields());
+						accessPath.getTaintSubFields(),
+						gap);
 		}
 		else if (accessPath.getFieldCount() < summaryAPLength)
 			return new FlowSink(SourceSinkType.Parameter, paraIdx,
 					accessPath.getBaseType().toString(),
 					sootFieldsToString(accessPath.getFields()),
 					sootTypesToString(accessPath.getFieldTypes()),
-					accessPath.getTaintSubFields());
+					accessPath.getTaintSubFields(),
+					gap);
 		else
 			return new FlowSink(SourceSinkType.Parameter, paraIdx,
 					accessPath.getBaseType().toString(),
 					sootFieldsToString(cutAPLength(accessPath.getFields())),
 					sootTypesToString(cutAPLength(accessPath.getFieldTypes())),
-					true);
+					true,
+					gap);
 	}
 		
+	/**
+	 * Creates a sink that models the base object of a call to a gap method.
+	 * This is used to identify the object on which the gap method is invoked,
+	 * so no access path is needed.
+	 * @param gap The gap in whose base object the flow ends
+	 * @return The sink object
+	 */
+	public FlowSink createGapBaseObjectSink(GapDefinition gap, Type baseType) {
+		return new FlowSink(SourceSinkType.GapBaseObject, -1, baseType.toString(),
+				false, gap);
+	}
+	
 	/**
 	 * Creates a sink that models the value returned by the method or a field
 	 * reachable through the return value.
@@ -140,24 +170,42 @@ public class SourceSinkFactory {
 	 * @return The sink object
 	 */
 	public FlowSink createFieldSink(AccessPath accessPath) {
+		return createFieldSink(accessPath, null);
+	}
+	
+	/**
+	 * Creates a sink that models a value assigned to a field
+	 * @param accessPath The access path modeling the field
+	 * @param gap The gap in which this field taint ends
+	 * @return The sink object
+	 */
+	public FlowSink createFieldSink(AccessPath accessPath, GapDefinition gap) {
 		if (accessPath.isLocal())
 			return new FlowSink(SourceSinkType.Field, -1,
 					accessPath.getBaseType().toString(),
-					accessPath.getTaintSubFields());
+					accessPath.getTaintSubFields(),
+					gap);
 		else if (accessPath.getFieldCount() < summaryAPLength)
 			return new FlowSink(SourceSinkType.Field, -1,
 					accessPath.getBaseType().toString(),
 					sootFieldsToString(accessPath.getFields()),
 					sootTypesToString(accessPath.getFieldTypes()),
-					accessPath.getTaintSubFields());
+					accessPath.getTaintSubFields(),
+					gap);
 		else
 			return new FlowSink(SourceSinkType.Field, -1,
 					accessPath.getBaseType().toString(),
 					sootFieldsToString(cutAPLength(accessPath.getFields())),
 					sootTypesToString(cutAPLength(accessPath.getFieldTypes())),
-					true);
+					true,
+					gap);
 	}
 	
+	/**
+	 * Converts an array of Soot fields into a string representation
+	 * @param fields The array of Soot fields to convert
+	 * @return The string representation of the given Soot fields
+	 */
 	private String[] sootFieldsToString(SootField[] fields){
 		if (fields == null || fields.length == 0)
 			return null;
@@ -168,6 +216,11 @@ public class SourceSinkFactory {
 		return res;
 	}
 	
+	/**
+	 * Converts an array of Soot types into a string representation
+	 * @param fields The array of Soot types to convert
+	 * @return The string representation of the given Soot types
+	 */
 	private String[] sootTypesToString(Type[] types){
 		if (types == null || types.length == 0)
 			return null;
@@ -176,6 +229,39 @@ public class SourceSinkFactory {
 		for (int i = 0; i < types.length; i++)
 			res[i] = types[i].toString();
 		return res;
+	}
+	
+	/**
+	 * Creates a sink that models a value assigned to a field reachable through
+	 * a parameter value. This variant models a gap inside the method to be
+	 * summarized
+	 * @param paraIdx The index of the parameter
+	 * @param accessPath The access path modeling the field inside the parameter
+	 * value
+	 * @return The sink object
+	 */
+	public FlowSink createParameterSinkAtGap(int paraIdx, AccessPath accessPath,
+			String gapSignature) {
+		if (accessPath.isLocal()) {
+			if (!(accessPath.getBaseType() instanceof ArrayType))
+				throw new RuntimeException("Parameter locals cannot directly be sinks");
+			else
+				return new FlowSink(SourceSinkType.Parameter, paraIdx,
+						accessPath.getBaseType().toString(),
+						accessPath.getTaintSubFields());
+		}
+		else if (accessPath.getFieldCount() < summaryAPLength)
+			return new FlowSink(SourceSinkType.Parameter, paraIdx,
+					accessPath.getBaseType().toString(),
+					sootFieldsToString(accessPath.getFields()),
+					sootTypesToString(accessPath.getFieldTypes()),
+					accessPath.getTaintSubFields());
+		else
+			return new FlowSink(SourceSinkType.Parameter, paraIdx,
+					accessPath.getBaseType().toString(),
+					sootFieldsToString(cutAPLength(accessPath.getFields())),
+					sootTypesToString(cutAPLength(accessPath.getFieldTypes())),
+					true);
 	}
 
 }
