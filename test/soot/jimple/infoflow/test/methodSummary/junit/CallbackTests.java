@@ -28,8 +28,12 @@ public class CallbackTests extends TestHelper {
 		// Parameter 0 to gap argument 0
 		assertTrue(containsFlow(flow.getAllFlows(), SourceSinkType.Parameter, 0, null, "", SourceSinkType.Parameter, 0, null,
 				"<soot.jimple.infoflow.test.methodSummary.Callbacks$MyCallbacks: java.lang.String transform(java.lang.String)>"));
+		// Gap return value to method return value
+		assertTrue(containsFlow(flow.getAllFlows(), SourceSinkType.Return, -1, null,
+				"<soot.jimple.infoflow.test.methodSummary.Callbacks$MyCallbacks: java.lang.String transform(java.lang.String)>",
+				SourceSinkType.Return, -1, null, ""));
 		
-		assertEquals(2, flow.getFlowCount());
+		assertEquals(3, flow.getFlowCount());
 	}
 	
 	@Override

@@ -3,12 +3,8 @@ package soot.jimple.infoflow.methodSummary.postProcessor;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -34,9 +30,9 @@ import soot.jimple.infoflow.methodSummary.data.FlowSink;
 import soot.jimple.infoflow.methodSummary.data.FlowSource;
 import soot.jimple.infoflow.methodSummary.data.GapDefinition;
 import soot.jimple.infoflow.methodSummary.data.MethodFlow;
-import soot.jimple.infoflow.methodSummary.data.SourceSinkType;
 import soot.jimple.infoflow.methodSummary.data.factory.SourceSinkFactory;
 import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
+import soot.jimple.infoflow.methodSummary.generator.GapManager;
 import soot.jimple.infoflow.methodSummary.postProcessor.SummaryPathBuilder.SummaryResultInfo;
 import soot.jimple.infoflow.methodSummary.postProcessor.SummaryPathBuilder.SummarySourceInfo;
 import soot.jimple.infoflow.solver.IInfoflowCFG;
@@ -51,16 +47,16 @@ public class InfoflowResultPostProcessor {
 	private final MultiMap<Abstraction, Stmt> collectedAbstractions;
 	private final String method;
 	private final SourceSinkFactory sourceSinkFactory;
-	
-	private final Map<Stmt, GapDefinition> gaps = new HashMap<Stmt, GapDefinition>();
-	private int lastGapID = 0;
-	
+	private final GapManager gapManager;
+		
 	public InfoflowResultPostProcessor(MultiMap<Abstraction, Stmt> collectedAbstractions,
-			IInfoflowCFG cfg, String m, SourceSinkFactory sourceSinkFactory) {
+			IInfoflowCFG cfg, String m, SourceSinkFactory sourceSinkFactory,
+			GapManager gapManager) {
 		this.collectedAbstractions = collectedAbstractions;
 		this.cfg = cfg;
 		this.method = m;
 		this.sourceSinkFactory = sourceSinkFactory;
+		this.gapManager = gapManager;
 	}
 	
 	/**
@@ -125,50 +121,14 @@ public class InfoflowResultPostProcessor {
 		// other flows
 		compactFlowSet(flows);
 		
-		// Check the gaps for validity
-		checkGapValidity(flows);
+		// Check the generated summaries for validity
+		flows.validate();
 		
 		logger.info("Result processing finished, analyzed {} paths from {} stored "
 				+ "abstractions", analyzedPaths, abstractionCount);
 		return flows;
 	}
 	
-	/**
-	 * Checks whether the gaps in the given method summary are valid
-	 * @param flows The flow summary to check
-	 */
-	private void checkGapValidity(MethodSummaries flows) {
-		// For method that has a flow into a gap, we must also have one flow to
-		// the base object of that gap
-		for (String methodName : flows.getFlows().keySet()) {
-			Set<GapDefinition> gapsWithFlows = new HashSet<GapDefinition>();
-			Set<GapDefinition> gapsWithBases = new HashSet<GapDefinition>();
-			
-			for (MethodFlow flow : flows.getFlows().get(methodName)) {
-				// For the source, record all flows to gaps and all flows to bases
-				if (flow.source().getGap() != null) {
-					if (flow.source().getType() == SourceSinkType.GapBaseObject)
-						gapsWithBases.add(flow.source().getGap());
-					else
-						gapsWithFlows.add(flow.source().getGap());
-				}
-
-				// For the sink, record all flows to gaps and all flows to bases
-				if (flow.sink().getGap() != null) {
-					if (flow.sink().getType() == SourceSinkType.GapBaseObject)
-						gapsWithBases.add(flow.sink().getGap());
-					else
-						gapsWithFlows.add(flow.sink().getGap());
-				}
-			}
-			
-			// Check whether we have some flow for which we don't have a base
-			for (GapDefinition gd : gapsWithFlows)
-				if (!gapsWithBases.contains(gd))
-					throw new RuntimeException("Flow to/from a gap without a base detected");
-		}
-	}
-
 	/**
 	 * Compacts the flow set by removing flows that are over-approximations of
 	 * others
@@ -204,36 +164,36 @@ public class InfoflowResultPostProcessor {
 			AccessPath ap, Stmt stmt, SummarySourceInfo sourceInfo) {
 		// Get the source information for this abstraction
 		@SuppressWarnings("unchecked")
-		List<FlowSource> sources = (List<FlowSource>) sourceInfo.getUserData();
+		Collection<FlowSource> sources = (Collection<FlowSource>) sourceInfo.getUserData();
 		if (sources == null || sources.size() == 0)
 			throw new RuntimeException("Link to source missing");
-		if (sources.size() > 1)
-			throw new RuntimeException("Link to source ambiguous");
 		
-		FlowSource flowSource = sources.get(0);
-		if (flowSource == null)
-			return;
-		
-		// We need to reconstruct the original source access path
-		AccessPath sourceAP = reconstructSourceAP(ap, sourceInfo.getAbstractionPath());
-		if (sourceAP == null) {
-			System.out.println("failed for: " + ap);
-			return;
+		// We can have multiple sources from a gap a.foo(b,b) on access path b
+		for (FlowSource flowSource : sources) {
+			if (flowSource == null)
+				continue;
+			
+			// We need to reconstruct the original source access path
+			AccessPath sourceAP = reconstructSourceAP(ap, sourceInfo.getAbstractionPath());
+			if (sourceAP == null) {
+				System.out.println("failed for: " + ap);
+				return;
+			}
+			
+			// Create the flow source data object
+			flowSource = sourceSinkFactory.createSource(flowSource.getType(),
+					flowSource.getParameterIndex(), sourceAP, flowSource.getGap());
+			
+			// Depending on the statement at which the flow ended, we need to create
+			// a different type of summary
+			if (cfg.isExitStmt(stmt))
+				processAbstractionAtReturn(flows, ap, m, flowSource, stmt, sourceAP);
+			else if (cfg.isCallStmt(stmt))
+				processAbstractionAtCall(flows, ap, m, flowSource, stmt, sourceAP);
+			else
+				throw new RuntimeException("Invalid statement for flow "
+						+ "termination: " + stmt);
 		}
-		
-		// Create the flow source data object
-		flowSource = sourceSinkFactory.createSource(flowSource.getType(),
-				flowSource.getParameterIndex(), sourceAP);
-		
-		// Depending on the statement at which the flow ended, we need to create
-		// a different type of summary
-		if (cfg.isExitStmt(stmt))
-			processAbstractionAtReturn(flows, ap, m, flowSource, stmt, sourceAP);
-		else if (cfg.isCallStmt(stmt))
-			processAbstractionAtCall(flows, ap, m, flowSource, stmt, sourceAP);
-		else
-			throw new RuntimeException("Invalid statement for flow "
-					+ "termination: " + stmt);
 	}
 	
 	/**
@@ -589,7 +549,7 @@ public class InfoflowResultPostProcessor {
 	private void processAbstractionAtCall(MethodSummaries flows, AccessPath apAtCall,
 			SootMethod m, FlowSource source, Stmt stmt, AccessPath sourceAP) {
 		// Create a gap
-		GapDefinition gd = getIDForGapCall(flows, stmt);
+		GapDefinition gd = gapManager.getGapForCall(flows, stmt);
 		
 		// Check whether we have the base object
 		if (apAtCall.isLocal())
@@ -620,26 +580,6 @@ public class InfoflowResultPostProcessor {
 				addFlow(source, sink, flows);
 			}
 		}
-	}
-	
-	/**
-	 * Gets the data object of the given call into a gap method
-	 * @param flows The flow set in which to register the gap
-	 * @param gapCall The gap to be called
-	 * @return The data object of the given gap call. If this call site has
-	 * already been processed, the old object is returned. Otherwise, a new
-	 * object is generated.
-	 */
-	private GapDefinition getIDForGapCall(MethodSummaries flows, Stmt gapCall) {
-		GapDefinition gd = this.gaps.get(gapCall);
-		if (gd == null) {
-			// Generate a new gap ID
-			// Register it in the summary object
-			gd = flows.getOrCreateGap(lastGapID++,
-					gapCall.getInvokeExpr().getMethod().getSignature());
-			this.gaps.put(gapCall, gd);
-		}
-		return gd;
 	}
 	
 	/**

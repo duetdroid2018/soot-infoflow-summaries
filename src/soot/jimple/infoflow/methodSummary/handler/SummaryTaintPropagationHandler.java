@@ -2,12 +2,15 @@ package soot.jimple.infoflow.methodSummary.handler;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 import soot.Scene;
 import soot.SootMethod;
 import soot.Unit;
 import soot.Value;
+import soot.jimple.DefinitionStmt;
+import soot.jimple.InstanceInvokeExpr;
 import soot.jimple.ReturnStmt;
 import soot.jimple.Stmt;
 import soot.jimple.infoflow.data.Abstraction;
@@ -15,6 +18,10 @@ import soot.jimple.infoflow.data.AccessPath;
 import soot.jimple.infoflow.data.SourceContext;
 import soot.jimple.infoflow.handlers.TaintPropagationHandler;
 import soot.jimple.infoflow.methodSummary.data.FlowSource;
+import soot.jimple.infoflow.methodSummary.data.GapDefinition;
+import soot.jimple.infoflow.methodSummary.data.SourceSinkType;
+import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
+import soot.jimple.infoflow.methodSummary.generator.GapManager;
 import soot.jimple.toolkits.ide.icfg.BiDiInterproceduralCFG;
 import soot.util.ConcurrentHashMultiMap;
 import soot.util.MultiMap;
@@ -25,23 +32,28 @@ import soot.util.MultiMap;
  */
 public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 	
+	private final MethodSummaries summaries;
 	private final String methodSig;
 	private final String parentClass;
 	private final Set<String> excludedMethods;
+	private final GapManager gapManager;
 	private SootMethod method = null;
 	
 	private MultiMap<Abstraction, Stmt> result = new ConcurrentHashMultiMap<>();
-	private MultiMap<Stmt, AccessPath> gapAccessPaths = null;
 	
-	public SummaryTaintPropagationHandler(String m, String parentClass) {
-		this(m, parentClass, Collections.<String>emptySet());
+	public SummaryTaintPropagationHandler(MethodSummaries summaries,
+			String m, String parentClass, GapManager gapManager) {
+		this(summaries, m, parentClass, Collections.<String>emptySet(), gapManager);
 	}
 	
-	public SummaryTaintPropagationHandler(String m, String parentClass,
-			Set<String> excludedMethods) {
+	public SummaryTaintPropagationHandler(MethodSummaries summaries,
+			String m, String parentClass, Set<String> excludedMethods,
+			GapManager gapManager) {
+		this.summaries = summaries;
 		this.methodSig = m;
 		this.parentClass = parentClass;
 		this.excludedMethods = excludedMethods;
+		this.gapManager = gapManager;
 	}
 	
 	private boolean isMethodToSummarize(SootMethod currentMethod) {
@@ -133,35 +145,70 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 		if (excludedMethods.contains(sm.getSignature()))
 			return Collections.emptySet();
 		
+		Stmt stmt = (Stmt) u;
+		if (!stmt.containsInvokeExpr())
+			return outgoing;
+		
 		// If this is a gap access path, we remove the predecessor to cut the
-		// propagation path at the gap
-		if (gapAccessPaths != null)
+		// propagation path at the gap		
+		GapDefinition gap = gapManager.getGapForCall(summaries, stmt);
+		if (gap != null)
 			for (Abstraction outAbs : outgoing)
+				// We only need to look at call-to-return edges
 				if (outAbs.getCurrentStmt() != null
 						&& outAbs.getCurrentStmt() == outAbs.getCorrespondingCallSite()) {
-					Set<AccessPath> apSet = gapAccessPaths.get(outAbs.getCurrentStmt());
-					if (apSet != null && apSet.contains(outAbs.getAccessPath())) {
-						outAbs.setPredecessor(null);
-						
-						// Create the source information pointing to the gap
-						FlowSource sourceInfo = null;
-						
-						// If no longer have a predecessor, we must fake a
-						// source context
-						outAbs.setSourceContext(new SourceContext(outAbs.getAccessPath(),
-								outAbs.getCurrentStmt(), sourceInfo));
-					}
+					// Create the source information pointing to the gap. This may not
+					// be unique
+					outAbs.setPredecessor(null);
+					
+					// If no longer have a predecessor, we must fake a
+					// source context
+					outAbs.setSourceContext(new SourceContext(outAbs.getAccessPath(),
+							outAbs.getCurrentStmt(), getFlowSource(outAbs.getAccessPath(),
+									outAbs.getCurrentStmt(), gap)));
 				}
 		
 		return outgoing;
 	}
 	
+	/**
+	 * Creates a flow source based on an access path and a gap invocation
+	 * statement. The flow source need not necessarily be unique. For a
+	 * call z=b.foo(a,a), the flow source for access path "a" can either be
+	 * parameter 0 or parameter 1.   
+	 * @param accessPath The access path for which to create the flow source
+	 * @param stmt The statement that calls the sink with the given
+	 * access path
+	 * @param The definition of the gap from which the data flow originates
+	 * @return The set of generated flow sources
+	 */
+	private Set<FlowSource> getFlowSource(AccessPath accessPath, Stmt stmt,
+			GapDefinition gap) {
+		Set<FlowSource> res = new HashSet<FlowSource>();
+		
+		// This can be a base object
+		if (stmt.getInvokeExpr() instanceof InstanceInvokeExpr)
+			if (((InstanceInvokeExpr) stmt.getInvokeExpr()).getBase() == accessPath.getPlainValue())
+				res.add(new FlowSource(SourceSinkType.Field, accessPath.getBaseType().toString(),
+						gap));
+		
+		// This can be a parameter
+		for (int i = 0; i < stmt.getInvokeExpr().getArgCount(); i++)
+			if (stmt.getInvokeExpr().getArg(i) == accessPath.getPlainValue())
+				res.add(new FlowSource(SourceSinkType.Parameter, i, accessPath.getBaseType().toString(),
+						gap));
+		
+		// This can be a return value
+		if (stmt instanceof DefinitionStmt)
+			if (((DefinitionStmt) stmt).getLeftOp() == accessPath.getPlainValue())
+				res.add(new FlowSource(SourceSinkType.Return, accessPath.getBaseType().toString(),
+						gap));				
+		
+		return res;
+	}
+
 	public MultiMap<Abstraction, Stmt> getResult() {
 		return result;
 	}
-	
-	public void setGapAccessPaths(MultiMap<Stmt, AccessPath> gapAccessPaths) {
-		this.gapAccessPaths = gapAccessPaths;
-	}
-	
+		
 }

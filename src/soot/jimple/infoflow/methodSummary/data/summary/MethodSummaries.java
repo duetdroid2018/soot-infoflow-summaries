@@ -12,6 +12,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import soot.jimple.infoflow.collect.ConcurrentHashSet;
 import soot.jimple.infoflow.methodSummary.data.GapDefinition;
 import soot.jimple.infoflow.methodSummary.data.MethodFlow;
+import soot.jimple.infoflow.methodSummary.data.SourceSinkType;
 
 /**
  * Data class encapsulating a set of method summaries
@@ -254,6 +255,61 @@ public class MethodSummaries implements Iterable<MethodFlow> {
 		for (Set<MethodFlow> methodFlows : this.flows.values())
 			cnt += methodFlows.size();
 		return cnt;
+	}
+	
+	/**
+	 * Validates this method summary object
+	 */
+	public void validate() {
+		validateGaps();
+		validateFlows();
+	}
+	
+	/**
+	 * Checks whether the gaps in this method summary are valid
+	 */
+	private void validateGaps() {
+		// For method that has a flow into a gap, we must also have one flow to
+		// the base object of that gap
+		for (String methodName : getFlows().keySet()) {
+			Set<GapDefinition> gapsWithFlows = new HashSet<GapDefinition>();
+			Set<GapDefinition> gapsWithBases = new HashSet<GapDefinition>();
+			
+			for (MethodFlow flow : getFlows().get(methodName)) {
+				// For the source, record all flows to gaps and all flows to bases
+				if (flow.source().getGap() != null) {
+					if (flow.source().getType() == SourceSinkType.GapBaseObject)
+						gapsWithBases.add(flow.source().getGap());
+					else
+						gapsWithFlows.add(flow.source().getGap());
+				}
+
+				// For the sink, record all flows to gaps and all flows to bases
+				if (flow.sink().getGap() != null) {
+					if (flow.sink().getType() == SourceSinkType.GapBaseObject)
+						gapsWithBases.add(flow.sink().getGap());
+					else
+						gapsWithFlows.add(flow.sink().getGap());
+				}
+			}
+			
+			// Check whether we have some flow for which we don't have a base
+			for (GapDefinition gd : gapsWithFlows)
+				if (!gapsWithBases.contains(gd))
+					throw new RuntimeException("Flow to/from a gap without a base detected "
+							+ " for method " + methodName);
+		}
+	}
+	
+	/**
+	 * Validates all flows inside this method summary object
+	 */
+	private void validateFlows() {
+		for (String methodName : getFlows().keySet())
+			for (MethodFlow flow : getFlows().get(methodName)) {
+				flow.source().validate(methodName);
+				flow.sink().validate(methodName);
+			}
 	}
 	
 }

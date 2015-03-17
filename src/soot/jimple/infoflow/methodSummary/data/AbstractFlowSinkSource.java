@@ -152,7 +152,7 @@ public abstract class AbstractFlowSinkSource {
 			if (other.baseType != null)
 				return false;
 		}
-		else if (baseType.equals(other.baseType))
+		else if (!baseType.equals(other.baseType))
 			return false;
 		if (type != other.type)
 			return false;
@@ -160,7 +160,7 @@ public abstract class AbstractFlowSinkSource {
 			if (other.gap != null)
 				return false;
 		}
-		else if (gap.equals(other.gap))
+		else if (!gap.equals(other.gap))
 			return false;
 		return true;
 	}

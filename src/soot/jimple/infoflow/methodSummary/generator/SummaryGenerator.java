@@ -256,10 +256,11 @@ public class SummaryGenerator {
 		final MethodSummaries summaries = new MethodSummaries();
 		final Infoflow infoflow = initInfoflow();
 
+		final GapManager gapManager = new GapManager();
+		
 		final SummaryTaintPropagationHandler listener = new SummaryTaintPropagationHandler(
-				methodSig, parentClass, Collections.singleton(DUMMY_MAIN_SIG));
-		listener.setGapAccessPaths(((SummaryGenerationTaintWrapper) infoflow.getTaintWrapper())
-				.getGapAccessPaths());
+				summaries, methodSig, parentClass, Collections.singleton(DUMMY_MAIN_SIG),
+				gapManager);
 		infoflow.addTaintPropagationHandler(listener);
 
 		infoflow.addResultsAvailableHandler(new ResultsAvailableHandler() {
@@ -267,7 +268,7 @@ public class SummaryGenerator {
 			public void onResultsAvailable(IInfoflowCFG cfg,
 					InfoflowResults results) {
 				InfoflowResultPostProcessor processor = new InfoflowResultPostProcessor(
-						listener.getResult(), cfg, methodSig, sourceSinkFactory);
+						listener.getResult(), cfg, methodSig, sourceSinkFactory, gapManager);
 				summaries.merge(processor.postProcess());
 			}
 		});

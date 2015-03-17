@@ -1,16 +1,17 @@
 package soot.jimple.infoflow.methodSummary.generator;
 
 import java.util.Collection;
-import java.util.Collections;
+import java.util.HashSet;
 import java.util.Set;
 
 import soot.SootMethod;
+import soot.Value;
+import soot.jimple.DefinitionStmt;
+import soot.jimple.InstanceInvokeExpr;
 import soot.jimple.Stmt;
 import soot.jimple.infoflow.data.AccessPath;
 import soot.jimple.infoflow.solver.IInfoflowCFG;
 import soot.jimple.infoflow.taintWrappers.AbstractTaintWrapper;
-import soot.util.ConcurrentHashMultiMap;
-import soot.util.MultiMap;
 
 /**
  * Taint wrapper to be used during summary construction. If we find a call for
@@ -21,10 +22,7 @@ import soot.util.MultiMap;
  * @author Steven Arzt
  */
 public class SummaryGenerationTaintWrapper extends AbstractTaintWrapper {
-	
-	private MultiMap<Stmt, AccessPath> gapAccessPaths =
-			new ConcurrentHashMultiMap<Stmt, AccessPath>();
-	
+		
 	@Override
 	public void initialize() {
 		
@@ -41,29 +39,16 @@ public class SummaryGenerationTaintWrapper extends AbstractTaintWrapper {
 		if (callees != null && !callees.isEmpty())
 			return null;
 		
-		return Collections.emptySet();
-		/*
-		
 		// Produce a continuation
 		Set<AccessPath> res = new HashSet<AccessPath>();
-		if (stmt.getInvokeExpr() instanceof InstanceInvokeExpr) {
-			AccessPath ap = new AccessPath(((InstanceInvokeExpr) stmt.getInvokeExpr()).getBase(), true);
-			res.add(ap);
-			gapAccessPaths.put(stmt, ap);
-		}
-		for (Value paramVal : stmt.getInvokeExpr().getArgs()) {
-			AccessPath ap = new AccessPath(paramVal, true);
-			res.add(ap);
-			gapAccessPaths.put(stmt, ap);
-		}
-		if (stmt instanceof DefinitionStmt) {
-			AccessPath ap = new AccessPath(((DefinitionStmt) stmt).getLeftOp(), true);
-			res.add(ap);
-			gapAccessPaths.put(stmt, ap);
-		}
+		if (stmt.getInvokeExpr() instanceof InstanceInvokeExpr)
+			res.add(new AccessPath(((InstanceInvokeExpr) stmt.getInvokeExpr()).getBase(), true));
+		for (Value paramVal : stmt.getInvokeExpr().getArgs())
+			res.add(new AccessPath(paramVal, true));
+		if (stmt instanceof DefinitionStmt)
+			res.add(new AccessPath(((DefinitionStmt) stmt).getLeftOp(), true));
 		
 		return res;
-		*/
 	}
 
 	@Override
@@ -84,8 +69,4 @@ public class SummaryGenerationTaintWrapper extends AbstractTaintWrapper {
 		return callees == null || callees.isEmpty();
 	}
 	
-	public MultiMap<Stmt, AccessPath> getGapAccessPaths() {
-		return this.gapAccessPaths;
-	}
-
 }

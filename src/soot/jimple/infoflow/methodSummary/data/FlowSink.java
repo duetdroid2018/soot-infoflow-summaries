@@ -82,16 +82,22 @@ public class FlowSink extends AbstractFlowSinkSource {
 		if (isGapBaseObject() && getGap() != null)
 			return "Gap base for " + getGap().getSignature();
 		
+		String gapString = getGap() == null ? ""
+				: "Gap " + getGap().getSignature() + " ";
+		
 		if (isParameter())
-			return "Parameter " + getParameterIndex() + (accessPath == null ? "" : " "
+			return gapString
+					+ "Parameter " + getParameterIndex() + (accessPath == null ? "" : " "
 					+ Arrays.toString(accessPath)) + " " + taintSubFields();
 		
 		if (isField())
-			return "Field" + (accessPath == null ? "" : " "
+			return gapString
+					+ "Field" + (accessPath == null ? "" : " "
 					+ Arrays.toString(accessPath)) + " " + taintSubFields();
 		
 		if(isReturn())
-			return "Return" + (accessPath == null ? "" : " "
+			return gapString
+					+ "Return" + (accessPath == null ? "" : " "
 					+ Arrays.toString(accessPath)) + " " + taintSubFields();
 		
 		return "invalid sink";
@@ -110,4 +116,15 @@ public class FlowSink extends AbstractFlowSinkSource {
 		return this.taintSubFields == ((FlowSink) obj).taintSubFields;
 	}
 	
+	/**
+	 * Validates this flow sink
+	 * @param methodName The name of the containing method. This will be used to
+	 * give more context in exception messages
+	 */
+	public void validate(String methodName) {
+		if (getType() == SourceSinkType.GapBaseObject && getGap() == null)
+			throw new RuntimeException("Gap base flows must always be linked "
+					+ "with gaps. Offending method: " + methodName);
+	}
+
 }

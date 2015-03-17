@@ -40,4 +40,38 @@ public class GapDefinition {
 		return this.signature;
 	}
 	
+	@Override
+	public int hashCode() {
+		final int prime = 31;
+		int result = 1;
+		result = prime * result + id;
+		result = prime * result
+				+ ((signature == null) ? 0 : signature.hashCode());
+		return result;
+	}
+	
+	@Override
+	public boolean equals(Object obj) {
+		if (this == obj)
+			return true;
+		if (obj == null)
+			return false;
+		if (getClass() != obj.getClass())
+			return false;
+		GapDefinition other = (GapDefinition) obj;
+		if (id != other.id)
+			return false;
+		if (signature == null) {
+			if (other.signature != null)
+				return false;
+		} else if (!signature.equals(other.signature))
+			return false;
+		return true;
+	}
+	
+	@Override
+	public String toString() {
+		return "Gap " + id + " in " + signature;
+	}
+	
 }

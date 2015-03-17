@@ -70,13 +70,16 @@ public class SourceSinkFactory {
 	 * @param parameterIdx The index of the method parameter through which the
 	 * source value was obtained
 	 * @param accessPath The access path describing the exact source object
+	 * @param gap The gap from which this flow originated. Null if this flow did
+	 * not originate from a gap.
 	 * @return The newly created source object
 	 */
 	public FlowSource createSource(SourceSinkType type, int parameterIdx,
-			AccessPath accessPath) {
+			AccessPath accessPath, GapDefinition gap) {
 		return new FlowSource(type, parameterIdx, accessPath.getBaseType().toString(),
 				sootFieldsToString(cutAPLength(accessPath.getFields())),
-				sootTypesToString(cutAPLength(accessPath.getFieldTypes())));
+				sootTypesToString(cutAPLength(accessPath.getFieldTypes())),
+				gap);
 	}
 	
 	/**
