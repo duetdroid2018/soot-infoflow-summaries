@@ -20,14 +20,16 @@ public class GapManager {
 	private int lastGapID = 0;
 	
 	/**
-	 * Gets the data object of the given call into a gap method
+	 * Gets the data object of the given call into a gap method. If no gap
+	 * definition exists, a new one is created.
 	 * @param flows The flow set in which to register the gap
 	 * @param gapCall The gap to be called
 	 * @return The data object of the given gap call. If this call site has
 	 * already been processed, the old object is returned. Otherwise, a new
 	 * object is generated.
 	 */
-	public synchronized GapDefinition getGapForCall(MethodSummaries flows, Stmt gapCall) {
+	public synchronized GapDefinition getOrCreateGapForCall(
+			MethodSummaries flows, Stmt gapCall) {
 		GapDefinition gd = this.gaps.get(gapCall);
 		if (gd == null) {
 			// Generate a new gap ID
@@ -37,6 +39,16 @@ public class GapManager {
 			this.gaps.put(gapCall, gd);
 		}
 		return gd;
+	}
+
+	/**
+	 * Gets the data object of the given call into a gap method
+	 * @param gapCall The gap to be called
+	 * @return The data object of the given gap call if it exists, otherwise
+	 * null
+	 */
+	public GapDefinition getGapForCall(Stmt gapCall) {
+		return this.gaps.get(gapCall);
 	}
 
 }

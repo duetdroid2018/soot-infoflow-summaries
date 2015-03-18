@@ -450,4 +450,13 @@ public class ApiClass implements IApiClass {
 		dataField2.objectField= dataField.objectField;
 	}
 	
+	public String makeString(ApiClass d) {
+		return d.toString();
+	}
+	
+	@Override
+	public String toString() {
+		return stringField;
+	}
+	
 }

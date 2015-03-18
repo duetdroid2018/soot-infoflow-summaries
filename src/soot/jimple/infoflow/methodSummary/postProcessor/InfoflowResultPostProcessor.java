@@ -60,13 +60,25 @@ public class InfoflowResultPostProcessor {
 	}
 	
 	/**
-	 * Post process the information collected during a Infoflow analyse.
+	 * Post process the information collected during a Infoflow analysis.
 	 * Extract all summary flow from collectedAbstractions.
+	 * @return The generated method summaries
 	 */
 	public MethodSummaries postProcess() {
+		MethodSummaries summaries = new MethodSummaries();
+		postProcess(summaries);
+		return summaries;
+	}
+	
+	/**
+	 * Post process the information collected during a Infoflow analysis.
+	 * Extract all summary flow from collectedAbstractions.
+	 * @param flos The method summary object in which to store the detected
+	 * flows
+	 */
+	public MethodSummaries postProcess(MethodSummaries flows) {
 		logger.info("start processing infoflow abstractions");
 		final SootMethod m = Scene.v().getMethod(method);
-		MethodSummaries flows = new MethodSummaries();
 		
 		// Create a context-sensitive path builder. Without context-sensitivity,
 		// we get quite some false positives here.
@@ -549,7 +561,7 @@ public class InfoflowResultPostProcessor {
 	private void processAbstractionAtCall(MethodSummaries flows, AccessPath apAtCall,
 			SootMethod m, FlowSource source, Stmt stmt, AccessPath sourceAP) {
 		// Create a gap
-		GapDefinition gd = gapManager.getGapForCall(flows, stmt);
+		GapDefinition gd = gapManager.getOrCreateGapForCall(flows, stmt);
 		
 		// Check whether we have the base object
 		if (apAtCall.isLocal())

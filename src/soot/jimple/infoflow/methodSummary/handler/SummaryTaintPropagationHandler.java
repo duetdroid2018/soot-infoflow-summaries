@@ -20,7 +20,6 @@ import soot.jimple.infoflow.handlers.TaintPropagationHandler;
 import soot.jimple.infoflow.methodSummary.data.FlowSource;
 import soot.jimple.infoflow.methodSummary.data.GapDefinition;
 import soot.jimple.infoflow.methodSummary.data.SourceSinkType;
-import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
 import soot.jimple.infoflow.methodSummary.generator.GapManager;
 import soot.jimple.toolkits.ide.icfg.BiDiInterproceduralCFG;
 import soot.util.ConcurrentHashMultiMap;
@@ -32,7 +31,6 @@ import soot.util.MultiMap;
  */
 public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 	
-	private final MethodSummaries summaries;
 	private final String methodSig;
 	private final String parentClass;
 	private final Set<String> excludedMethods;
@@ -41,15 +39,14 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 	
 	private MultiMap<Abstraction, Stmt> result = new ConcurrentHashMultiMap<>();
 	
-	public SummaryTaintPropagationHandler(MethodSummaries summaries,
-			String m, String parentClass, GapManager gapManager) {
-		this(summaries, m, parentClass, Collections.<String>emptySet(), gapManager);
+	public SummaryTaintPropagationHandler(String m, String parentClass,
+			GapManager gapManager) {
+		this(m, parentClass, Collections.<String>emptySet(), gapManager);
 	}
 	
-	public SummaryTaintPropagationHandler(MethodSummaries summaries,
-			String m, String parentClass, Set<String> excludedMethods,
+	public SummaryTaintPropagationHandler(String m, String parentClass,
+			Set<String> excludedMethods,
 			GapManager gapManager) {
-		this.summaries = summaries;
 		this.methodSig = m;
 		this.parentClass = parentClass;
 		this.excludedMethods = excludedMethods;
@@ -123,6 +120,10 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 	private void handleCallToReturnFlow(Unit stmt,
 			Abstraction abs,
 			BiDiInterproceduralCFG<Unit, SootMethod> cfg) {
+		// Do not report inactive flows into gaps
+		if (!abs.isAbstractionActive())
+			return;
+		
 		// If we have callees, we analyze them as usual
 		Collection<SootMethod> callees = cfg.getCalleesOfCallAt(stmt);
 		if (callees != null && !callees.isEmpty())
@@ -131,7 +132,8 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 		// If we don't have any callees, we need to build a gap into our
 		// summary. The taint wrapper takes care of continuing the analysis
 		// after the gap.
-		this.result.put(abs, (Stmt) stmt);
+		if (hasFlowSource(abs.getAccessPath(), (Stmt) stmt))
+			this.result.put(abs, (Stmt) stmt);
 	}
 	
 	@Override
@@ -150,8 +152,8 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 			return outgoing;
 		
 		// If this is a gap access path, we remove the predecessor to cut the
-		// propagation path at the gap		
-		GapDefinition gap = gapManager.getGapForCall(summaries, stmt);
+		// propagation path at the gap
+		GapDefinition gap = gapManager.getGapForCall(stmt);
 		if (gap != null)
 			for (Abstraction outAbs : outgoing)
 				// We only need to look at call-to-return edges
@@ -167,7 +169,6 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 							outAbs.getCurrentStmt(), getFlowSource(outAbs.getAccessPath(),
 									outAbs.getCurrentStmt(), gap)));
 				}
-		
 		return outgoing;
 	}
 	
@@ -206,7 +207,35 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 		
 		return res;
 	}
-
+	
+	/**
+	 * Checks whether the given access path can be a flow source at the given
+	 * statement if the statement is interpreted as a gap   
+	 * @param accessPath The access path for which to check the flow source
+	 * @param stmt The statement that calls the sink with the given
+	 * access path
+	 * @return True if the given access path can lead to a gap at the given
+	 * statement, otherwise false
+	 */
+	private boolean hasFlowSource(AccessPath accessPath, Stmt stmt) {
+		// This can be a base object
+		if (stmt.getInvokeExpr() instanceof InstanceInvokeExpr)
+			if (((InstanceInvokeExpr) stmt.getInvokeExpr()).getBase() == accessPath.getPlainValue())
+				return true;
+		
+		// This can be a parameter
+		for (int i = 0; i < stmt.getInvokeExpr().getArgCount(); i++)
+			if (stmt.getInvokeExpr().getArg(i) == accessPath.getPlainValue())
+				return true;
+		
+		// This can be a return value
+		if (stmt instanceof DefinitionStmt)
+			if (((DefinitionStmt) stmt).getLeftOp() == accessPath.getPlainValue())
+				return true;				
+		
+		return false;
+	}
+	
 	public MultiMap<Abstraction, Stmt> getResult() {
 		return result;
 	}

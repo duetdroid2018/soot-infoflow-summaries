@@ -254,12 +254,12 @@ public class SummaryGenerator {
 		final SummarySourceSinkManager manager = new SummarySourceSinkManager(
 				methodSig, parentClass, sourceSinkFactory);
 		final MethodSummaries summaries = new MethodSummaries();
-		final Infoflow infoflow = initInfoflow();
-
 		final GapManager gapManager = new GapManager();
 		
+		final Infoflow infoflow = initInfoflow(summaries, gapManager);
+		
 		final SummaryTaintPropagationHandler listener = new SummaryTaintPropagationHandler(
-				summaries, methodSig, parentClass, Collections.singleton(DUMMY_MAIN_SIG),
+				methodSig, parentClass, Collections.singleton(DUMMY_MAIN_SIG),
 				gapManager);
 		infoflow.addTaintPropagationHandler(listener);
 
@@ -269,7 +269,7 @@ public class SummaryGenerator {
 					InfoflowResults results) {
 				InfoflowResultPostProcessor processor = new InfoflowResultPostProcessor(
 						listener.getResult(), cfg, methodSig, sourceSinkFactory, gapManager);
-				summaries.merge(processor.postProcess());
+				processor.postProcess(summaries);
 			}
 		});
 
@@ -316,8 +316,14 @@ public class SummaryGenerator {
 		
 		return dEntryPointCreater;
 	}
-
-	protected Infoflow initInfoflow() {
+	
+	/**
+	 * Initializes the data flow tracker
+	 * @param summaries The summary data object to receive the flows
+	 * @param gapManager The gap manager to be used when handling callbacks
+	 * @return The initialized data flow engine
+	 */
+	protected Infoflow initInfoflow(MethodSummaries summaries, GapManager gapManager) {
 		// Disable the default path reconstruction. However, still make sure to
 		// retain the contents of the callees.
 		Infoflow iFlow = new Infoflow("", false, new DefaultBiDiICFGFactory(),
@@ -336,7 +342,8 @@ public class SummaryGenerator {
 		iFlow.setEnableStaticFieldTracking(enableStaticFieldTracking);
 		iFlow.setFlowSensitiveAliasing(flowSensitiveAliasing);
 
-		final SummaryGenerationTaintWrapper summaryWrapper = new SummaryGenerationTaintWrapper();
+		final SummaryGenerationTaintWrapper summaryWrapper =
+				new SummaryGenerationTaintWrapper(summaries, gapManager);
 		if (taintWrapper == null)
 			iFlow.setTaintWrapper(summaryWrapper);
 		else {
