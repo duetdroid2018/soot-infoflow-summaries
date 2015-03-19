@@ -278,18 +278,14 @@ public class SummaryGenerator {
 		if (analyseMethodsTogether) {
 			addDependentMethods(methodSig, ms, mDependencies);
 		}
-		try{
-			
-			if (methodSig.contains("Abstract"))
-				System.out.println("x");
-			
+		try {
 			infoflow.computeInfoflow(null, classpath, createEntryPoint(ms, parentClass), manager);
-		}catch(Exception e){
-			e.printStackTrace();
-			return new MethodSummaries();
 		}
-		if (methodSig.contains("Abstract"))
-			System.out.println("x");
+		catch (Exception e) {
+			System.err.println("Could not generate summary for method " + ms);
+			e.printStackTrace();
+			throw e;
+		}
 		return summaries;
 	}
 

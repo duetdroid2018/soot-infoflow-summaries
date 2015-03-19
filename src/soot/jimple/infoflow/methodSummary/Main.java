@@ -51,11 +51,12 @@ class Main {
 		});
 		
 		System.out.println("Done.");
-		if (!summaries.getDependencies().isEmpty()) {
-			System.out.println("Dependencies:");
-			for (String className : summaries.getDependencies())
-				System.out.println("\t" + className);
-		}
+		if (summaries != null)
+			if (!summaries.getDependencies().isEmpty()) {
+				System.out.println("Dependencies:");
+				for (String className : summaries.getDependencies())
+					System.out.println("\t" + className);
+			}
 	}
 	
 	/**

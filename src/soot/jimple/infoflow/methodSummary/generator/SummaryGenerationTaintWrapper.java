@@ -87,9 +87,6 @@ public class SummaryGenerationTaintWrapper extends AbstractTaintWrapper {
 		
 		// We always construct a gap if we have no callees
 		Collection<SootMethod> callees = icfg.getCalleesOfCallAt(stmt);
-		if (callees == null || callees.isEmpty())
-			System.out.println("");
-		
 		return callees == null || callees.isEmpty();
 	}
 

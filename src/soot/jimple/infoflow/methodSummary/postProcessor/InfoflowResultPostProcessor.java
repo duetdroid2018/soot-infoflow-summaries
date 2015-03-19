@@ -335,7 +335,7 @@ public class InfoflowResultPostProcessor {
 					InstanceFieldRef ifref = (InstanceFieldRef) assignStmt.getLeftOp();
 					AccessPath matchedAP = matchAccessPath(curAP, ifref.getBase(), ifref.getField());
 					if (matchedAP != null) {
-						curAP = matchedAP.copyWithNewValue(assignStmt.getRightOp(), null, true);
+						curAP = matchedAP.copyWithNewValue(assignStmt.getRightOp(), matchedAP.getFirstFieldType(), true);
 						matched = true;
 					}
 				}
@@ -373,13 +373,13 @@ public class InfoflowResultPostProcessor {
 					InstanceFieldRef ifref = (InstanceFieldRef) assignStmt.getRightOp();
 					if (ifref.getBase() == curAP.getPlainValue()
 							&& ifref.getField() == curAP.getFirstField()) {
-						curAP = curAP.copyWithNewValue(assignStmt.getLeftOp(), null, true);
+						curAP = curAP.copyWithNewValue(assignStmt.getLeftOp(),
+								curAP.getFirstFieldType(), true);
 						matched = true;
 					}
 				}
 			}
 		}
-				
 		return curAP;
 	}
 
@@ -511,8 +511,7 @@ public class InfoflowResultPostProcessor {
 		for (int i = 0; i < stmt.getInvokeExpr().getArgCount(); i++) {
 			Local paramLocal = callee.getActiveBody().getParameterLocal(i);
 			if (paramLocal == curAP.getPlainValue()) {
-				curAP = curAP.copyWithNewValue(stmt.getInvokeExpr().getArg(i),
-						callee.getParameterType(i), false);
+				curAP = curAP.copyWithNewValue(stmt.getInvokeExpr().getArg(i));
 				matched = true;
 			}
 		}

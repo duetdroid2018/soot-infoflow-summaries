@@ -98,8 +98,9 @@ public class ParaToFieldTests extends TestHelper {
 		assertEquals(9,flow.size());
 	}
 
-	@Test(timeout = 100000)
+	@Test//(timeout = 100000)
 	public void arrayParas() {
+		for (int i = 0; i < 25; i++) {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToField: void arrayParas(int[],java.lang.Object[])>";
 		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 		
@@ -115,6 +116,7 @@ public class ParaToFieldTests extends TestHelper {
 		assertTrue(containsFlow(flow, Field,0,new String[] {LIST_FIELD,LINKEDLIST_LAST}, Field,new String[] {LIST_FIELD,LINKEDLIST_FIRST}));		
 		
 		assertEquals(9,flow.size());
+		}
 	}
 
 	@Test(timeout = 300000)
