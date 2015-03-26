@@ -73,9 +73,6 @@ public class SummaryGenerationTaintWrapper extends AbstractTaintWrapper {
 	private boolean needsGapConstruction(Stmt stmt, IInfoflowCFG icfg) {
 		SootMethod targetMethod = stmt.getInvokeExpr().getMethod();
 		
-		if (targetMethod.toString().contains("callTheGap"))
-			System.out.println("x");
-		
 		// If the callee is native, there is no need for a gap
 		if (targetMethod.isNative())
 			return false;

@@ -46,7 +46,7 @@ public class CallbackTests extends TestHelper {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.Callbacks: java.lang.String fieldCallbackToReturn(java.lang.String)>";
 		MethodSummaries flow = createSummaries(mSig);
 		
-		// Parameter 1 to gap base object
+		// Field to gap base object
 		assertTrue(containsFlow(flow.getAllFlows(), SourceSinkType.Field, -1, new String[] { FIELD_CALLBACK }, "",
 				SourceSinkType.GapBaseObject, 0, null,
 				"<soot.jimple.infoflow.test.methodSummary.Callbacks$MyCallbacks: java.lang.String transform(java.lang.String)>"));
@@ -63,6 +63,26 @@ public class CallbackTests extends TestHelper {
 				SourceSinkType.Field, -1, new String[] { FIELD_CALLBACK }, ""));
 		
 		assertEquals(4, flow.getFlowCount());
+	}
+
+	@Test(timeout = 100000)
+	public void apiClassMakeString() {
+		String mSig = "<soot.jimple.infoflow.test.methodSummary.ApiClass: java.lang.String makeString(soot.jimple.infoflow.test.methodSummary.IGapClass,java.lang.String)>";
+		MethodSummaries flow = createSummaries(mSig);
+		
+		// Parameter 0 to gap base object
+		assertTrue(containsFlow(flow.getAllFlows(), SourceSinkType.Parameter, 0, null, "",
+				SourceSinkType.GapBaseObject, 0, null,
+				"<soot.jimple.infoflow.test.methodSummary.IGapClass: java.lang.String callTheGap(java.lang.String)>"));
+		// Parameter 1 to gap argument 0
+		assertTrue(containsFlow(flow.getAllFlows(), SourceSinkType.Parameter, 1, null, "", SourceSinkType.Parameter, 0, null,
+				"<soot.jimple.infoflow.test.methodSummary.IGapClass: java.lang.String callTheGap(java.lang.String)>"));
+		// Gap return value to method return value
+		assertTrue(containsFlow(flow.getAllFlows(), SourceSinkType.Return, -1, null,
+				"<soot.jimple.infoflow.test.methodSummary.IGapClass: java.lang.String callTheGap(java.lang.String)>",
+				SourceSinkType.Return, -1, null, ""));
+		
+		assertEquals(3, flow.getFlowCount());
 	}
 
 	@Override
