@@ -173,7 +173,7 @@ public class XMLReader {
 	 * @return The newly created source data object
 	 * @throws SummaryXMLException
 	 */
-	public FlowSource createSource(MethodSummaries summary,
+	private FlowSource createSource(MethodSummaries summary,
 			Map<String, String> attributes) throws SummaryXMLException{
 		if (isField(attributes)) {
 			return new FlowSource(SourceSinkType.Field,
@@ -202,7 +202,7 @@ public class XMLReader {
 	 * @return The newly created sink data object
 	 * @throws SummaryXMLException
 	 */
-	public FlowSink createSink(MethodSummaries summary,
+	private FlowSink createSink(MethodSummaries summary,
 			Map<String, String> attributes) throws SummaryXMLException{
 		if (isField(attributes)) {
 			return new FlowSink(SourceSinkType.Field,

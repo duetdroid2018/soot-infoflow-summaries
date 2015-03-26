@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -26,6 +27,7 @@ import soot.jimple.infoflow.entryPointCreators.BaseEntryPointCreator;
 import soot.jimple.infoflow.entryPointCreators.SequentialEntryPointCreator;
 import soot.jimple.infoflow.handlers.ResultsAvailableHandler;
 import soot.jimple.infoflow.methodSummary.DefaultSummaryConfig;
+import soot.jimple.infoflow.methodSummary.data.GapDefinition;
 import soot.jimple.infoflow.methodSummary.data.MethodFlow;
 import soot.jimple.infoflow.methodSummary.data.factory.SourceSinkFactory;
 import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
@@ -148,7 +150,10 @@ public class SummaryGenerator {
 					handler.onMethodFinished(methodSig, classSummaries);
 				classSummaries.merge(newSums);
 			}
-
+			
+			// Clean up the gaps
+			cleanupGaps(classSummaries);
+			
 			if (handler != null)
 				handler.onClassFinished(entry.getKey(), classSummaries);
 			summaries.merge(classSummaries);
@@ -156,10 +161,29 @@ public class SummaryGenerator {
 		
 		// Calculate the dependencies
 		calculateDependencies(summaries);
-		
+				
 		return summaries;
 	}
 	
+	/**
+	 * Removes all gaps with no flows in and out from the given method summary
+	 * object
+	 * @param summaries The summary object from which to remove the unused gaps
+	 */
+	private void cleanupGaps(MethodSummaries summaries) {
+		Set<GapDefinition> gaps = new HashSet<GapDefinition>(summaries.getAllGaps());
+		for (GapDefinition gd : gaps) {
+			boolean gapIsUsed = false;
+			for (MethodFlow flow : summaries.getAllFlows())
+				if (flow.source().getGap() == gd || flow.sink().getGap() == gd) {
+					gapIsUsed = true;
+					break;
+				}
+			if (!gapIsUsed)
+				summaries.removeGap(gd);
+		}
+	}
+
 	/**
 	 * Calculates the external dependencies of the given summary set
 	 * @param summaries The summary set for which to calculate the

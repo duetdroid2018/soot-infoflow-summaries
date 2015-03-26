@@ -449,9 +449,9 @@ public class ApiClass implements IApiClass {
 	public void fieldToField5(){
 		dataField2.objectField= dataField.objectField;
 	}
-	
-	public String makeString(ApiClass d) {
-		return d.toString();
+		
+	public String makeString(IGapClass d, String in) {
+		return d.callTheGap(in);
 	}
 	
 	@Override

@@ -13,4 +13,15 @@ public class Callbacks {
 		return foo;
 	}
 
+	private MyCallbacks cbs = null;
+	
+	public void setCallbacks(MyCallbacks cbs) {
+		this.cbs = cbs;
+	}
+	
+	public String fieldCallbackToReturn(String data) {
+		String foo = cbs.transform(data);
+		return foo;
+	}
+
 }

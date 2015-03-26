@@ -3,7 +3,6 @@ package soot.jimple.infoflow.methodSummary.xml;
 import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.ATTRIBUTE_ACCESSPATH;
 import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.ATTRIBUTE_ACCESSPATHTYPES;
 import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.ATTRIBUTE_BASETYPE;
-import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.ATTRIBUTE_ERROR;
 import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.ATTRIBUTE_FLOWTYPE;
 import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.ATTRIBUTE_PARAMTER_INDEX;
 import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.ATTRIBUTE_RETURN;
@@ -52,7 +51,7 @@ public class XMLWriter  {
 		OutputStream out = new FileOutputStream(file);
 		XMLOutputFactory factory = XMLOutputFactory.newInstance();
 		XMLStreamWriter writer = factory.createXMLStreamWriter(out);
-			
+		
 		writer.writeStartDocument();
 		writer.writeStartElement(XMLConstants.TREE_SUMMARY);
 		writer.writeAttribute(XMLConstants.ATTRIBUT_FORMAT_VERSION, FILE_FORMAT_VERSION + "");
@@ -110,21 +109,23 @@ public class XMLWriter  {
 		writer.writeEndElement();
 		
 	}
+	
 	private void writeAbstractFlowSinkSource(XMLStreamWriter writer,
 			AbstractFlowSinkSource currentFlow, String methodSig) throws XMLStreamException{
 		writer.writeAttribute(ATTRIBUTE_FLOWTYPE, currentFlow.getType().toString());
 		
 		if(currentFlow.isField()){
-			//nothing we need to write in the xml file here (we write the access path later)
+			// nothing we need to write in the xml file here (we write the access path later)
 		}
 		else if(currentFlow.isParameter())
 			writer.writeAttribute(ATTRIBUTE_PARAMTER_INDEX, currentFlow.getParameterIndex() +"");
 		else if(currentFlow.isReturn())
 			writer.writeAttribute(ATTRIBUTE_RETURN, VALUE_TRUE);
-		else {
-			writer.writeAttribute(ATTRIBUTE_ERROR, "no valid source");
-			System.err.println("ERROR: the summary for " + methodSig + " is corrupted");
+		else if(currentFlow.isGapBaseObject()) {
+			// nothing special to write
 		}
+		else
+			throw new RuntimeException("Unsupported source or sink type " + currentFlow.getType());
 		
 		writer.writeAttribute(ATTRIBUTE_BASETYPE, currentFlow.getBaseType());
 		if(currentFlow.hasAccessPath() && currentFlow.getAccessPath() != null){

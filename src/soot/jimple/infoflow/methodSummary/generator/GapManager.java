@@ -30,6 +30,10 @@ public class GapManager {
 	 */
 	public synchronized GapDefinition getOrCreateGapForCall(
 			MethodSummaries flows, Stmt gapCall) {
+		
+		if (gapCall.toString().contains("<heros.solver.Pair: void <init>(java.lang.Object,java.lang.Object)>"))
+			System.out.println("x");
+		
 		GapDefinition gd = this.gaps.get(gapCall);
 		if (gd == null) {
 			// Generate a new gap ID

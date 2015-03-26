@@ -184,7 +184,7 @@ public class InfoflowResultPostProcessor {
 		for (FlowSource flowSource : sources) {
 			if (flowSource == null)
 				continue;
-			
+						
 			// We need to reconstruct the original source access path
 			AccessPath sourceAP = reconstructSourceAP(ap, sourceInfo.getAbstractionPath());
 			if (sourceAP == null) {
@@ -584,7 +584,7 @@ public class InfoflowResultPostProcessor {
 		}
 
 		// The sink may be a local field on the base object
-		if (sourceAP.getFieldCount() > 0 && stmt.getInvokeExpr() instanceof InstanceInvokeExpr) {
+		if (apAtCall.getFieldCount() > 0 && stmt.getInvokeExpr() instanceof InstanceInvokeExpr) {
 			InstanceInvokeExpr iinv = (InstanceInvokeExpr) stmt.getInvokeExpr();
 			if (apAtCall.getPlainValue() == iinv.getBase()) {
 				FlowSink sink = sourceSinkFactory.createFieldSink(apAtCall);
@@ -619,7 +619,7 @@ public class InfoflowResultPostProcessor {
 			for (int i = 0; i < m.getParameterCount(); i++) {
 				Local p = m.getActiveBody().getParameterLocal(i);
 				if (apAtReturn.getPlainValue() == p) {
-					 FlowSink sink = sourceSinkFactory.createParameterSink(i, apAtReturn);
+					FlowSink sink = sourceSinkFactory.createParameterSink(i, apAtReturn);
 					addFlow(source, sink, flows);
 				}
 			}

@@ -47,7 +47,7 @@ public class SummaryGenerationTaintWrapper extends AbstractTaintWrapper {
 		// Check whether we need to create a gap
 		if (!needsGapConstruction(stmt, icfg))
 			return null;
-		
+				
 		// Do create the gap
 		gapManager.getOrCreateGapForCall(summaries, stmt);
 		
@@ -71,19 +71,18 @@ public class SummaryGenerationTaintWrapper extends AbstractTaintWrapper {
 	 * @return True if we need to create a gap, otherwise false
 	 */
 	private boolean needsGapConstruction(Stmt stmt, IInfoflowCFG icfg) {
+		SootMethod targetMethod = stmt.getInvokeExpr().getMethod();
+		
+		if (targetMethod.toString().contains("callTheGap"))
+			System.out.println("x");
+		
 		// If the callee is native, there is no need for a gap
-		if (stmt.getInvokeExpr().getMethod().isNative())
+		if (targetMethod.isNative())
 			return false;
 		
-		// We always need to construct a gap to toString(), equals(), and
-		// hashCode()
-		/*
-		final String subSig = stmt.getInvokeExpr().getMethod().getSubSignature();
-		if (subSig.equals("java.lang.String toString()")
-				|| subSig.equals("int hashCode()")
-				|| subSig.equals("boolean equals(java.lang.Object)"))
-			return true;
-		*/
+		// Do not construct a gap for constructors
+		if (targetMethod.isConstructor() || targetMethod.isStaticInitializer())
+			return false;
 		
 		// We always construct a gap if we have no callees
 		Collection<SootMethod> callees = icfg.getCalleesOfCallAt(stmt);

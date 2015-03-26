@@ -117,7 +117,7 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 			this.result.put(abs, (Stmt) stmt);
 	}
 	
-	private void handleCallToReturnFlow(Unit stmt,
+	private void handleCallToReturnFlow(Unit u,
 			Abstraction abs,
 			BiDiInterproceduralCFG<Unit, SootMethod> cfg) {
 		// Do not report inactive flows into gaps
@@ -125,15 +125,21 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 			return;
 		
 		// If we have callees, we analyze them as usual
-		Collection<SootMethod> callees = cfg.getCalleesOfCallAt(stmt);
+		Collection<SootMethod> callees = cfg.getCalleesOfCallAt(u);
 		if (callees != null && !callees.isEmpty())
+			return;
+		
+		// Do not create gaps for constructors or static initializers
+		final Stmt stmt = (Stmt) u;
+		if (stmt.getInvokeExpr().getMethod().isConstructor()
+				|| stmt.getInvokeExpr().getMethod().isStaticInitializer())
 			return;
 		
 		// If we don't have any callees, we need to build a gap into our
 		// summary. The taint wrapper takes care of continuing the analysis
 		// after the gap.
-		if (hasFlowSource(abs.getAccessPath(), (Stmt) stmt))
-			this.result.put(abs, (Stmt) stmt);
+		if (hasFlowSource(abs.getAccessPath(), stmt))
+			this.result.put(abs, stmt);
 	}
 	
 	@Override
@@ -148,7 +154,8 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 			return Collections.emptySet();
 		
 		Stmt stmt = (Stmt) u;
-		if (!stmt.containsInvokeExpr())
+		if (!stmt.containsInvokeExpr()
+				|| !type.equals(TaintPropagationHandler.FlowFunctionType.CallToReturnFlowFunction))
 			return outgoing;
 		
 		// If this is a gap access path, we remove the predecessor to cut the

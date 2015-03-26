@@ -225,6 +225,21 @@ public class MethodSummaries implements Iterable<MethodFlow> {
 	}
 	
 	/**
+	 * Removes the given gap definition from this method summary object
+	 * @param gap The gap definition to remove
+	 * @return True if the gap was contained in this method summary object
+	 * before, otherwise false
+	 */
+	public boolean removeGap(GapDefinition gap) {
+		for (Entry<Integer, GapDefinition> entry : this.gaps.entrySet())
+			if (entry.getValue() == gap) {
+				boolean ok = this.gaps.remove(entry.getKey()) == gap;
+				return ok;
+			}
+		return false;
+	}
+	
+	/**
 	 * Gets all dependencies of the flows in this object. Dependencies are classes
 	 * which are references in a flow summary (e.g., through a field type), but
 	 * do not have summaries on their own in this object.
