@@ -221,9 +221,32 @@ public class MethodSummaries implements Iterable<MethodFlow> {
 			gd = new GapDefinition(gapID, signature);
 			this.gaps.put(gapID, gd);
 		}
+		
+		// If the existing gap did not have a method signature so far, we
+		// silently add it to make the definition complete
+		if (gd.getSignature() == null || gd.getSignature().isEmpty())
+			gd.setSignature(signature);
+		else if (!gd.getSignature().equals(signature))
+			throw new RuntimeException("Gap signature mismatch detected");
+		
 		return gd;
 	}
 	
+	/**
+	 * Creates a temporary, underspecified gap with the given ID. This method is
+	 * intended for incrementally loading elements from XML.
+	 * @param gapID The unique ID of the gap
+	 * @return The gap definition with the given ID
+	 */
+	public GapDefinition createTemporaryGap(int gapID) {
+		if (this.gaps.containsKey(gapID))
+			throw new RuntimeException("A gap with the ID " + gapID
+					+ " already exists");
+		
+		GapDefinition gd = new GapDefinition(gapID);
+		this.gaps.put(gapID, gd);
+		return gd;
+	}
 	/**
 	 * Removes the given gap definition from this method summary object
 	 * @param gap The gap definition to remove

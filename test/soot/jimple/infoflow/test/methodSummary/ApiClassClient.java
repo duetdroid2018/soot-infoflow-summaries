@@ -133,6 +133,13 @@ public class ApiClassClient {
 		sink(tmp);
 	}
 	
+	public void gapFlow1() {
+		ApiClass api = new ApiClass();
+		String s = stringSource();
+		String t = api.makeString(new GapClass(), s);
+		sink(t);
+	}
+	
 
 	public void sink(Object out) {
 		System.out.println(out);

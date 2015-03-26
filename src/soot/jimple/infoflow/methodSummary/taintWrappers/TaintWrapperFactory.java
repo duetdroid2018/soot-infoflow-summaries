@@ -2,6 +2,7 @@ package soot.jimple.infoflow.methodSummary.taintWrappers;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.Collection;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -12,7 +13,8 @@ import soot.jimple.infoflow.taintWrappers.ITaintPropagationWrapper;
 
 public class TaintWrapperFactory {
 	
-	public static ITaintPropagationWrapper createTaintWrapper(List<String> files) throws FileNotFoundException, XMLStreamException {
+	public static ITaintPropagationWrapper createTaintWrapper(
+			Collection<String> files) throws FileNotFoundException, XMLStreamException {
 		List<File> fs = new LinkedList<File>();
 		for(String s : files)
 			fs.add(new File(s));

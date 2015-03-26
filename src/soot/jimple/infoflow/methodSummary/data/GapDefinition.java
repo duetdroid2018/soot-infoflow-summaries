@@ -12,7 +12,7 @@ package soot.jimple.infoflow.methodSummary.data;
 public class GapDefinition {
 	
 	private final int id;
-	private final String signature;
+	private String signature;
 	
 	/**
 	 * Creates a new instance of the {@link GapDefinition} class
@@ -22,6 +22,14 @@ public class GapDefinition {
 	public GapDefinition(int id, String signature) {
 		this.id = id;
 		this.signature = signature;
+	}
+	
+	/**
+	 * Creates a new instance of the {@link GapDefinition} class
+	 * @param id The unique ID of this gap definition
+	 */
+	public GapDefinition(int id) {
+		this.id = id;
 	}
 	
 	/**
@@ -38,6 +46,14 @@ public class GapDefinition {
 	 */
 	public String getSignature() {
 		return this.signature;
+	}
+	
+	/**
+	 * Sets the signature of the callee of this gap
+	 * @param signature The signature of the callee of this gap
+	 */
+	public void setSignature(String signature) {
+		this.signature = signature;
 	}
 	
 	@Override

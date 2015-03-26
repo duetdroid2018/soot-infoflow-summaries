@@ -9,6 +9,8 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashSet;
+import java.util.Set;
 
 import javax.xml.stream.XMLStreamException;
 
@@ -101,15 +103,22 @@ public class SummaryTaintWrapperTests {
 	public void fieldToParaFlow() {
 		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void fieldToParaFlow()>");
 	}
+	
 	@Test
 	public void apl3NoFlow() {
 		testNoFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void apl3NoFlow()>");
 	}
+	
 	@Test
 	public void apl3Flow() {
 		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void apl3Flow()>");
 	}
-
+	
+	@Test
+	public void gapFlow1() {
+		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void gapFlow1()>");
+	}
+	
 	private void testFlowForMethod(String m) {
 		Infoflow iFlow = null;
 		try {
@@ -162,9 +171,12 @@ public class SummaryTaintWrapperTests {
 		Infoflow.setUseRecursiveAccessPaths(false);
 		ConfigForTest testConfig = new ConfigForTest();
 		result.setSootConfig(testConfig);
-
-		summaryWrapper = TaintWrapperFactory.createTaintWrapper
-				("./testSummaries/soot.jimple.infoflow.test.methodSummary.ApiClass.xml");
+		
+		Set<String> summaryFiles = new HashSet<String>();
+		summaryFiles.add("./testSummaries/soot.jimple.infoflow.test.methodSummary.ApiClass.xml");
+		summaryFiles.add("./testSummaries/soot.jimple.infoflow.test.methodSummary.GapClass.xml");
+		
+		summaryWrapper = TaintWrapperFactory.createTaintWrapper(summaryFiles);
 		result.setTaintWrapper(summaryWrapper);
 		return result;
 	}

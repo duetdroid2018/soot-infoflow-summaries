@@ -192,7 +192,17 @@ public class XMLReader {
 			return new FlowSource(SourceSinkType.GapBaseObject,
 					getBaseType(attributes));
 		}
-		throw new SummaryXMLException();
+		else if (isReturn(attributes)) {
+			GapDefinition gap = getGapDefinition(attributes, summary);
+			if (gap == null)
+				throw new SummaryXMLException("Return values can only be "
+						+ "sources if they have a gap specification");
+			return new FlowSource(SourceSinkType.Return,
+					getBaseType(attributes), 
+					getAccessPath(attributes),
+					getAccessPathTypes(attributes));
+		}
+		throw new SummaryXMLException("Invalid flow source definition");
 	}
 	
 	/**
@@ -296,9 +306,17 @@ public class XMLReader {
 	private GapDefinition getGapDefinition(Map<String, String> attributes,
 			MethodSummaries summary) {
 		String id = attributes.get(XMLConstants.ATTRIBUTE_GAP);
-		if (id != null && !id.isEmpty())
-			return summary.getGap(Integer.parseInt(id));
-		return null;
+		if (id == null  || id.isEmpty())
+			return null;
+		
+		// Do we already have a suitable gap definition?
+		GapDefinition gap = summary.getGap(Integer.parseInt(id));
+		if (gap != null)
+			return gap;
+		
+		// We have not read in this gap definition yet and need to create a stub
+		// for the time being.
+		return summary.createTemporaryGap(Integer.parseInt(id));
 	}
 	
 }
