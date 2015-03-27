@@ -53,7 +53,8 @@ public abstract class AbstractFlowSinkSource {
 		
 		if (this.type != other.type
 				|| this.parameterIdx != other.parameterIdx
-				|| (this.baseType != null && !this.baseType.equals(other.baseType)))
+				|| !safeCompare(this.baseType, other.baseType)
+				|| !safeCompare(this.gap, other.gap))
 			return false;
 		if (this.accessPath != null && other.accessPath != null) {
 			if (this.accessPath.length > other.accessPath.length)
@@ -163,6 +164,14 @@ public abstract class AbstractFlowSinkSource {
 		else if (!gap.equals(other.gap))
 			return false;
 		return true;
+	}
+	
+	protected boolean safeCompare(Object o1, Object o2) {
+		if (o1 == null)
+			return o2 == null;
+		if (o2 == null)
+			return o1 == null;
+		return o1.equals(o2);
 	}
 	
 	public Map<String, String> xmlAttributes() {

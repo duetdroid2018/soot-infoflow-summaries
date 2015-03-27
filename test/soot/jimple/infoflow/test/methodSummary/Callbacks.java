@@ -5,6 +5,7 @@ public class Callbacks {
 	public interface MyCallbacks {
 		
 		public String transform(String in);
+		public void transformObject(Data o);
 		
 	}
 	
@@ -22,6 +23,11 @@ public class Callbacks {
 	public String fieldCallbackToReturn(String data) {
 		String foo = cbs.transform(data);
 		return foo;
+	}
+
+	public Data fieldCallbackToField(Data o) {
+		cbs.transformObject(o);
+		return o;
 	}
 
 }

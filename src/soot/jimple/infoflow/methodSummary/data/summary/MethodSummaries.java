@@ -337,6 +337,11 @@ public class MethodSummaries implements Iterable<MethodFlow> {
 					throw new RuntimeException("Flow to/from a gap without a base detected "
 							+ " for method " + methodName);
 		}
+		
+		// No gap without a method signature may exist
+		for (GapDefinition gap : this.getAllGaps())
+			if (gap.getSignature() == null || gap.getSignature().isEmpty())
+				throw new RuntimeException("Gap without signature detected");
 	}
 	
 	/**
