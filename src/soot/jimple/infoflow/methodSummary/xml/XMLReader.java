@@ -105,9 +105,10 @@ public class XMLReader {
 			else if(reader.getLocalName().equals(TREE_FLOW) && reader.isEndElement()){
 				if(state == State.flow){
 					state = State.method;
-					summary.addFlowForMethod(currentMethod, new MethodFlow(currentMethod,					
-						createSource(summary, sourceAttributes), createSink(summary, sinkAttributes)));
-				
+					
+					MethodFlow flow = new MethodFlow(currentMethod, createSource(summary, sourceAttributes),
+							createSink(summary, sinkAttributes));
+					summary.addFlowForMethod(currentMethod, flow);
 				}
 				else
 					throw new SummaryXMLException();
@@ -148,6 +149,11 @@ public class XMLReader {
 					throw new SummaryXMLException();
 			}
 		}
+		
+		// Validate the summary to make sure that we didn't read in any bogus
+		// stuff
+		summary.validate();
+		
 		return summary;
 	}
 
@@ -179,28 +185,33 @@ public class XMLReader {
 			return new FlowSource(SourceSinkType.Field,
 					getBaseType(attributes),
 					getAccessPath(attributes),
-					getAccessPathTypes(attributes));
+					getAccessPathTypes(attributes),
+					getGapDefinition(attributes, summary));
 		}
 		else if (isParameter(attributes)) {
 			return new FlowSource(SourceSinkType.Parameter,
 					paramterIdx(attributes),
 					getBaseType(attributes), 
 					getAccessPath(attributes),
-					getAccessPathTypes(attributes));
+					getAccessPathTypes(attributes),
+					getGapDefinition(attributes, summary));
 		}
 		else if (isGapBaseObject(attributes)) {
 			return new FlowSource(SourceSinkType.GapBaseObject,
-					getBaseType(attributes));
+					getBaseType(attributes),
+					getGapDefinition(attributes, summary));
 		}
 		else if (isReturn(attributes)) {
 			GapDefinition gap = getGapDefinition(attributes, summary);
 			if (gap == null)
 				throw new SummaryXMLException("Return values can only be "
 						+ "sources if they have a gap specification");
+			
 			return new FlowSource(SourceSinkType.Return,
 					getBaseType(attributes), 
 					getAccessPath(attributes),
-					getAccessPathTypes(attributes));
+					getAccessPathTypes(attributes),
+					getGapDefinition(attributes, summary));
 		}
 		throw new SummaryXMLException("Invalid flow source definition");
 	}
@@ -243,7 +254,8 @@ public class XMLReader {
 			return new FlowSink(SourceSinkType.GapBaseObject,
 					-1,
 					getBaseType(attributes),
-					false);
+					false,
+					getGapDefinition(attributes, summary));
 		}
 		throw new SummaryXMLException();
 	}

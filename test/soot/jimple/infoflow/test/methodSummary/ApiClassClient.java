@@ -140,7 +140,16 @@ public class ApiClassClient {
 		sink(t);
 	}
 	
-
+	public void shiftTest() {
+		ApiClass api = new ApiClass();
+		String s = stringSource();
+		Data d1 = new Data();
+		Data d2 = new Data();
+		d1.stringField = s;
+		String t = api.shiftTest(d1, d2);
+		sink(t);
+	}
+	
 	public void sink(Object out) {
 		System.out.println(out);
 	}

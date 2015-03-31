@@ -119,6 +119,12 @@ public class SummaryTaintWrapperTests {
 		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void gapFlow1()>");
 	}
 	
+	@Test
+	@Ignore		// there is no ordering of same-level flows
+	public void shiftTest() {
+		testNoFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void shiftTest()>");
+	}
+	
 	private void testFlowForMethod(String m) {
 		Infoflow iFlow = null;
 		try {

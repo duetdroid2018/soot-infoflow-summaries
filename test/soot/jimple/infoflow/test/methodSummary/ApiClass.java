@@ -459,4 +459,10 @@ public class ApiClass implements IApiClass {
 		return stringField;
 	}
 	
+	public String shiftTest(Data d1, Data d2) {
+		String data = d2.stringField;
+		d2.stringField = d1.stringField;
+		return data;
+	}
+	
 }

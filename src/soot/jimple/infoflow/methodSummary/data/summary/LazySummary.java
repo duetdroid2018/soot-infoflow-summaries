@@ -8,8 +8,10 @@ import java.util.List;
 import java.util.Set;
 
 import soot.SootMethod;
+import soot.jimple.infoflow.data.SootMethodAndClass;
 import soot.jimple.infoflow.methodSummary.data.MethodFlow;
 import soot.jimple.infoflow.methodSummary.xml.XMLReader;
+import soot.jimple.infoflow.util.SootMethodRepresentationParser;
 
 
 /**
@@ -82,11 +84,16 @@ public class LazySummary {
 	}
 
 	public Set<MethodFlow> getMethodFlows(SootMethod method) {
-		String clazz = method.getDeclaringClass().getName();
-		if (loadableClasses.contains(clazz)) {
-			loadClass(clazz);
-		}
-		return flows.getFlowsForMethod(method.getSignature()); 
+		return getMethodFlows(method.getSignature()); 
+	}
+
+	public Set<MethodFlow> getMethodFlows(String methodSignature) {
+		SootMethodAndClass smac = SootMethodRepresentationParser.v()
+				.parseSootMethodString(methodSignature);
+		
+		if (loadableClasses.contains(smac.getClassName()))
+			loadClass(smac.getClassName());
+		return flows.getFlowsForMethod(smac.getSignature());
 	}
 
 	private void loadClass(String clazz) {

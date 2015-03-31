@@ -31,6 +31,7 @@ import soot.jimple.Stmt;
 import soot.jimple.infoflow.data.AccessPath;
 import soot.jimple.infoflow.methodSummary.data.FlowSink;
 import soot.jimple.infoflow.methodSummary.data.FlowSource;
+import soot.jimple.infoflow.methodSummary.data.GapDefinition;
 import soot.jimple.infoflow.methodSummary.data.MethodFlow;
 import soot.jimple.infoflow.methodSummary.data.summary.LazySummary;
 import soot.jimple.infoflow.solver.IInfoflowCFG;
@@ -98,7 +99,98 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 		else if (sc.resolvingLevel() < SootClass.HIERARCHY)
 			Scene.v().forceResolve(className, SootClass.HIERARCHY);
 	}
+	
+	/**
+	 * Class for describing an element at the frontier of the access path
+	 * propagation tree
+	 * 
+	 * @author Steven Arzt
+	 *
+	 */
+	private class AccessPathPropagator {
+		
+		private final AccessPath accessPath;
+		private final AccessPathPropagator parent;
+		private final GapDefinition gap;
+		
+		public AccessPathPropagator(AccessPath ap) {
+			this(ap, null);
+		}
+		
+		public AccessPathPropagator(AccessPath ap,
+				AccessPathPropagator parent) {
+			this(ap, parent, null);
+		}
+		
+		public AccessPathPropagator(AccessPath ap,
+				AccessPathPropagator parent,
+				GapDefinition gap) {
+			this.accessPath = ap;
+			this.parent = parent;
+			this.gap = gap;
+		}
+		
+		public AccessPath getAccessPath() {
+			return this.accessPath;
+		}
+		
+		public AccessPathPropagator getParent() {
+			return this.parent;
+		}
+		
+		public GapDefinition getGap() {
+			return this.gap;
+		}
+		
+		@Override
+		public String toString() {
+			String res = this.accessPath.toString();
+			if (this.gap != null)
+				res += " in gap " + this.gap;
+			return res;
+		}
 
+		@Override
+		public int hashCode() {
+			final int prime = 31;
+			int result = 1;
+			result = prime * result
+					+ ((accessPath == null) ? 0 : accessPath.hashCode());
+			result = prime * result + ((gap == null) ? 0 : gap.hashCode());
+			result = prime * result
+					+ ((parent == null) ? 0 : parent.hashCode());
+			return result;
+		}
+
+		@Override
+		public boolean equals(Object obj) {
+			if (this == obj)
+				return true;
+			if (obj == null)
+				return false;
+			if (getClass() != obj.getClass())
+				return false;
+			AccessPathPropagator other = (AccessPathPropagator) obj;
+			if (accessPath == null) {
+				if (other.accessPath != null)
+					return false;
+			} else if (!accessPath.equals(other.accessPath))
+				return false;
+			if (gap == null) {
+				if (other.gap != null)
+					return false;
+			} else if (!gap.equals(other.gap))
+				return false;
+			if (parent == null) {
+				if (other.parent != null)
+					return false;
+			} else if (!parent.equals(other.parent))
+				return false;
+			return true;
+		}
+		
+	}
+	
 	@Override
 	public Set<AccessPath> getTaintsForMethod(Stmt stmt,
 			AccessPath taintedPath, IInfoflowCFG icfg) {		
@@ -112,10 +204,87 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 		
 		// Get the cached data flows
 		final SootMethod method = stmt.getInvokeExpr().getMethod();
+		Set<MethodFlow> flowsInCallee = getFlowSummariesForMethod(stmt, icfg,
+				method);
+		
+		// If we have no data flows, we can abort early
+		if (flowsInCallee.isEmpty())
+			return Collections.emptySet();
+		
+		// Create a level-0 propagator for the initially tainted access path
+		List<AccessPathPropagator> workList = new ArrayList<AccessPathPropagator>();
+		workList.add(new AccessPathPropagator(taintedPath));
+		
+		// Apply the data flows until we reach a fixed point
+		Set<AccessPathPropagator> doneSet = new HashSet<AccessPathPropagator>();
+		while (!workList.isEmpty()) {
+			final AccessPathPropagator curPropagator = workList.remove(0);
+			final AccessPath curAP = curPropagator.getAccessPath();
+			
+			// Make sure we don't have invalid data
+			if (curPropagator.getGap() != null && curPropagator.getParent() == null)
+				throw new RuntimeException("Gap flow without parent detected");
+			
+			// Get the correct set of flows to apply
+			Set<MethodFlow> flowsInTarget = curPropagator.getGap() == null
+					? flowsInCallee : getFlowSummariesForGap(icfg, curPropagator.getGap());
+			
+			for (MethodFlow flow : flowsInTarget) {
+				AccessPath newAP = applyFlow(flow, stmt, curAP);
+				if (newAP == null)
+					continue;
+				
+				// Maintain the stack of access path propagations
+				AccessPathPropagator parent;
+				if (flow.sink().getGap() != null)	// ends in gap, push on stack
+					parent = curPropagator;
+				else if (flow.source().getGap() != null) // starts in gap, pop from stack
+					parent = safePopParent(curPropagator);
+				else
+					parent = curPropagator.parent;	// no gap, keep the current parent on stack
+				
+				// Construct a new propagator
+				AccessPathPropagator newPropagator = new AccessPathPropagator(newAP,
+						parent, flow.sink().getGap());
+				
+				// Propagate it
+				if (newPropagator != null) {
+					if (parent == null)
+						res.add(curPropagator.getAccessPath());
+					if (doneSet.add(newPropagator))
+						workList.add(newPropagator);
+				}
+			}
+		}
+		
+		return res;
+	}
+	
+	private AccessPathPropagator safePopParent(AccessPathPropagator curPropagator) {
+		if (curPropagator.parent == null)
+			return null;
+		return curPropagator.parent.parent;
+	}
+
+	private Set<MethodFlow> getFlowSummariesForGap(IInfoflowCFG icfg,
+			GapDefinition gap) {
+		// If we have the method in Soot, we can be more clever
+		if (Scene.v().containsMethod(gap.getSignature())) {
+			SootMethod gapMethod = Scene.v().getMethod(gap.getSignature());
+			return getFlowSummariesForMethod(null, icfg, gapMethod);
+		}
+		
+		// If we don't have the method, we can only directly look for the
+		// signature
+		return flows.getMethodFlows(gap.getSignature());
+	}
+	
+	private Set<MethodFlow> getFlowSummariesForMethod(Stmt stmt,
+			IInfoflowCFG icfg, final SootMethod method) {
 		Set<MethodFlow> flowsInCallee = methodToFlows.getUnchecked(method);
 		
 		// If we have no direct entry, check the CG
-		if (flowsInCallee.isEmpty()) {
+		if (flowsInCallee.isEmpty() && stmt != null) {
 			flowsInCallee = new HashSet<MethodFlow>();
 			for (SootMethod callee : icfg.getCalleesOfCallAt(stmt))
 				flowsInCallee.addAll(methodToFlows.getUnchecked(callee));
@@ -127,24 +296,7 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 			for (SootMethod implementor : getAllImplementors(method))
 				flowsInCallee.addAll(flows.getMethodFlows(implementor));
 		}
-		
-		// If we have no data flows, we can abort early
-		if (flowsInCallee.isEmpty())
-			return Collections.emptySet();
-				
-		// Apply the data flows until we reach a fixed point
-		List<AccessPath> workList = new ArrayList<AccessPath>();
-		workList.add(taintedPath);
-		while (!workList.isEmpty()) {
-			AccessPath curAP = workList.remove(0);
-			for (MethodFlow flow : flowsInCallee) {
-				AccessPath newAP = applyFlow(flow, stmt, curAP);
-				if (newAP != null && res.add(newAP))
-					workList.add(newAP);
-			}
-		}
-		
-		return res;
+		return flowsInCallee;
 	}
 	
 	private Collection<SootMethod> getAllImplementors(SootMethod method) {
@@ -224,7 +376,7 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 				getTypeFromString(flowSource.getBaseType()));
 		if (!typesCompatible)
 			return null;
-
+		
 		if (flowSource.isParameter()) {
 			// Get the parameter index from the call and compare it to the
 			// parameter index in the flow summary

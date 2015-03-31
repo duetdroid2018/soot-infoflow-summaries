@@ -500,6 +500,17 @@ public class ApiTests extends ApiTestHelper {
 		assertTrue(containsFlow(res, Field,new String[] {NON_PRIMITIVE_VAR1,DATACLASS_OBJECT_FIELD}, Field,new String[] {NON_PRIMITIVE_VAR2, DATACLASS_OBJECT_FIELD}));
 	}
 	
+	@Test(timeout = 100000)
+	public void shiftTest() {
+		String mSig = "<" + className + ": java.lang.String shiftTest(soot.jimple.infoflow.test.methodSummary.Data,soot.jimple.infoflow.test.methodSummary.Data)>";
+		Set<MethodFlow> res = createSummaries(mSig).getAllFlows();
+		
+		assertTrue(containsFlow(res, Parameter, 0, new String[] { DATA_STRING_FIELD }, 
+				Parameter, 1, new String[] { DATA_STRING_FIELD }));
+		assertTrue(containsFlow(res, Parameter, 1, new String[] { DATA_STRING_FIELD }, 
+				Return, 1, null));
+	}
+	
 	@Override
 	protected SummaryGenerator getSummary() {
 		SummaryGenerator sg = new SummaryGenerator();
