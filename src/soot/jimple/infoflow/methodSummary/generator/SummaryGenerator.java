@@ -20,7 +20,7 @@ import soot.jimple.infoflow.IInfoflow.CallgraphAlgorithm;
 import soot.jimple.infoflow.Infoflow;
 import soot.jimple.infoflow.cfg.DefaultBiDiICFGFactory;
 import soot.jimple.infoflow.config.IInfoflowConfig;
-import soot.jimple.infoflow.data.AccessPath;
+import soot.jimple.infoflow.data.Abstraction;
 import soot.jimple.infoflow.data.pathBuilders.DefaultPathBuilderFactory;
 import soot.jimple.infoflow.data.pathBuilders.DefaultPathBuilderFactory.PathBuilder;
 import soot.jimple.infoflow.entryPointCreators.BaseEntryPointCreator;
@@ -36,7 +36,6 @@ import soot.jimple.infoflow.methodSummary.postProcessor.InfoflowResultPostProces
 import soot.jimple.infoflow.methodSummary.source.SummarySourceSinkManager;
 import soot.jimple.infoflow.results.InfoflowResults;
 import soot.jimple.infoflow.solver.IInfoflowCFG;
-import soot.jimple.infoflow.taintWrappers.AbstractTaintWrapper;
 import soot.jimple.infoflow.taintWrappers.ITaintPropagationWrapper;
 import soot.options.Options;
 
@@ -137,6 +136,9 @@ public class SummaryGenerator {
 						methods.add(sm.getSignature());
 			}
 		}
+		
+		// We share one gap manager across all method analyses
+		final GapManager gapManager = new GapManager();
 
 		// Do the actual analysis
 		MethodSummaries summaries = new MethodSummaries();
@@ -145,7 +147,7 @@ public class SummaryGenerator {
 			MethodSummaries classSummaries = new MethodSummaries();
 			for (String methodSig : entry.getValue()) {
 				MethodSummaries newSums = createMethodSummary(classpath,
-						methodSig, entry.getKey());
+						methodSig, entry.getKey(), gapManager);
 				if (handler != null)
 					handler.onMethodFinished(methodSig, classSummaries);
 				classSummaries.merge(newSums);
@@ -216,10 +218,11 @@ public class SummaryGenerator {
 	 *            method for which a summary will be created
 	 * @return summary of method m
 	 */
-	public MethodSummaries createMethodSummary(String classpath,
-			String methodSig) {
+	public MethodSummaries createMethodSummary(String classpath, String methodSig) {
 		return createMethodSummary(classpath, methodSig,
-				"", Collections.<String> emptyList());
+				"",
+				Collections.<String> emptyList(),
+				new GapManager());
 	}
 	
 	/**
@@ -239,13 +242,16 @@ public class SummaryGenerator {
 	 * @param parentClass
 	 * 			  The parent class on which the method to be analyzed shall be
 	 * 			  invoked
+	 * @param gapManager
+	 * 			  The gap manager to be used for creating new gaps 
 	 * @return summary of method m
 	 */
-	public MethodSummaries createMethodSummary(String classpath,
-			String methodSig, String parentClass) {
+	private MethodSummaries createMethodSummary(String classpath,
+			String methodSig, String parentClass, GapManager gapManager) {
 		return createMethodSummary(classpath, methodSig,
 				parentClass,
-				Collections.<String> emptyList());
+				Collections.<String> emptyList(),
+				gapManager);
 	}
 
 	/**
@@ -266,11 +272,13 @@ public class SummaryGenerator {
 	 * 			  invoked
 	 * @param mDependencies
 	 *            all methods which will be "executed" before m
+	 * @param gapManager
+	 * 			  The gap manager to be used for creating new gaps 
 	 * @return summary of method m
 	 */
-	public MethodSummaries createMethodSummary(String classpath,
+	private MethodSummaries createMethodSummary(String classpath,
 			final String methodSig, final String parentClass,
-			List<String> mDependencies) {
+			List<String> mDependencies, final GapManager gapManager) {
 		System.out.println("Computing method summary for " + methodSig);
 
 		final SourceSinkFactory sourceSinkFactory = new SourceSinkFactory(
@@ -278,7 +286,6 @@ public class SummaryGenerator {
 		final SummarySourceSinkManager manager = new SummarySourceSinkManager(
 				methodSig, parentClass, sourceSinkFactory);
 		final MethodSummaries summaries = new MethodSummaries();
-		final GapManager gapManager = new GapManager();
 		
 		final Infoflow infoflow = initInfoflow(summaries, gapManager);
 		
@@ -367,7 +374,7 @@ public class SummaryGenerator {
 		if (taintWrapper == null)
 			iFlow.setTaintWrapper(summaryWrapper);
 		else {
-			ITaintPropagationWrapper wrapper = new AbstractTaintWrapper() {
+			ITaintPropagationWrapper wrapper = new ITaintPropagationWrapper() {
 				
 				@Override
 				public void initialize() {
@@ -375,20 +382,19 @@ public class SummaryGenerator {
 				}
 				
 				@Override
-				public Set<AccessPath> getTaintsForMethod(Stmt stmt,
-						AccessPath taintedPath, IInfoflowCFG icfg) {
-					Set<AccessPath> taints = taintWrapper.getTaintsForMethod(
+				public Set<Abstraction> getTaintsForMethod(Stmt stmt,
+						Abstraction taintedPath, IInfoflowCFG icfg) {
+					Set<Abstraction> taints = taintWrapper.getTaintsForMethod(
 							stmt, taintedPath, icfg);
 					if (!taints.isEmpty())
 						return taints;
 
-					return summaryWrapper.getTaintsForMethod(stmt, taintedPath,
-							icfg);
+					return summaryWrapper.getTaintsForMethod(stmt, taintedPath, icfg);
 				}
 
 				@Override
-				protected boolean isExclusiveInternal(Stmt stmt,
-						AccessPath taintedPath, IInfoflowCFG icfg) {
+				public boolean isExclusive(Stmt stmt,
+						Abstraction taintedPath, IInfoflowCFG icfg) {
 					return taintWrapper.isExclusive(stmt, taintedPath, icfg)
 							|| summaryWrapper.isExclusive(stmt, taintedPath,
 									icfg);
@@ -404,6 +410,18 @@ public class SummaryGenerator {
 				public boolean supportsCallee(Stmt callSite, IInfoflowCFG icfg) {
 					return taintWrapper.supportsCallee(callSite, icfg)
 							|| summaryWrapper.supportsCallee(callSite, icfg);
+				}
+
+				@Override
+				public int getWrapperHits() {
+					// Statistics are not supported by this taint wrapper
+					return -1;
+				}
+
+				@Override
+				public int getWrapperMisses() {
+					// Statistics are not supported by this taint wrapper
+					return -1;
 				}
 
 			};

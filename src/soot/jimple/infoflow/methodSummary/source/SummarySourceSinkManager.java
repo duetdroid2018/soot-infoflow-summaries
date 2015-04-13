@@ -23,6 +23,7 @@ import soot.jimple.ReturnStmt;
 import soot.jimple.ReturnVoidStmt;
 import soot.jimple.Stmt;
 import soot.jimple.ThisRef;
+import soot.jimple.infoflow.data.AccessPath;
 import soot.jimple.infoflow.methodSummary.data.factory.SourceSinkFactory;
 import soot.jimple.infoflow.source.ISourceSinkManager;
 import soot.jimple.infoflow.source.SourceInfo;
@@ -87,6 +88,7 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 		
 		if (sCallSite instanceof DefinitionStmt) {
 			DefinitionStmt jstmt = (DefinitionStmt) sCallSite;
+			Value leftOp = jstmt.getLeftOp();
 			Value rightOp = jstmt.getRightOp();
 			
 			//check if we have a source with apl = 0 (this or parameter source)
@@ -95,15 +97,17 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 				logger.debug("source: " + sCallSite + " " + currentMethod.getSignature());
 				if(debug)
 					System.out.println("source: " + sCallSite + " " + currentMethod.getSignature());
-				return new SourceInfo(true, Collections.singletonList(
-						sourceSinkFactory.createParameterSource(pref.getIndex(), pref.getType().toString())));
+				return new SourceInfo(new AccessPath(leftOp, true),
+						Collections.singletonList(sourceSinkFactory.createParameterSource(
+								pref.getIndex(), pref.getType().toString())));
 			}
 			else if (rightOp instanceof ThisRef) {
 				ThisRef tref = (ThisRef) rightOp;
 				if(debug)
 					System.out.println("source: (this)" + sCallSite + " " + currentMethod.getSignature());				
-				return new SourceInfo(true, Collections.singletonList(
-						sourceSinkFactory.createThisSource(tref.getType().toString())));
+				return new SourceInfo(new AccessPath(leftOp, true),
+						Collections.singletonList(sourceSinkFactory.createThisSource(
+								tref.getType().toString())));
 			}
 		}
 		return null;
@@ -124,7 +128,8 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 	}
 
 	@Override
-	public boolean isSink(Stmt sCallSite, InterproceduralCFG<Unit, SootMethod> cfg) {
+	public boolean isSink(Stmt sCallSite, InterproceduralCFG<Unit, SootMethod> cfg,
+			AccessPath sourceAP) {
 		// If this is not the method we are looking for, we skip it
 		SootMethod currentMethod = cfg.getMethodOf(sCallSite);
 		if (!isMethodToSummarize(currentMethod))

@@ -140,6 +140,14 @@ public class ApiClassClient {
 		sink(t);
 	}
 	
+	public void gapFlow2() {
+		ApiClass api = new ApiClass();
+		String s = stringSource();
+		Data d = new Data();
+		api.fillDataObject(new GapClass(), s, d);
+		sink(d.stringField);
+	}
+	
 	public void shiftTest() {
 		ApiClass api = new ApiClass();
 		String s = stringSource();

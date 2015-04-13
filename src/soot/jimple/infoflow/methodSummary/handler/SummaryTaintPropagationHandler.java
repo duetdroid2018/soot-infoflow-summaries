@@ -2,7 +2,6 @@ package soot.jimple.infoflow.methodSummary.handler;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Set;
 
 import soot.Scene;
@@ -11,15 +10,12 @@ import soot.Unit;
 import soot.Value;
 import soot.jimple.DefinitionStmt;
 import soot.jimple.InstanceInvokeExpr;
+import soot.jimple.InvokeExpr;
 import soot.jimple.ReturnStmt;
 import soot.jimple.Stmt;
 import soot.jimple.infoflow.data.Abstraction;
 import soot.jimple.infoflow.data.AccessPath;
-import soot.jimple.infoflow.data.SourceContext;
 import soot.jimple.infoflow.handlers.TaintPropagationHandler;
-import soot.jimple.infoflow.methodSummary.data.FlowSource;
-import soot.jimple.infoflow.methodSummary.data.GapDefinition;
-import soot.jimple.infoflow.methodSummary.data.SourceSinkType;
 import soot.jimple.infoflow.methodSummary.generator.GapManager;
 import soot.jimple.toolkits.ide.icfg.BiDiInterproceduralCFG;
 import soot.util.ConcurrentHashMultiMap;
@@ -53,11 +49,7 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 		this.gapManager = gapManager;
 	}
 	
-	private boolean isMethodToSummarize(SootMethod currentMethod) {
-		// Initialize the method we are interested in
-		if(method == null)
-			method = Scene.v().getMethod(methodSig);
-		
+	private boolean isMethodToSummarize(SootMethod currentMethod) {		
 		// This must either be the method defined by signature or the
 		// corresponding one in the parent class
 		if (currentMethod == method)
@@ -71,17 +63,22 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 	public void notifyFlowIn(Unit stmt,
 			Abstraction result,
 			BiDiInterproceduralCFG<Unit, SootMethod> cfg,
-			FlowFunctionType type) {
-		// Get the method containing the current statement. If this does
-		// not match the method for which we shall create a summary, we
-		// ignore it.
-		SootMethod m = cfg.getMethodOf(stmt);
-		if (!isMethodToSummarize(m))
-			return;
-
+			FlowFunctionType type) {		
+		// Initialize the method we are interested in
+		if(method == null)
+			method = Scene.v().getMethod(methodSig);
+		
 		// Handle the flow function
-		if (type.equals(TaintPropagationHandler.FlowFunctionType.ReturnFlowFunction))
+		if (type.equals(TaintPropagationHandler.FlowFunctionType.ReturnFlowFunction)) {
+			// We only record leaving flows for those methods that we actually
+			// want to generate a summary for
+			SootMethod m = cfg.getMethodOf(stmt);
+			if (!isMethodToSummarize(m))
+				return;
+			
+			// Record the flow which leaves the method
 			handleReturnFlow(stmt, result, cfg);
+		}
 		else if (type.equals(TaintPropagationHandler.FlowFunctionType.CallToReturnFlowFunction))
 			handleCallToReturnFlow(stmt, result, cfg);
 	}
@@ -93,28 +90,57 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 		// We ignore inactive abstractions
 		if (!abs.isAbstractionActive())
 			return;
+				
+		if (isValueReturnedFromCall(stmt, abs))
+			this.result.put(abs, (Stmt) stmt);
+	}
+	
+	/**
+	 * Checks whether the given value is used in the given statement
+	 * @param stmt The statement to check
+	 * @param abs The value to check
+	 * @return True if the given value is used in the given statement, otherwise
+	 * false
+	 */
+	private boolean isValueUsedInStmt(Stmt stmt, Abstraction abs) {
+		if (!stmt.containsInvokeExpr())
+			return false;
+		InvokeExpr iexpr = stmt.getInvokeExpr();
 		
+		// If this value is a parameter, we take it
+		for (int i = 0; i < iexpr.getArgCount(); i++)
+			if (abs.getAccessPath().getPlainValue() == iexpr.getArg(i))
+				return true;
+		
+		// If this is the base local, we take it
+		return iexpr instanceof InstanceInvokeExpr
+				&& ((InstanceInvokeExpr) iexpr).getBase() == abs.getAccessPath().getPlainValue();
+	}
+	
+	/**
+	 * Checks whether the given value is returned from inside the callee at the
+	 * given call site
+	 * @param stmt The statement to check
+	 * @param abs The value to check
+	 * @return True if the given value is returned from inside the given callee
+	 * at the given call site, otherwise false
+	 */
+	private boolean isValueReturnedFromCall(Unit stmt, Abstraction abs) {
 		// If the value is returned, we save it
-		boolean isValidResult = false;
 		if (stmt instanceof ReturnStmt) {
 			ReturnStmt retStmt = (ReturnStmt) stmt;
-			isValidResult |= (retStmt.getOp() == abs.getAccessPath().getPlainValue());
+			if (retStmt.getOp() == abs.getAccessPath().getPlainValue())
+				return true;
 		}
 		
 		// If the value corresponds to a parameter, we save it
-		if (!isValidResult)
-			for (Value param : method.getActiveBody().getParameterLocals())
-				if (abs.getAccessPath().getPlainValue() == param) {
-					isValidResult = true;
-					break;
-				}
+		for (Value param : method.getActiveBody().getParameterLocals())
+			if (abs.getAccessPath().getPlainValue() == param)
+				return true;
 		
 		// If the value is a field, we save it
-		isValidResult |= (!method.isStatic()
+		return (!method.isStatic()
 				&& abs.getAccessPath().getPlainValue() == method.getActiveBody().getThisLocal());
-		
-		if (isValidResult)
-			this.result.put(abs, (Stmt) stmt);
 	}
 	
 	private void handleCallToReturnFlow(Unit u,
@@ -128,18 +154,26 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 		Collection<SootMethod> callees = cfg.getCalleesOfCallAt(u);
 		if (callees != null && !callees.isEmpty())
 			return;
-		
+				
 		// Do not create gaps for constructors or static initializers
 		final Stmt stmt = (Stmt) u;
-		if (stmt.getInvokeExpr().getMethod().isConstructor()
-				|| stmt.getInvokeExpr().getMethod().isStaticInitializer())
+		final SootMethod targetMethod = stmt.getInvokeExpr().getMethod();
+		if (targetMethod.isConstructor()
+				|| targetMethod.isStaticInitializer()
+				|| targetMethod.isNative())
+			return;
+		
+		// Do not produce flows from one statement to itself
+		if (abs.getSourceContext() != null
+				&& abs.getSourceContext().getStmt() == u)
 			return;
 		
 		// If we don't have any callees, we need to build a gap into our
 		// summary. The taint wrapper takes care of continuing the analysis
 		// after the gap.
-		if (hasFlowSource(abs.getAccessPath(), stmt))
-			this.result.put(abs, stmt);
+		if (isValueUsedInStmt(stmt, abs))
+			if (hasFlowSource(abs.getAccessPath(), stmt))
+				this.result.put(abs, stmt);
 	}
 	
 	@Override
@@ -153,66 +187,7 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 		if (excludedMethods.contains(sm.getSignature()))
 			return Collections.emptySet();
 		
-		Stmt stmt = (Stmt) u;
-		if (!stmt.containsInvokeExpr()
-				|| !type.equals(TaintPropagationHandler.FlowFunctionType.CallToReturnFlowFunction))
-			return outgoing;
-		
-		// If this is a gap access path, we remove the predecessor to cut the
-		// propagation path at the gap
-		GapDefinition gap = gapManager.getGapForCall(stmt);
-		if (gap != null)
-			for (Abstraction outAbs : outgoing)
-				// We only need to look at call-to-return edges
-				if (outAbs.getCurrentStmt() != null
-						&& outAbs.getCurrentStmt() == outAbs.getCorrespondingCallSite()) {
-					// Create the source information pointing to the gap. This may not
-					// be unique
-					outAbs.setPredecessor(null);
-					
-					// If no longer have a predecessor, we must fake a
-					// source context
-					outAbs.setSourceContext(new SourceContext(outAbs.getAccessPath(),
-							outAbs.getCurrentStmt(), getFlowSource(outAbs.getAccessPath(),
-									outAbs.getCurrentStmt(), gap)));
-				}
 		return outgoing;
-	}
-	
-	/**
-	 * Creates a flow source based on an access path and a gap invocation
-	 * statement. The flow source need not necessarily be unique. For a
-	 * call z=b.foo(a,a), the flow source for access path "a" can either be
-	 * parameter 0 or parameter 1.   
-	 * @param accessPath The access path for which to create the flow source
-	 * @param stmt The statement that calls the sink with the given
-	 * access path
-	 * @param The definition of the gap from which the data flow originates
-	 * @return The set of generated flow sources
-	 */
-	private Set<FlowSource> getFlowSource(AccessPath accessPath, Stmt stmt,
-			GapDefinition gap) {
-		Set<FlowSource> res = new HashSet<FlowSource>();
-		
-		// This can be a base object
-		if (stmt.getInvokeExpr() instanceof InstanceInvokeExpr)
-			if (((InstanceInvokeExpr) stmt.getInvokeExpr()).getBase() == accessPath.getPlainValue())
-				res.add(new FlowSource(SourceSinkType.Field, accessPath.getBaseType().toString(),
-						gap));
-		
-		// This can be a parameter
-		for (int i = 0; i < stmt.getInvokeExpr().getArgCount(); i++)
-			if (stmt.getInvokeExpr().getArg(i) == accessPath.getPlainValue())
-				res.add(new FlowSource(SourceSinkType.Parameter, i, accessPath.getBaseType().toString(),
-						gap));
-		
-		// This can be a return value
-		if (stmt instanceof DefinitionStmt)
-			if (((DefinitionStmt) stmt).getLeftOp() == accessPath.getPlainValue())
-				res.add(new FlowSource(SourceSinkType.Return, accessPath.getBaseType().toString(),
-						gap));				
-		
-		return res;
 	}
 	
 	/**
@@ -245,6 +220,10 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 	
 	public MultiMap<Abstraction, Stmt> getResult() {
 		return result;
+	}
+	
+	public GapManager getGapManager() {
+		return this.gapManager;
 	}
 		
 }

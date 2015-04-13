@@ -9,13 +9,13 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import soot.ArrayType;
 import soot.BooleanType;
 import soot.DoubleType;
 import soot.FastHierarchy;
 import soot.FloatType;
 import soot.Hierarchy;
 import soot.IntType;
-import soot.Local;
 import soot.LongType;
 import soot.RefType;
 import soot.Scene;
@@ -29,10 +29,12 @@ import soot.jimple.InstanceInvokeExpr;
 import soot.jimple.InvokeExpr;
 import soot.jimple.Stmt;
 import soot.jimple.infoflow.data.AccessPath;
+import soot.jimple.infoflow.methodSummary.data.AbstractFlowSinkSource;
 import soot.jimple.infoflow.methodSummary.data.FlowSink;
 import soot.jimple.infoflow.methodSummary.data.FlowSource;
 import soot.jimple.infoflow.methodSummary.data.GapDefinition;
 import soot.jimple.infoflow.methodSummary.data.MethodFlow;
+import soot.jimple.infoflow.methodSummary.data.SourceSinkType;
 import soot.jimple.infoflow.methodSummary.data.summary.LazySummary;
 import soot.jimple.infoflow.solver.IInfoflowCFG;
 import soot.jimple.infoflow.taintWrappers.AbstractTaintWrapper;
@@ -101,6 +103,39 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 	}
 	
 	/**
+	 * Class representing a tainted item during propagation
+	 * 
+	 * @author Steven Arzt
+	 *
+	 */
+	private class Taint extends FlowSink implements Cloneable {
+
+		public Taint(SourceSinkType type, int paramterIdx, String baseType,
+				boolean taintSubFields) {
+			super(type, paramterIdx, baseType, taintSubFields);
+		}
+		
+		public Taint(SourceSinkType type, int paramterIdx,
+				String baseType, String[] fields, String[] fieldTypes,
+				boolean taintSubFields) {
+			super(type, paramterIdx, baseType, fields, fieldTypes, taintSubFields);
+		}
+		
+		public Taint(SourceSinkType type, int paramterIdx,
+				String baseType, String[] fields, String[] fieldTypes,
+				boolean taintSubFields, GapDefinition gap) {
+			super(type, paramterIdx, baseType, fields, fieldTypes, taintSubFields, gap);
+		}
+		
+		@Override
+		public Taint clone() {
+			return new Taint(getType(), getParameterIndex(), getBaseType(),
+					getAccessPath(), getAccessPathTypes(), taintSubFields());
+		}
+		
+	}
+	
+	/**
 	 * Class for describing an element at the frontier of the access path
 	 * propagation tree
 	 * 
@@ -109,45 +144,48 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 	 */
 	private class AccessPathPropagator {
 		
-		private final AccessPath accessPath;
-		private final AccessPathPropagator parent;
+		private final Taint taint;
 		private final GapDefinition gap;
+		private final AccessPathPropagator parent;
 		
-		public AccessPathPropagator(AccessPath ap) {
-			this(ap, null);
+		public AccessPathPropagator(Taint taint) {
+			this(taint, null, null);
 		}
 		
-		public AccessPathPropagator(AccessPath ap,
+		public AccessPathPropagator(Taint taint,
+				GapDefinition gap,
 				AccessPathPropagator parent) {
-			this(ap, parent, null);
-		}
-		
-		public AccessPathPropagator(AccessPath ap,
-				AccessPathPropagator parent,
-				GapDefinition gap) {
-			this.accessPath = ap;
-			this.parent = parent;
+			this.taint = taint;
 			this.gap = gap;
+			this.parent = parent;
+		}		
+		
+		public Taint getTaint() {
+			return this.taint;
 		}
 		
-		public AccessPath getAccessPath() {
-			return this.accessPath;
-		}
-		
-		public AccessPathPropagator getParent() {
-			return this.parent;
-		}
-		
+		/**
+		 * Gets the gap in which the taint is being propagated. This gap
+		 * refers to the call stack / current method
+		 * @return The gap in which this taint is  being propagated
+		 */
 		public GapDefinition getGap() {
 			return this.gap;
 		}
 		
+		/**
+		 * Gets the parent of this AccessPathPropagator. This is the link to the
+		 * previous method in the call stack before we descended into the current
+		 * gap. If the gap is null, the parent must be null as well.
+		 * @return The parent of this AccessPathPropagator
+		 */
+		public AccessPathPropagator getParent() {
+			return this.parent;
+		}
+		
 		@Override
 		public String toString() {
-			String res = this.accessPath.toString();
-			if (this.gap != null)
-				res += " in gap " + this.gap;
-			return res;
+			return this.taint.toString();
 		}
 
 		@Override
@@ -155,8 +193,9 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 			final int prime = 31;
 			int result = 1;
 			result = prime * result
-					+ ((accessPath == null) ? 0 : accessPath.hashCode());
-			result = prime * result + ((gap == null) ? 0 : gap.hashCode());
+					+ ((taint == null) ? 0 : taint.hashCode());
+			result = prime * result
+					+ ((gap == null) ? 0 : gap.hashCode());
 			result = prime * result
 					+ ((parent == null) ? 0 : parent.hashCode());
 			return result;
@@ -171,10 +210,10 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 			if (getClass() != obj.getClass())
 				return false;
 			AccessPathPropagator other = (AccessPathPropagator) obj;
-			if (accessPath == null) {
-				if (other.accessPath != null)
+			if (taint == null) {
+				if (other.taint != null)
 					return false;
-			} else if (!accessPath.equals(other.accessPath))
+			} else if (!taint.equals(other.taint))
 				return false;
 			if (gap == null) {
 				if (other.gap != null)
@@ -191,8 +230,125 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 		
 	}
 	
+	/**
+	 * Creates a taint that can be propagated through method summaries based on
+	 * the given access path
+	 * @param ap The access path from which to create a taint
+	 * @param stmt The statement at which the access path came in
+	 * @param icfg The interprocedural control flow graph
+	 * @return The taint derived from the given access path
+	 */
+	private Taint createTaintFromAccessPath(AccessPath ap, Stmt stmt, IInfoflowCFG icfg) {
+		SootMethod sm = icfg.getMethodOf(stmt);
+		Value base = getMethodBase(stmt);
+		
+		// Check whether the base object or some field in it is tainted
+		if (!sm.isStatic()
+				&& (ap.isLocal() || ap.isInstanceFieldRef())
+				&& base != null
+				&& base == ap.getPlainValue()) {
+			return new Taint(SourceSinkType.Field,
+					-1,
+					ap.getBaseType().toString(),
+					fieldArrayToStringArray(ap.getFields()),
+					typeArrayToStringArray(ap.getFieldTypes()),
+					ap.getTaintSubFields());
+		}
+		
+		// Check whether a parameter is tainted
+		int paramIdx = getParameterIndex(stmt, ap);
+		if (paramIdx >= 0)
+			return new Taint(SourceSinkType.Parameter,
+					paramIdx,
+					ap.getBaseType().toString(),
+					fieldArrayToStringArray(ap.getFields()),
+					typeArrayToStringArray(ap.getFieldTypes()),
+					ap.getTaintSubFields());
+		
+		// We haven't found any corresponding taint
+		throw new RuntimeException("Could not create taint for access path "
+				+ ap + " at " + stmt);
+	}
+	
+	/**
+	 * Converts a taint back into an access path that is valid at the given
+	 * statement
+	 * @param t The taint to convert into an access path
+	 * @param stmt The statement at which the access path shall be valid
+	 * @param icfg The interprocedural control flow graph
+	 * @return The access path derived from the given taint
+	 */
+	private AccessPath createAccessPathFromTaint(Taint t, Stmt stmt, IInfoflowCFG icfg) {
+		// Convert the taints to Soot objects
+		SootField[] fields = safeGetFields(t.getAccessPath());
+		Type[] types = safeGetTypes(t.getAccessPathTypes());
+		Type baseType = getTypeFromString(t.getBaseType());
+		
+		// If the taint is a return value, we taint the left side of the
+		// assignment
+		if (t.isReturn()) {
+			// If the return value is not used, we can abort
+			if (!(stmt instanceof DefinitionStmt))
+				return null;
+			
+			DefinitionStmt defStmt = (DefinitionStmt) stmt;
+			return new AccessPath(defStmt.getLeftOp(),
+					fields, baseType, types, t.taintSubFields());
+		}
+		
+		// If the taint is a parameter value, we need to identify the
+		// corresponding local
+		if (t.isParameter() && stmt.containsInvokeExpr()) {
+			InvokeExpr iexpr = stmt.getInvokeExpr();
+			return new AccessPath(iexpr.getArg(t.getParameterIndex()),
+					fields, baseType, types, t.taintSubFields());
+		}
+		
+		// If the taint is on the base value, we need to taint the base local
+		if (t.isField()
+				&& stmt.containsInvokeExpr()
+				&& stmt.getInvokeExpr() instanceof InstanceInvokeExpr) {
+			InstanceInvokeExpr iiexpr = (InstanceInvokeExpr) stmt.getInvokeExpr();
+			return new AccessPath(iiexpr.getBase(),
+					fields, baseType, types, t.taintSubFields());
+		}
+		
+		throw new RuntimeException("Could not convert taint to access path: "
+				+ t + " at " + stmt);
+	}
+	
+	/**
+	 * Converts an array of SootFields to an array of strings
+	 * @param fields The array of SootFields to convert
+	 * @return The array of strings corresponding to the given array of
+	 * SootFields
+	 */
+	private String[] fieldArrayToStringArray(SootField[] fields) {
+		if (fields == null)
+			return null;
+		String[] stringFields = new String[fields.length];
+		for (int i = 0; i < fields.length; i++)
+			stringFields[i] = fields[i].toString();
+		return stringFields;
+	}
+	
+	/**
+	 * Converts an array of Soot Types to an array of strings
+	 * @param fields The array of Soot Types to convert
+	 * @return The array of strings corresponding to the given array of
+	 * Soot Types
+	 */
+	private String[] typeArrayToStringArray(Type[] types) {
+		if (types == null)
+			return null;
+		String[] stringTypes = new String[types.length];
+		for (int i = 0; i < types.length; i++)
+			stringTypes[i] = types[i].toString();
+		return stringTypes;
+	}
+	
 	@Override
-	public Set<AccessPath> getTaintsForMethod(Stmt stmt,
+	public Set<AccessPath> getTaintsForMethodInternal(Stmt stmt,
 			AccessPath taintedPath, IInfoflowCFG icfg) {		
 		// We only care about method invocations
 		if (!stmt.containsInvokeExpr())
@@ -213,47 +369,40 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 		
 		// Create a level-0 propagator for the initially tainted access path
 		List<AccessPathPropagator> workList = new ArrayList<AccessPathPropagator>();
-		workList.add(new AccessPathPropagator(taintedPath));
+		workList.add(new AccessPathPropagator(createTaintFromAccessPath(
+				taintedPath, stmt, icfg)));
 		
 		// Apply the data flows until we reach a fixed point
 		Set<AccessPathPropagator> doneSet = new HashSet<AccessPathPropagator>();
 		while (!workList.isEmpty()) {
 			final AccessPathPropagator curPropagator = workList.remove(0);
-			final AccessPath curAP = curPropagator.getAccessPath();
+			final GapDefinition curGap = curPropagator.getGap();
 			
 			// Make sure we don't have invalid data
-			if (curPropagator.getGap() != null && curPropagator.getParent() == null)
+			if (curGap != null && curPropagator.getParent() == null)
 				throw new RuntimeException("Gap flow without parent detected");
 			
 			// Get the correct set of flows to apply
-			Set<MethodFlow> flowsInTarget = curPropagator.getGap() == null
-					? flowsInCallee : getFlowSummariesForGap(icfg, curPropagator.getGap());
+			Set<MethodFlow> flowsInTarget = curGap == null ? flowsInCallee
+					: getFlowSummariesForGap(icfg, curGap);
 			
 			for (MethodFlow flow : flowsInTarget) {
-				AccessPath newAP = applyFlow(flow, stmt, curAP);
-				if (newAP == null)
+				AccessPathPropagator newPropagator = applyFlow(flow, curPropagator);
+				if (newPropagator == null)
 					continue;
 				
-				// Maintain the stack of access path propagations
-				AccessPathPropagator parent;
-				if (flow.sink().getGap() != null)	// ends in gap, push on stack
-					parent = curPropagator;
-				else if (flow.source().getGap() != null) // starts in gap, pop from stack
-					parent = safePopParent(curPropagator);
-				else
-					parent = curPropagator.parent;	// no gap, keep the current parent on stack
-				
-				// Construct a new propagator
-				AccessPathPropagator newPropagator = new AccessPathPropagator(newAP,
-						parent, flow.sink().getGap());
-				
 				// Propagate it
-				if (newPropagator != null) {
-					if (parent == null)
-						res.add(curPropagator.getAccessPath());
-					if (doneSet.add(newPropagator))
-						workList.add(newPropagator);
+				if (newPropagator.getParent() == null
+						&& newPropagator.getTaint().getGap() == null) {
+					AccessPath ap = createAccessPathFromTaint(newPropagator.getTaint(),
+							stmt, icfg);
+					if (ap == null)
+						continue;
+					else
+						res.add(ap);
 				}
+				if (doneSet.add(newPropagator))
+					workList.add(newPropagator);
 			}
 		}
 		
@@ -360,53 +509,83 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 	/**
 	 * Applies a data flow summary to a given tainted access path
 	 * @param flow The data flow summary to apply
-	 * @param stmt The call site that calls the summarized library method
-	 * @param curAP The currently tainted access path
-	 * @return The access path obtained by applying the given data flow summary
-	 * to the given access path. if the summary is not applicable, null is
-	 * returned.
+	 * @param propagator The access path propagator on which to apply the given
+	 * flow
+	 * @return The access path propagator obtained by applying the given data
+	 * flow summary to the given access path propagator. if the summary is not
+	 * applicable, null is returned.
 	 */
-	private AccessPath applyFlow(MethodFlow flow, Stmt stmt, AccessPath curAP) {		
+	private AccessPathPropagator applyFlow(MethodFlow flow, AccessPathPropagator propagator) {		
 		final FlowSource flowSource = flow.source();
 		final FlowSink flowSink = flow.sink();
+		final Taint taint = propagator.getTaint();
 		
 		// Make sure that the base type of the incoming taint and the one of
 		// the summary are compatible
-		boolean typesCompatible = isCastCompatible(curAP.getBaseType(),
+		boolean typesCompatible = isCastCompatible(
+				getTypeFromString(taint.getBaseType()),
 				getTypeFromString(flowSource.getBaseType()));
 		if (!typesCompatible)
 			return null;
 		
-		if (flowSource.isParameter()) {
+		// If this flow starts at a gap, our current taint must be at that gap
+		if (taint.getGap() != flow.source().getGap())
+			return null;
+		
+		// Maintain the stack of access path propagations
+		final AccessPathPropagator parent;
+		final GapDefinition gap;
+		if (flow.sink().getGap() != null) {	// ends in gap, push on stack
+			parent = propagator;
+			gap = flow.sink().getGap();
+		}
+		else if (flow.source().getGap() != null) { // starts in gap, propagates inside method
+			parent = propagator.parent;
+			gap = propagator.gap;
+		}
+		else {
+			parent = safePopParent(propagator);
+			gap = propagator.parent == null ? null : propagator.parent.gap;
+		}
+		
+		boolean addTaint = false;
+		if (flowSource.isParameter() && taint.isParameter()) {
 			// Get the parameter index from the call and compare it to the
 			// parameter index in the flow summary
-			final int paramIdx = getParameterIndex(stmt, curAP);
-			if (paramIdx == flowSource.getParameterIndex()) {
-				if (compareFields(curAP, flowSource))
-					return addSinkTaint(flowSource, flowSink, stmt, curAP);
+			if (taint.getParameterIndex() == flowSource.getParameterIndex()) {
+				if (compareFields(taint, flowSource))
+					addTaint = true;
 			}
 		}
 		else if (flowSource.isField()) {
 			// Flows from a field can either be applied to the same field or
 			// the base object in total
-			boolean taint = (curAP.isLocal() || curAP.isInstanceFieldRef())
-					&& curAP.getPlainValue().equals(getMethodBase(stmt));
-			
-			Type callType = stmt.getInvokeExpr().getMethod().getDeclaringClass().getType();
-			if (taint && compareFields(curAP, flowSource))
-				if (isCastCompatible(curAP.getBaseType(), callType))
-					return addSinkTaint(flowSource, flowSink, stmt, curAP);
+			boolean doTaint = (taint.isGapBaseObject() || taint.isField());
+			if (doTaint && compareFields(taint, flowSource))
+				addTaint = true;
 		}
-		else if (flowSource.isThis()) {
-			Type callType = stmt.getInvokeExpr().getMethod().getDeclaringClass().getType();
-			if (curAP.isLocal() || curAP.isInstanceFieldRef())
-				if (curAP.getPlainValue().equals(getMethodBase(stmt)))
-					if (isCastCompatible(curAP.getBaseType(), callType))
-						return addSinkTaint(flowSource, flowSink, stmt, curAP);
-		}
+		// We can have a flow from a local or a field
+		else if (flowSource.isThis() && taint.isField())
+			addTaint = true;
+		// A value can also flow from the return value of a gap to somewhere
+		else if (flowSource.isReturn()
+				&& flowSource.getGap() != null
+				&& taint.getGap() != null)
+			addTaint = true;			
 		
-		// Nothing matched
-		return null;
+		// If we didn't find a match, there's little we can do
+		if (!addTaint)
+			return null;
+		
+		// Construct a new propagator
+		Taint newTaint = addSinkTaint(flowSource, flowSink, taint,
+				propagator.getGap());
+		if (newTaint == null)
+			return null;
+		
+		AccessPathPropagator newPropagator = new AccessPathPropagator(newTaint,
+				gap, parent);
+		return newPropagator;
 	}
 	
 	/**
@@ -422,7 +601,7 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 				|| fastHierarchy.canStoreType(baseType, checkType)
 				|| fastHierarchy.canStoreType(checkType, baseType);
 	}
-
+	
 	/**
 	 * Gets the parameter index to which the given access path refers
 	 * @param stmt The invocation statement
@@ -443,25 +622,33 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 				return i;
 		return -1;
 	}
-
-	private boolean compareFields(AccessPath taintedPath, FlowSource flowSource) {
+	
+	/**
+	 * Checks whether the fields mentioned in the given taint correspond to
+	 * those of the given flow source
+	 * @param taintedPath The tainted access path
+	 * @param flowSource The flow source with which to compare the taint
+	 * @return True if the given taint references the same fields as the
+	 * given flow source, otherwise false
+	 */
+	private boolean compareFields(Taint taintedPath, FlowSource flowSource) {
 		// If a is tainted, the summary must match a. If a.* is tainted, the
 		// summary can also be a.b.
 		if (taintedPath.getFieldCount() == 0)
-			return !flowSource.isField() || taintedPath.getTaintSubFields();
-
+			return !flowSource.isField() || taintedPath.taintSubFields();
+		
 		// if we have x.f....fn and the source is x.f'.f1'...f'n+1 and we don't
 		// taint sub, we can't have a match
 		if (taintedPath.getFieldCount() < flowSource.getAccessPathLength()
-				&& !taintedPath.getTaintSubFields())
+				&& !taintedPath.taintSubFields())
 			return false;
 		
 		// Compare the shared sub-path
 		for (int i = 0; i < taintedPath.getFieldCount()
 				&& i < flowSource.getAccessPathLength(); i++) {
-			SootField taintField = taintedPath.getFields()[i];
+			String taintField = taintedPath.getAccessPath()[i];
 			String sourceField = flowSource.getAccessPath()[i];
-			if (!sourceField.equals(taintField.toString()))
+			if (!sourceField.equals(taintField))
 				return false;
 		}
 
@@ -502,19 +689,38 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 		
 		return Scene.v().makeFieldRef(sc, fieldName, getTypeFromString(type), false).resolve();
 	}
-
-	private Type getTypeFromString(String type) {
+	
+	/**
+	 * Creates a Soot Type from the given string
+	 * @param type A string representing a Soot type
+	 * @return The Soot Type corresponding to the given string
+	 */
+	private Type getTypeFromString(String type) {		
+		// Reduce arrays
+		int numDimensions = 0;
+		while (type.endsWith("[]")) {
+			numDimensions++;
+			type = type.substring(0, type.length() - 2);
+		}
+		
+		// Generate the target type
+		final Type t;
 		if (type.equals("int"))
-			return IntType.v();
+			t = IntType.v();
 		else if (type.equals("long"))
-			return LongType.v();
+			t = LongType.v();
 		else if (type.equals("float"))
-			return FloatType.v();
+			t = FloatType.v();
 		else if (type.equals("double"))
-			return DoubleType.v();
+			t = DoubleType.v();
 		else if (type.equals("boolean"))
-			return BooleanType.v();
-		return RefType.v(type);
+			t = BooleanType.v();
+		else
+			t = RefType.v(type);
+		
+		if (numDimensions == 0)
+			return t;
+		return ArrayType.v(t, numDimensions);
 	}
 
 	/**
@@ -554,115 +760,104 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 		return types;
 	}
 	
-	private AccessPath addSinkTaint(FlowSource flowSource,
-			FlowSink flowSink, Stmt stmt, AccessPath taintedPath) {
+	/**
+	 * Given the taint at the source and the flow, computes the taint at the
+	 * sink
+	 * @param flowSource The source definition of the flow
+	 * @param flowSink The sink definition of the flow
+	 * @param taint The taint at the source statement
+	 * @param gap The gap at which the new flow will hold
+	 * @return The taint at the sink that is obtained when applying the given
+	 * flow to the given source taint
+	 */
+	private Taint addSinkTaint(FlowSource flowSource,
+			FlowSink flowSink, Taint taint, GapDefinition gap) {
 		boolean taintSubFields = flowSink.taintSubFields()
-				|| taintedPath.getTaintSubFields();
-
-		final SootField[] fields = safeGetFields(flowSink.getAccessPath());
-		final Type[] fieldTypes = safeGetTypes(flowSink.getAccessPathTypes());
+				|| taint.taintSubFields();
 		
-		final SootField[] remainingFields = getRemainingFields(flowSource, taintedPath);
-		final Type[] remainingFieldTypes = getRemainingFieldTypes(flowSource, taintedPath);
+		final String[] remainingFields = getRemainingFields(flowSource, taint);
+		final String[] remainingFieldTypes = getRemainingFieldTypes(flowSource, taint);
 
-		final SootField[] appendedFields = append(fields, remainingFields);
-		final Type[] appendedFieldTypes = append(fieldTypes, remainingFieldTypes);
+		final String[] appendedFields = append(flowSink.getAccessPath(), remainingFields);
+		final String[] appendedFieldTypes = append(flowSink.getAccessPathTypes(), remainingFieldTypes);
 
-		// Do we need to taint the return value?
-		if (flowSink.isReturn()) {
-			// If the return value is never used, we can abort
-			if (!(stmt instanceof DefinitionStmt))
-				return null;
-			
-			DefinitionStmt defStmt = (DefinitionStmt) stmt;
-			if (flowSink.hasAccessPath()) {								
-				return new AccessPath(defStmt.getLeftOp(),
-						appendedFields,
-						getTypeFromString(flowSink.getBaseType()),
-						appendedFieldTypes,
-						taintSubFields || fields == null);
-			} else
-				return new AccessPath(defStmt.getLeftOp(), null,
-						getTypeFromString(flowSink.getBaseType()), null,
-						taintSubFields);
-		}
-		// Do we need to taint a field of the base object?
-		else if (flowSink.isField()
-				&& stmt.containsInvokeExpr()
-				&& stmt.getInvokeExpr() instanceof InstanceInvokeExpr) {
-			// If we taint something in the base object, its type must match. We
-			// might have a taint for "a" in o.add(a) and need to check whether
-			// "o" matches the expected type in our summary.
-			InstanceInvokeExpr iinv = (InstanceInvokeExpr) stmt.getInvokeExpr();
-			if (!fastHierarchy.canStoreType(iinv.getBase().getType(),
-					getTypeFromString(flowSink.getBaseType())))
-				return null;
-			
-			return new AccessPath(iinv.getBase(),
-					appendedFields,
-					getTypeFromString(flowSink.getBaseType()),
-					appendedFieldTypes,
-					taintSubFields || fields == null);
-		}
-		// Do we need to taint a field of the parameter?
-		else if (flowSink.isParameter()
-				&& stmt.containsInvokeExpr()) {
-			Value arg = stmt.getInvokeExpr().getArg(flowSink.getParameterIndex());
-			if (arg instanceof Local) {
-				return new AccessPath(arg,
-						appendedFields,
-						getTypeFromString(flowSink.getBaseType()),
-						appendedFieldTypes,
-						taintSubFields);
+		// If we taint something in the base object, its type must match. We
+		// might have a taint for "a" in o.add(a) and need to check whether
+		// "o" matches the expected type in our summary.
+		int lastCommonAPIdx = Math.min(flowSource.getAccessPathLength(), taint.getAccessPathLength());
+		Type sinkType = getTypeFromString(getAssignmentType(flowSink));
+		Type taintType = getTypeFromString(getAssignmentType(taint, lastCommonAPIdx - 1));
+		if (!isCastCompatible(taintType, sinkType)) {
+			// If the target is an array, the value might also flow into an element
+			Type sinkBaseType = sinkType;
+			boolean found = false;
+			while (sinkBaseType instanceof ArrayType) {
+				sinkBaseType = ((ArrayType) sinkBaseType).getElementType(); 
+				if (isCastCompatible(taintType, sinkBaseType)) {
+					found = true;
+					break;
+				}
 			}
-			else
-				throw new RuntimeException("Cannot taint non-local parameter");
+			if (!found)
+				return null;
 		}
-		// We dont't know what this is
-		else
-			throw new RuntimeException("Unknown summary sink type: " + flowSink);
+
+		// Taint the correct fields
+		return new Taint(flowSink.getType(),
+				flowSink.getParameterIndex(),
+				flowSink.getBaseType(),
+				appendedFields,
+				appendedFieldTypes,
+				taintSubFields,
+				gap);
+	}
+	
+	/**
+	 * Gets the type at the given position from a taint.
+	 * @param taint The taint from which to get the propagation type
+	 * @param idx The index inside the access path from which to get the type.
+	 * -1 refers to the base type
+	 * @return The type at the given index inside the access path
+	 */
+	private String getAssignmentType(Taint taint, int idx) {
+		if (idx < 0)
+			return taint.getBaseType();
+		return taint.getAccessPathTypes()[idx];
+	}
+	
+	/**
+	 * Gets the type that is finally assigned when propagating this source or
+	 * sink. For an access path a.b.c, this would be the type of "c".
+	 * @param srcSink The source or sink from which to get the propagation type
+	 * @return The type of the value which the access path of the given source
+	 * or sink finally references
+	 */
+	private String getAssignmentType(AbstractFlowSinkSource srcSink) {
+		if (!srcSink.hasAccessPath())
+			return srcSink.getBaseType();
+		return srcSink.getAccessPathTypes()[srcSink.getAccessPathLength() - 1];
 	}
 	
 	/**
 	 * Concatenates the two given arrays to one bigger array
 	 * @param fields The first array
 	 * @param remainingFields The second array
-	 * @return The concatendated array containing all elements from both given
+	 * @return The concatenated array containing all elements from both given
 	 * arrays
 	 */
-	private SootField[] append(SootField[] fields, SootField[] remainingFields) {
+	private String[] append(String[] fields, String[] remainingFields) {
 		if (fields == null)
 			return remainingFields;
 		if (remainingFields == null)
 			return fields;
 		
 		int cnt = fields.length + remainingFields.length;
-		SootField[] appended = new SootField[cnt];
+		String[] appended = new String[cnt];
 		System.arraycopy(fields, 0, appended, 0, fields.length);
 		System.arraycopy(remainingFields, 0, appended, fields.length, remainingFields.length);
 		return appended;
 	}
-
-	/**
-	 * Concatenates the two given arrays to one bigger array
-	 * @param fields The first array
-	 * @param remainingFields The second array
-	 * @return The concatendated array containing all elements from both given
-	 * arrays
-	 */
-	private Type[] append(Type[] fields, Type[] remainingFields) {
-		if (fields == null)
-			return remainingFields;
-		if (remainingFields == null)
-			return fields;
-		
-		int cnt = fields.length + remainingFields.length;
-		Type[] appended = new Type[cnt];
-		System.arraycopy(fields, 0, appended, 0, fields.length);
-		System.arraycopy(remainingFields, 0, appended, fields.length, remainingFields.length);
-		return appended;
-	}
-
+	
 	/**
 	 * Gets the remaining fields which are tainted, but not covered by the given
 	 * flow summary source
@@ -671,16 +866,16 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 	 * @return The remaining fields which are tainted in the given access path,
 	 * but which are not covered by the given flow summary source
 	 */
-	private SootField[] getRemainingFields(FlowSource flowSource, AccessPath taintedPath) {
+	private String[] getRemainingFields(FlowSource flowSource, Taint taintedPath) {
 		if (!flowSource.hasAccessPath())
-			return taintedPath.getFields();
+			return taintedPath.getAccessPath();
 		
 		int fieldCnt = taintedPath.getFieldCount() - flowSource.getAccessPathLength();
 		if (fieldCnt <= 0)
 			return null;
 		
-		SootField[] fields = new SootField[fieldCnt];
-		System.arraycopy(taintedPath.getFields(), flowSource.getAccessPathLength(),
+		String[] fields = new String[fieldCnt];
+		System.arraycopy(taintedPath.getAccessPath(), flowSource.getAccessPathLength(),
 				fields, 0, fieldCnt);
 		return fields;
 	}
@@ -693,16 +888,16 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 	 * @return The types of the remaining fields which are tainted in the given
 	 * access path, but which are not covered by the given flow summary source
 	 */
-	private Type[] getRemainingFieldTypes(FlowSource flowSource, AccessPath taintedPath) {
+	private String[] getRemainingFieldTypes(FlowSource flowSource, Taint taintedPath) {
 		if (!flowSource.hasAccessPath())
-			return taintedPath.getFieldTypes();
+			return taintedPath.getAccessPathTypes();
 		
 		int fieldCnt = taintedPath.getFieldCount() - flowSource.getAccessPathLength();
 		if (fieldCnt <= 0)
 			return null;
 		
-		Type[] fields = new Type[fieldCnt];
-		System.arraycopy(taintedPath.getFieldTypes(), flowSource.getAccessPathLength(),
+		String[] fields = new String[fieldCnt];
+		System.arraycopy(taintedPath.getAccessPathTypes(), flowSource.getAccessPathLength(),
 				fields, 0, fieldCnt);
 		return fields;
 	}
@@ -758,3 +953,10 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 	}
 
 }
+
+
+// TODO: Test cases for appending fields
+// TODO: Test cases for type checking with lists
+// TODO: Test case for return in field / return direct
+// TODO: Test accessing a tainted field in summarized method through an alias in user code
+// TODO: Gap base object from field + aliasing

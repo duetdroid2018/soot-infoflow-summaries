@@ -37,8 +37,12 @@ public class CallbackTests extends TestHelper {
 		assertTrue(containsFlow(flow.getAllFlows(), SourceSinkType.Return, -1, null,
 				"<soot.jimple.infoflow.test.methodSummary.Callbacks$MyCallbacks: java.lang.String transform(java.lang.String)>",
 				SourceSinkType.Return, -1, null, ""));
+		// Gap base object back to parameter 1
+		assertTrue(containsFlow(flow.getAllFlows(), SourceSinkType.Field, -1, null,
+				"<soot.jimple.infoflow.test.methodSummary.Callbacks$MyCallbacks: java.lang.String transform(java.lang.String)>",
+				SourceSinkType.Parameter, 1, null, ""));
 		
-		assertEquals(3, flow.getFlowCount());
+		assertEquals(4, flow.getFlowCount());
 	}
 	
 	@Test(timeout = 100000)
@@ -81,12 +85,16 @@ public class CallbackTests extends TestHelper {
 		assertTrue(containsFlow(flow.getAllFlows(), SourceSinkType.Parameter, 0, null,
 				"<soot.jimple.infoflow.test.methodSummary.Callbacks$MyCallbacks: void transformObject(soot.jimple.infoflow.test.methodSummary.Data)>",
 				SourceSinkType.Return, -1, null, ""));
+		// Gap parameter 0 to method parameter 0 due to aliasing
+		assertTrue(containsFlow(flow.getAllFlows(), SourceSinkType.Parameter, 0, null,
+				"<soot.jimple.infoflow.test.methodSummary.Callbacks$MyCallbacks: void transformObject(soot.jimple.infoflow.test.methodSummary.Data)>",
+				SourceSinkType.Parameter, 0, null, ""));
 		// Gap base to "this" field
 		assertTrue(containsFlow(flow.getAllFlows(), SourceSinkType.Field, -1, null,
 				"<soot.jimple.infoflow.test.methodSummary.Callbacks$MyCallbacks: void transformObject(soot.jimple.infoflow.test.methodSummary.Data)>",
 				SourceSinkType.Field, -1, new String[] { FIELD_CALLBACK }, ""));
 		
-		assertEquals(4, flow.getFlowCount());
+		assertEquals(5, flow.getFlowCount());
 	}
 	
 	@Test(timeout = 100000)
@@ -105,10 +113,42 @@ public class CallbackTests extends TestHelper {
 		assertTrue(containsFlow(flow.getAllFlows(), SourceSinkType.Return, -1, null,
 				"<soot.jimple.infoflow.test.methodSummary.IGapClass: java.lang.String callTheGap(java.lang.String)>",
 				SourceSinkType.Return, -1, null, ""));
+		// Gap base object back to parameter 0
+		assertTrue(containsFlow(flow.getAllFlows(), SourceSinkType.Field, -1, null,
+				"<soot.jimple.infoflow.test.methodSummary.IGapClass: java.lang.String callTheGap(java.lang.String)>",
+				SourceSinkType.Parameter, 0, null,
+				""));
 		
-		assertEquals(3, flow.getFlowCount());
+		assertEquals(4, flow.getFlowCount());
 	}
-
+	
+	@Test(timeout = 100000)
+	public void apifillDataObject() {
+		String mSig = "<soot.jimple.infoflow.test.methodSummary.ApiClass: void fillDataObject(soot.jimple.infoflow.test.methodSummary.IGapClass,java.lang.String,soot.jimple.infoflow.test.methodSummary.Data)>";
+		MethodSummaries flow = createSummaries(mSig);
+		
+		// Parameter 0 to gap base object
+		assertTrue(containsFlow(flow.getAllFlows(), SourceSinkType.Parameter, 0, null, "",
+				SourceSinkType.GapBaseObject, 0, null,
+				"<soot.jimple.infoflow.test.methodSummary.IGapClass: void fillDataString(java.lang.String,soot.jimple.infoflow.test.methodSummary.Data)>"));
+		// Parameter 1 to gap argument 0
+		assertTrue(containsFlow(flow.getAllFlows(), SourceSinkType.Parameter, 1, null, "", SourceSinkType.Parameter, 0, null,
+				"<soot.jimple.infoflow.test.methodSummary.IGapClass: void fillDataString(java.lang.String,soot.jimple.infoflow.test.methodSummary.Data)>"));
+		// Parameter 2 to gap argument 1
+		assertTrue(containsFlow(flow.getAllFlows(), SourceSinkType.Parameter, 2, null, "", SourceSinkType.Parameter, 1, null,
+				"<soot.jimple.infoflow.test.methodSummary.IGapClass: void fillDataString(java.lang.String,soot.jimple.infoflow.test.methodSummary.Data)>"));
+		// Gap base back to parameter 0
+		assertTrue(containsFlow(flow.getAllFlows(), SourceSinkType.Field, -1, null,
+				"<soot.jimple.infoflow.test.methodSummary.IGapClass: void fillDataString(java.lang.String,soot.jimple.infoflow.test.methodSummary.Data)>",
+				SourceSinkType.Parameter, 0, null, ""));
+		// Gap argument 1 back to parameter 2
+		assertTrue(containsFlow(flow.getAllFlows(), SourceSinkType.Parameter, 1, null,
+				"<soot.jimple.infoflow.test.methodSummary.IGapClass: void fillDataString(java.lang.String,soot.jimple.infoflow.test.methodSummary.Data)>",
+				SourceSinkType.Parameter, 2, null, ""));
+		
+		assertEquals(5, flow.getFlowCount());
+	}
+	
 	@Override
 	protected SummaryGenerator getSummary() {
 		SummaryGenerator sg = new SummaryGenerator();

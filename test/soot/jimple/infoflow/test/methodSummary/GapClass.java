@@ -7,4 +7,9 @@ public class GapClass implements IGapClass {
 		return in;
 	}
 
+	@Override
+	public void fillDataString(String in, Data d) {
+		d.stringField = in;
+	}
+
 }

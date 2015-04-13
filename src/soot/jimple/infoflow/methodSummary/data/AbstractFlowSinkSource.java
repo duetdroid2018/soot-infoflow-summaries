@@ -85,6 +85,15 @@ public abstract class AbstractFlowSinkSource {
 	public boolean isField() {
 		return type().equals(SourceSinkType.Field);
 	}
+	
+	/**
+	 * Gets the number of fields in this access path. If this taint has no
+	 * access path, zero is returned.
+	 * @return The number of fields in this access path
+	 */
+	public int getFieldCount() {
+		return accessPath == null ? 0 : accessPath.length;
+	}
 
 	public String[] getAccessPath() {
 		return accessPath;

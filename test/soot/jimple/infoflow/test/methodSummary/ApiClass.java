@@ -454,6 +454,10 @@ public class ApiClass implements IApiClass {
 		return d.callTheGap(in);
 	}
 	
+	public void fillDataObject(IGapClass gap, String in, Data d) {
+		gap.fillDataString(in, d);
+	}
+	
 	@Override
 	public String toString() {
 		return stringField;

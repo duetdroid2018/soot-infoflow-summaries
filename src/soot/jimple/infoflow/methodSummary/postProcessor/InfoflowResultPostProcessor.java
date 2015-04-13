@@ -11,6 +11,8 @@ import org.slf4j.LoggerFactory;
 
 import soot.ArrayType;
 import soot.Local;
+import soot.PrimType;
+import soot.RefType;
 import soot.Scene;
 import soot.SootField;
 import soot.SootMethod;
@@ -18,6 +20,7 @@ import soot.Type;
 import soot.Unit;
 import soot.Value;
 import soot.jimple.AssignStmt;
+import soot.jimple.DefinitionStmt;
 import soot.jimple.InstanceFieldRef;
 import soot.jimple.InstanceInvokeExpr;
 import soot.jimple.ReturnStmt;
@@ -79,7 +82,7 @@ public class InfoflowResultPostProcessor {
 	public MethodSummaries postProcess(MethodSummaries flows) {
 		logger.info("start processing infoflow abstractions");
 		final SootMethod m = Scene.v().getMethod(method);
-		
+				
 		// Create a context-sensitive path builder. Without context-sensitivity,
 		// we get quite some false positives here.
 		SummaryPathBuilder pathBuilder = new SummaryPathBuilder(cfg,
@@ -94,13 +97,21 @@ public class InfoflowResultPostProcessor {
 				// If this abstraction is directly the source abstraction, we do not
 				// need to construct paths
 				if (a.getSourceContext() != null) {
+					// Make sure that we do not get a fake alias of a primitive value
+					// from a gap.
+					if (gapManager.getGapForCall(a.getSourceContext().getStmt()) != null) {
+						if (!isAliasedField(a.getAccessPath(), a.getSourceContext().getAccessPath(),
+								a.getSourceContext().getStmt()))
+							continue;
+					}
+					
 					processFlowSource(flows, m, a.getAccessPath(), stmt,
 							pathBuilder.new SummarySourceInfo(a.getAccessPath(), a.getCurrentStmt(),
 									a.getSourceContext().getUserData(), Collections.singletonList(a.getCurrentStmt()),
 									Collections.singletonList(a)));
 					continue;
 				}
-							
+						
 				// In case we have the same abstraction in multiple places and we
 				// extend it with external sink information regardless of the
 				// original propagation, we need to clean up first
@@ -114,13 +125,28 @@ public class InfoflowResultPostProcessor {
 				for (SummaryResultInfo si : pathBuilder.getResultInfos()) {
 					final AccessPath sourceAP = si.getSourceInfo().getAccessPath();
 					final AccessPath sinkAP = si.getSinkInfo().getAccessPath();
+					final Stmt sourceStmt = si.getSourceInfo().getSource();
 					
 					// Check that we don't get any weird results
 					if (sourceAP == null || sinkAP == null)
 						throw new RuntimeException("Invalid access path");
 					
-					// Process the flow from this source
-					if (!sinkAP.equals(sourceAP)) {
+					// If the path is only partial, i.e., does not end at the
+					// abstraction we are interested in, we skip it
+//					if (si.getSourceInfo().getAbstractionPath().get(
+//							si.getSourceInfo().getAbstractionPath().size() - 1) != a) {
+//						System.out.println("partialed one for " + a);
+//						continue;
+//					}
+					
+					// We only take flows which are not identity flows.
+					// If we have a flow from a gap parameter to the original
+					// method parameter, the access paths are equal, but that's
+					// ok in the case of aliasing.
+					boolean isAliasedField = gapManager.getGapForCall(sourceStmt) != null
+							&& isAliasedField(sinkAP, sourceAP, sourceStmt);
+					if (!sinkAP.equals(sourceAP) || isAliasedField) {
+						// Process the flow from this source
 						processFlowSource(flows, m, sinkAP, stmt, si.getSourceInfo());
 						analyzedPaths++;
 					}
@@ -141,6 +167,25 @@ public class InfoflowResultPostProcessor {
 		return flows;
 	}
 	
+	private boolean isAliasedField(AccessPath apAtSink,
+			AccessPath apAtSource, Stmt sourceStmt) {
+		// Only reference types can have aliases
+		if (!(apAtSink.getLastFieldType() instanceof RefType))
+			return false;
+				
+		// Return values are always passed on, regardless of aliasing
+		if (sourceStmt instanceof DefinitionStmt)
+			if (((DefinitionStmt) sourceStmt).getLeftOp() == apAtSource.getPlainValue())
+				return true;
+		
+		// Strings are immutable
+		RefType rt = (RefType) apAtSink.getLastFieldType();
+		if (rt == RefType.v("java.lang.String"))
+			return false;
+		
+		return true;
+	}
+
 	/**
 	 * Compacts the flow set by removing flows that are over-approximations of
 	 * others
@@ -184,9 +229,10 @@ public class InfoflowResultPostProcessor {
 		for (FlowSource flowSource : sources) {
 			if (flowSource == null)
 				continue;
-						
+			
 			// We need to reconstruct the original source access path
-			AccessPath sourceAP = reconstructSourceAP(ap, sourceInfo.getAbstractionPath());
+			AccessPath sourceAP = reconstructSourceAP(ap, sourceInfo.getAbstractionPath(),
+					cfg.getMethodOf(stmt));
 			if (sourceAP == null) {
 				System.out.println("failed for: " + ap);
 				return;
@@ -224,9 +270,11 @@ public class InfoflowResultPostProcessor {
 	 * 
 	 * @param sinkAP The final access path at the end of the propagation path
 	 * @param path The propagation path
+	 * @param startMethod The method in which the sink access path was recorded
 	 * @return The fully reconstructed access path
 	 */
-	private AccessPath reconstructSourceAP(AccessPath sinkAP, List<Abstraction> path) {
+	private AccessPath reconstructSourceAP(AccessPath sinkAP, List<Abstraction> path,
+			SootMethod startMethod) {
 		// Dump the path
 		List<Stmt> stmts = new ArrayList<Stmt>();
 		for (Abstraction abs : path)
@@ -242,6 +290,11 @@ public class InfoflowResultPostProcessor {
 			final Stmt callSite = abs.getCorrespondingCallSite();
 			boolean matched = false;
 			
+			// If we have reached the source definition, we can directly take
+			// the access path
+			if (stmt == null && abs.getSourceContext() != null)
+				return abs.getSourceContext().getAccessPath();
+			
 			// In case of a call-to-return edge, we have no information about
 			// what happened in the callee, so we take the incoming access path
 			if (stmt.containsInvokeExpr()) {
@@ -249,7 +302,13 @@ public class InfoflowResultPostProcessor {
 					// only change base local
 					Value newBase = (pathIdx > 0) ? path.get(pathIdx - 1).getAccessPath().getPlainValue()
 							: abs.getAccessPath().getPlainValue();
-					curAP = curAP.copyWithNewValue(newBase);
+					
+					// If the incoming value is a primitive, we reset the field
+					// list
+					if (newBase.getType() instanceof PrimType)
+						curAP = new AccessPath(newBase, true);
+					else
+						curAP = curAP.copyWithNewValue(newBase);
 					matched = true;
 				}
 			}
@@ -268,7 +327,7 @@ public class InfoflowResultPostProcessor {
 					else
 						// If we are at the end of our path, this must be the
 						// method for which we are generating summaries
-						callee = Scene.v().getMethod(method);
+						callee = startMethod;	// TODO: method in which the gap was created
 				}
 				
 				// Match the access path from the caller back into the callee
@@ -615,7 +674,9 @@ public class InfoflowResultPostProcessor {
 		}
 		
 		// The sink may be a parameter
-		if (!apAtReturn.isLocal() || apAtReturn.getBaseType() instanceof ArrayType)
+		if (!apAtReturn.isLocal()
+				|| apAtReturn.getTaintSubFields()
+				|| apAtReturn.getBaseType() instanceof ArrayType)
 			for (int i = 0; i < m.getParameterCount(); i++) {
 				Local p = m.getActiveBody().getParameterLocal(i);
 				if (apAtReturn.getPlainValue() == p) {

@@ -43,83 +43,88 @@ public class SummaryTaintWrapperTests {
 	}
 
 	@Ignore("kill flow")
-	@Test
+	@Test(timeout = 30000)
 	public void noFlow1() {
 		testNoFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void noFlow1()>");
 	}
 
 	@Ignore("kill flow")
-	@Test
+	@Test(timeout = 30000)
 	public void noFlow2() {
 		testNoFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void noFlow2()>");
 	}
 
-	@Test
+	@Test(timeout = 30000)
 	public void flow1() {
 		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void flow1()>");
 	}
 
-	@Test
+	@Test(timeout = 30000)
 	public void flow2() {
 		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void flow2()>");
 	}
 
-	@Test
+	@Test(timeout = 30000)
 	public void paraReturnFlow() {
 		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void paraReturnFlow()>");
 	}
 
-	@Test
+	@Test(timeout = 30000)
 	public void paraFieldSwapFieldReturnFlow() {
 		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void paraFieldSwapFieldReturnFlow()>");
 	}
 
-	@Test
+	@Test(timeout = 30000)
 	public void paraFieldFieldReturnFlow() {
 		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void paraFieldFieldReturnFlow()>");
 	}
 
-	@Test
+	@Test(timeout = 30000)
 	public void paraReturnFlowInterface() {
 		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void paraReturnFlowOverInterface()>");
 	}
 
-	@Test
+	@Test(timeout = 30000)
 	public void paraFieldSwapFieldReturnFlowInterface() {
 		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void paraFieldSwapFieldReturnFlowOverInterface()>");
 	}
 
-	@Test
+	@Test(timeout = 30000)
 	public void paraFieldFieldReturnFlowInterface() {
 		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void paraFieldFieldReturnFlowOverInterface()>");
 	}
 
-	@Test
+	@Test(timeout = 30000)
 	public void paraToParaFlow() {
 		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void paraToParaFlow()>");
 	}
 
-	@Test
+	@Test(timeout = 30000)
 	public void fieldToParaFlow() {
 		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void fieldToParaFlow()>");
 	}
 	
-	@Test
+	@Test(timeout = 30000)
 	public void apl3NoFlow() {
 		testNoFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void apl3NoFlow()>");
 	}
 	
-	@Test
+	@Test(timeout = 30000)
 	public void apl3Flow() {
 		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void apl3Flow()>");
 	}
 	
-	@Test
+	@Test(timeout = 30000)
 	public void gapFlow1() {
 		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void gapFlow1()>");
 	}
 	
-	@Test
+	@Test(timeout = 30000)
+	public void gapFlow2() {
+		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void gapFlow2()>");
+	}
+	
+	@Test(timeout = 30000)
 	@Ignore		// there is no ordering of same-level flows
 	public void shiftTest() {
 		testNoFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void shiftTest()>");
