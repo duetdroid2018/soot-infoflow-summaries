@@ -62,6 +62,8 @@ public class MethodSummaries implements Iterable<MethodFlow> {
 	 * @param newFlows The new flows to be merged
 	 */
 	public void merge(MethodSummaries newFlows) {
+		if (newFlows == null)
+			return;
 		merge(newFlows.flows);
 		if (newFlows.gaps != null)
 			this.gaps.putAll(newFlows.gaps);

@@ -147,7 +147,7 @@ public class InfoflowResultPostProcessor {
 							&& isAliasedField(sinkAP, sourceAP, sourceStmt);
 					if (!sinkAP.equals(sourceAP) || isAliasedField) {
 						// Process the flow from this source
-						processFlowSource(flows, m, sinkAP, stmt, si.getSourceInfo());
+						processFlowSource(flows, m, sinkAP, stmt, si.getSourceInfo());		// TODO: throw as curStmt?
 						analyzedPaths++;
 					}
 				}
@@ -320,23 +320,26 @@ public class InfoflowResultPostProcessor {
 			if (stmt.containsInvokeExpr()) {
 				// Forward propagation, backwards reconstruction: We leave
 				// methods when we reach the call site.
-				SootMethod callee = callees.isEmpty() ? null : callees.remove(0);
-				if (callee == null) {
-					if (pathIdx < path.size() - 1)
-						callee = cfg.getMethodOf(path.get(pathIdx + 1).getCurrentStmt());
-					else
-						// If we are at the end of our path, this must be the
-						// method for which we are generating summaries
-						callee = startMethod;	// TODO: method in which the gap was created
-				}
+				Collection<SootMethod> curCallees = callees.isEmpty() ? null
+						: Collections.singleton(callees.remove(0));
+				if (curCallees == null && pathIdx < path.size() - 1)
+					curCallees = Collections.singleton(cfg.getMethodOf(
+							path.get(pathIdx + 1).getCurrentStmt()));
+				if (curCallees == null)
+					curCallees = cfg.getCalleesOfCallAt(stmt);
 				
 				// Match the access path from the caller back into the callee
-				AccessPath newAP = mapAccessPathBackIntoCaller(curAP, stmt, callee);
-				if (newAP != null) {
-					curAP = newAP;
-					matched = true;
+				for (SootMethod callee : curCallees) {
+					AccessPath newAP = mapAccessPathBackIntoCaller(curAP, stmt, callee);
+					if (newAP != null) {
+						curAP = newAP;
+						matched = true;
+						break;
+					}
 				}
-				else
+				
+				// If none of the possible callees worked, we're in trouble
+				if (!matched)
 					return null;
 			}
 			else if (callSite != null && callSite.containsInvokeExpr()) {
@@ -565,7 +568,7 @@ public class InfoflowResultPostProcessor {
 		// Make sure that we don't end up with a senseless callee
 		if (!callee.getSubSignature().equals(stmt.getInvokeExpr().getMethod().getSubSignature()))
 			throw new RuntimeException("Invalid callee on stack"); 
-				
+		
 		// Map the parameters back into the caller
 		for (int i = 0; i < stmt.getInvokeExpr().getArgCount(); i++) {
 			Local paramLocal = callee.getActiveBody().getParameterLocal(i);

@@ -137,6 +137,9 @@ public class SummaryGenerator {
 			}
 		}
 		
+		// Make sure that we don't have any strange leftovers
+		G.reset();
+		
 		// We share one gap manager across all method analyses
 		final GapManager gapManager = new GapManager();
 
@@ -163,8 +166,8 @@ public class SummaryGenerator {
 		
 		// Calculate the dependencies
 		calculateDependencies(summaries);
-				
-		return summaries;
+		
+		return summaries;	
 	}
 	
 	/**
@@ -280,7 +283,7 @@ public class SummaryGenerator {
 			final String methodSig, final String parentClass,
 			List<String> mDependencies, final GapManager gapManager) {
 		System.out.println("Computing method summary for " + methodSig);
-
+		
 		final SourceSinkFactory sourceSinkFactory = new SourceSinkFactory(
 				summaryAPLength);
 		final SummarySourceSinkManager manager = new SummarySourceSinkManager(
@@ -363,12 +366,13 @@ public class SummaryGenerator {
 
 				});
 		Infoflow.setAccessPathLength(accessPathLength);
+		Infoflow.setMergeNeighbors(true);
 		
 		iFlow.setEnableImplicitFlows(enableImplicitFlows);
 		iFlow.setEnableExceptionTracking(enableExceptionTracking);
 		iFlow.setEnableStaticFieldTracking(enableStaticFieldTracking);
 		iFlow.setFlowSensitiveAliasing(flowSensitiveAliasing);
-
+		
 		final SummaryGenerationTaintWrapper summaryWrapper =
 				new SummaryGenerationTaintWrapper(summaries, gapManager);
 		if (taintWrapper == null)

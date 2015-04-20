@@ -130,6 +130,12 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 	@Override
 	public boolean isSink(Stmt sCallSite, InterproceduralCFG<Unit, SootMethod> cfg,
 			AccessPath sourceAP) {
+		// We only fake the sources during the initial collection pass. During
+		// the actual taint propagation, the TaintPropagationHandler will take
+		// care of recording the outbound abstractions
+		if (sourceAP != null)
+			return false;
+		
 		// If this is not the method we are looking for, we skip it
 		SootMethod currentMethod = cfg.getMethodOf(sCallSite);
 		if (!isMethodToSummarize(currentMethod))

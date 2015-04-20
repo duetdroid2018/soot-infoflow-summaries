@@ -51,6 +51,11 @@ public class LazySummary {
 	public LazySummary(List<File> files) {
 		this.files = new HashSet<File>();
 		for(File f : files) {
+			// Check if the file exists
+			if (!f.exists())
+				throw new RuntimeException("Input file does not exist: " + f);
+			
+			// Distinguish between files and directories
 			if (f.isFile())
 				this.files.add(f);
 			else if (f.isDirectory()) {

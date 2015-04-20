@@ -13,6 +13,7 @@ import soot.jimple.InstanceInvokeExpr;
 import soot.jimple.InvokeExpr;
 import soot.jimple.ReturnStmt;
 import soot.jimple.Stmt;
+import soot.jimple.ThrowStmt;
 import soot.jimple.infoflow.data.Abstraction;
 import soot.jimple.infoflow.data.AccessPath;
 import soot.jimple.infoflow.handlers.TaintPropagationHandler;
@@ -130,6 +131,13 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 		if (stmt instanceof ReturnStmt) {
 			ReturnStmt retStmt = (ReturnStmt) stmt;
 			if (retStmt.getOp() == abs.getAccessPath().getPlainValue())
+				return true;
+		}
+		
+		// If the value is thrown, we save it
+		if (stmt instanceof ThrowStmt) {
+			ThrowStmt throwStmt = (ThrowStmt) stmt;
+			if (throwStmt.getOp() == abs.getAccessPath().getPlainValue())
 				return true;
 		}
 		
