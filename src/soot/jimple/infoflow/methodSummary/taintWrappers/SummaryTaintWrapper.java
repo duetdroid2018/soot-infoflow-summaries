@@ -434,16 +434,23 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 		
 		// If we have no direct entry, check the CG
 		if (flowsInCallee.isEmpty() && stmt != null) {
-			flowsInCallee = new HashSet<MethodFlow>();
-			for (SootMethod callee : icfg.getCalleesOfCallAt(stmt))
+			flowsInCallee = null;
+			for (SootMethod callee : icfg.getCalleesOfCallAt(stmt)) {
+				if (flowsInCallee == null)
+					flowsInCallee = new HashSet<MethodFlow>();
 				flowsInCallee.addAll(methodToFlows.getUnchecked(callee));
+			}
 		}
 		
 		// If we did not find any flows for an interface, we take all flows from
 		// all implementors
-		if (flowsInCallee.isEmpty()) {
-			for (SootMethod implementor : getAllImplementors(method))
+		if (flowsInCallee == null || flowsInCallee.isEmpty()) {
+			flowsInCallee = null;
+			for (SootMethod implementor : getAllImplementors(method)) {
+				if (flowsInCallee == null)
+					flowsInCallee = new HashSet<MethodFlow>();
 				flowsInCallee.addAll(flows.getMethodFlows(implementor));
+			}
 		}
 		return flowsInCallee;
 	}
