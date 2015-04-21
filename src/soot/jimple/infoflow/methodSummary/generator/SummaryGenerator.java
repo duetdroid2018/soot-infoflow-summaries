@@ -36,6 +36,7 @@ import soot.jimple.infoflow.methodSummary.postProcessor.InfoflowResultPostProces
 import soot.jimple.infoflow.methodSummary.source.SummarySourceSinkManager;
 import soot.jimple.infoflow.results.InfoflowResults;
 import soot.jimple.infoflow.solver.IInfoflowCFG;
+import soot.jimple.infoflow.solver.IInfoflowSolver;
 import soot.jimple.infoflow.taintWrappers.ITaintPropagationWrapper;
 import soot.options.Options;
 
@@ -381,27 +382,26 @@ public class SummaryGenerator {
 			ITaintPropagationWrapper wrapper = new ITaintPropagationWrapper() {
 				
 				@Override
-				public void initialize() {
+				public void initialize(IInfoflowSolver solver, IInfoflowCFG icfg) {
 					
 				}
 				
 				@Override
 				public Set<Abstraction> getTaintsForMethod(Stmt stmt,
-						Abstraction taintedPath, IInfoflowCFG icfg) {
+						Abstraction taintedPath) {
 					Set<Abstraction> taints = taintWrapper.getTaintsForMethod(
-							stmt, taintedPath, icfg);
+							stmt, taintedPath);
 					if (!taints.isEmpty())
 						return taints;
 
-					return summaryWrapper.getTaintsForMethod(stmt, taintedPath, icfg);
+					return summaryWrapper.getTaintsForMethod(stmt, taintedPath);
 				}
 
 				@Override
 				public boolean isExclusive(Stmt stmt,
-						Abstraction taintedPath, IInfoflowCFG icfg) {
-					return taintWrapper.isExclusive(stmt, taintedPath, icfg)
-							|| summaryWrapper.isExclusive(stmt, taintedPath,
-									icfg);
+						Abstraction taintedPath) {
+					return taintWrapper.isExclusive(stmt, taintedPath)
+							|| summaryWrapper.isExclusive(stmt, taintedPath);
 				}
 
 				@Override
@@ -411,9 +411,9 @@ public class SummaryGenerator {
 				}
 
 				@Override
-				public boolean supportsCallee(Stmt callSite, IInfoflowCFG icfg) {
-					return taintWrapper.supportsCallee(callSite, icfg)
-							|| summaryWrapper.supportsCallee(callSite, icfg);
+				public boolean supportsCallee(Stmt callSite) {
+					return taintWrapper.supportsCallee(callSite)
+							|| summaryWrapper.supportsCallee(callSite);
 				}
 
 				@Override

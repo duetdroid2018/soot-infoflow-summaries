@@ -148,6 +148,13 @@ public class ApiClassClient {
 		sink(d.stringField);
 	}
 	
+	public void gapFlowUserCode1() {
+		ApiClass api = new ApiClass();
+		String s = stringSource();
+		String t = api.makeStringUserCodeClass(new UserCodeClass(), s);
+		sink(t);
+	}
+	
 	public void shiftTest() {
 		ApiClass api = new ApiClass();
 		String s = stringSource();

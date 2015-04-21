@@ -37,6 +37,7 @@ import soot.jimple.infoflow.methodSummary.data.MethodFlow;
 import soot.jimple.infoflow.methodSummary.data.SourceSinkType;
 import soot.jimple.infoflow.methodSummary.data.summary.LazySummary;
 import soot.jimple.infoflow.solver.IInfoflowCFG;
+import soot.jimple.infoflow.solver.IInfoflowSolver;
 import soot.jimple.infoflow.taintWrappers.AbstractTaintWrapper;
 
 import com.google.common.cache.CacheLoader;
@@ -74,7 +75,7 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 	}
 	
 	@Override
-	public void initialize() {
+	public void initialize(IInfoflowSolver solver, IInfoflowCFG icfg) {
 		// Load all classes for which we have summaries to signatures
 		for (String className : flows.getLoadableClasses())
 			loadClass(className);
@@ -349,7 +350,7 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 	
 	@Override
 	public Set<AccessPath> getTaintsForMethodInternal(Stmt stmt,
-			AccessPath taintedPath, IInfoflowCFG icfg) {		
+			AccessPath taintedPath) {
 		// We only care about method invocations
 		if (!stmt.containsInvokeExpr())
 			return Collections.singleton(taintedPath);
@@ -386,6 +387,18 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 			Set<MethodFlow> flowsInTarget = curGap == null ? flowsInCallee
 					: getFlowSummariesForGap(icfg, curGap);
 			
+			// If we don't have summaries for the current gap, we look for
+			// implementations in the application code
+			if (flowsInTarget.isEmpty() && curGap != null) {
+				SootMethod callee = Scene.v().grabMethod(curGap.getSignature());
+				if (callee != null)
+					for (SootMethod implementor : getAllImplementors(callee))
+						if (implementor.getDeclaringClass().isConcrete()) {
+							System.out.println("x");
+						}
+			}
+			
+			// Apply the flow summaries for other libraries
 			for (MethodFlow flow : flowsInTarget) {
 				AccessPathPropagator newPropagator = applyFlow(flow, curPropagator);
 				if (newPropagator == null)
@@ -927,10 +940,9 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 	}
 
 	@Override
-	protected boolean isExclusiveInternal(Stmt stmt, AccessPath taintedPath,
-			IInfoflowCFG icfg) {
+	protected boolean isExclusiveInternal(Stmt stmt, AccessPath taintedPath) {
 		// If we support the method, we are exclusive for it
-		return supportsCallee(stmt, icfg);
+		return supportsCallee(stmt);
 	}
 	
 	@Override
@@ -943,7 +955,7 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 	}
 	
 	@Override
-	public boolean supportsCallee(Stmt callSite, IInfoflowCFG icfg) {
+	public boolean supportsCallee(Stmt callSite) {
 		if (!callSite.containsInvokeExpr())
 			return false;
 

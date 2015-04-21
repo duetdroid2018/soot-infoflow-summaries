@@ -18,6 +18,7 @@ import soot.jimple.infoflow.methodSummary.data.GapDefinition;
 import soot.jimple.infoflow.methodSummary.data.SourceSinkType;
 import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
 import soot.jimple.infoflow.solver.IInfoflowCFG;
+import soot.jimple.infoflow.solver.IInfoflowSolver;
 import soot.jimple.infoflow.taintWrappers.ITaintPropagationWrapper;
 
 /**
@@ -30,6 +31,8 @@ import soot.jimple.infoflow.taintWrappers.ITaintPropagationWrapper;
  */
 public class SummaryGenerationTaintWrapper implements ITaintPropagationWrapper {
 	
+	private IInfoflowCFG icfg;
+	
 	private final MethodSummaries summaries;
 	private final GapManager gapManager;
 	
@@ -40,13 +43,12 @@ public class SummaryGenerationTaintWrapper implements ITaintPropagationWrapper {
 	}
 	
 	@Override
-	public void initialize() {
-		
+	public void initialize(IInfoflowSolver solver, IInfoflowCFG icfg) {
+		this.icfg = icfg;
 	}
 	
 	@Override
-	public Set<Abstraction> getTaintsForMethod(Stmt stmt, Abstraction taintedPath,
-			IInfoflowCFG icfg) {
+	public Set<Abstraction> getTaintsForMethod(Stmt stmt, Abstraction taintedPath) {
 		// This must be a method invocation
 		if (!stmt.containsInvokeExpr())
 			return Collections.singleton(taintedPath);
@@ -167,7 +169,7 @@ public class SummaryGenerationTaintWrapper implements ITaintPropagationWrapper {
 	}
 
 	@Override
-	public boolean isExclusive(Stmt stmt, Abstraction taintedPath, IInfoflowCFG icfg) {
+	public boolean isExclusive(Stmt stmt, Abstraction taintedPath) {
 		return false;
 	}
 
@@ -178,7 +180,7 @@ public class SummaryGenerationTaintWrapper implements ITaintPropagationWrapper {
 	}
 
 	@Override
-	public boolean supportsCallee(Stmt callSite, IInfoflowCFG icfg) {
+	public boolean supportsCallee(Stmt callSite) {
 		// We only wrap calls that have no callees
 		Collection<SootMethod> callees = icfg.getCalleesOfCallAt(callSite);
 		return callees == null || callees.isEmpty();
