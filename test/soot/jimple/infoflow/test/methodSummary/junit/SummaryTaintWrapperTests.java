@@ -130,6 +130,11 @@ public class SummaryTaintWrapperTests {
 		testNoFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void shiftTest()>");
 	}
 	
+	@Test//(timeout = 30000)
+	public void gapFlowUserCode1() {
+		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void gapFlowUserCode1()>");
+	}
+	
 	private void testFlowForMethod(String m) {
 		Infoflow iFlow = null;
 		try {

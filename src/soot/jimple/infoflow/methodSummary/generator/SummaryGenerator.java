@@ -18,6 +18,7 @@ import soot.SootMethod;
 import soot.jimple.Stmt;
 import soot.jimple.infoflow.IInfoflow.CallgraphAlgorithm;
 import soot.jimple.infoflow.Infoflow;
+import soot.jimple.infoflow.InfoflowManager;
 import soot.jimple.infoflow.cfg.DefaultBiDiICFGFactory;
 import soot.jimple.infoflow.config.IInfoflowConfig;
 import soot.jimple.infoflow.data.Abstraction;
@@ -35,8 +36,7 @@ import soot.jimple.infoflow.methodSummary.handler.SummaryTaintPropagationHandler
 import soot.jimple.infoflow.methodSummary.postProcessor.InfoflowResultPostProcessor;
 import soot.jimple.infoflow.methodSummary.source.SummarySourceSinkManager;
 import soot.jimple.infoflow.results.InfoflowResults;
-import soot.jimple.infoflow.solver.IInfoflowCFG;
-import soot.jimple.infoflow.solver.IInfoflowSolver;
+import soot.jimple.infoflow.solver.cfg.IInfoflowCFG;
 import soot.jimple.infoflow.taintWrappers.ITaintPropagationWrapper;
 import soot.options.Options;
 
@@ -382,19 +382,19 @@ public class SummaryGenerator {
 			ITaintPropagationWrapper wrapper = new ITaintPropagationWrapper() {
 				
 				@Override
-				public void initialize(IInfoflowSolver solver, IInfoflowCFG icfg) {
+				public void initialize(InfoflowManager manager) {
 					
 				}
 				
 				@Override
 				public Set<Abstraction> getTaintsForMethod(Stmt stmt,
-						Abstraction taintedPath) {
+						Abstraction d1, Abstraction taintedPath) {
 					Set<Abstraction> taints = taintWrapper.getTaintsForMethod(
-							stmt, taintedPath);
+							stmt, d1, taintedPath);
 					if (!taints.isEmpty())
 						return taints;
 
-					return summaryWrapper.getTaintsForMethod(stmt, taintedPath);
+					return summaryWrapper.getTaintsForMethod(stmt, d1, taintedPath);
 				}
 
 				@Override

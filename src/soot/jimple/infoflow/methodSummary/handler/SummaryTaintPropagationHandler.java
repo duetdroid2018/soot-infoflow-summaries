@@ -186,6 +186,7 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 	
 	@Override
 	public Set<Abstraction> notifyFlowOut(Unit u,
+			Abstraction d1,
 			Abstraction incoming,
 			Set<Abstraction> outgoing,
 			BiDiInterproceduralCFG<Unit, SootMethod> cfg,

@@ -3,13 +3,16 @@ package soot.jimple.infoflow.methodSummary.generator;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Set;
 
+import soot.Scene;
 import soot.SootMethod;
 import soot.Value;
 import soot.jimple.DefinitionStmt;
 import soot.jimple.InstanceInvokeExpr;
 import soot.jimple.Stmt;
+import soot.jimple.infoflow.InfoflowManager;
 import soot.jimple.infoflow.data.Abstraction;
 import soot.jimple.infoflow.data.AccessPath;
 import soot.jimple.infoflow.data.SourceContext;
@@ -17,9 +20,9 @@ import soot.jimple.infoflow.methodSummary.data.FlowSource;
 import soot.jimple.infoflow.methodSummary.data.GapDefinition;
 import soot.jimple.infoflow.methodSummary.data.SourceSinkType;
 import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
-import soot.jimple.infoflow.solver.IInfoflowCFG;
-import soot.jimple.infoflow.solver.IInfoflowSolver;
+import soot.jimple.infoflow.solver.cfg.IInfoflowCFG;
 import soot.jimple.infoflow.taintWrappers.ITaintPropagationWrapper;
+import soot.jimple.toolkits.callgraph.Edge;
 
 /**
  * Taint wrapper to be used during summary construction. If we find a call for
@@ -43,12 +46,13 @@ public class SummaryGenerationTaintWrapper implements ITaintPropagationWrapper {
 	}
 	
 	@Override
-	public void initialize(IInfoflowSolver solver, IInfoflowCFG icfg) {
-		this.icfg = icfg;
+	public void initialize(InfoflowManager manager) {
+		this.icfg = manager.getICFG();
 	}
 	
 	@Override
-	public Set<Abstraction> getTaintsForMethod(Stmt stmt, Abstraction taintedPath) {
+	public Set<Abstraction> getTaintsForMethod(Stmt stmt, Abstraction d1,
+			Abstraction taintedPath) {
 		// This must be a method invocation
 		if (!stmt.containsInvokeExpr())
 			return Collections.singleton(taintedPath);
@@ -182,8 +186,8 @@ public class SummaryGenerationTaintWrapper implements ITaintPropagationWrapper {
 	@Override
 	public boolean supportsCallee(Stmt callSite) {
 		// We only wrap calls that have no callees
-		Collection<SootMethod> callees = icfg.getCalleesOfCallAt(callSite);
-		return callees == null || callees.isEmpty();
+		Iterator<Edge> edgeIt = Scene.v().getCallGraph().edgesOutOf(callSite);
+		return !edgeIt.hasNext();
 	}
 
 	@Override

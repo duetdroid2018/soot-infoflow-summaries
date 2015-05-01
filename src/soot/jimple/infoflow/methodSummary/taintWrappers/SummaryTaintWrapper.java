@@ -1,6 +1,8 @@
 package soot.jimple.infoflow.methodSummary.taintWrappers;
 
 import heros.solver.IDESolver;
+import heros.solver.Pair;
+import heros.solver.PathEdge;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -8,6 +10,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.atomic.AtomicInteger;
 
 import soot.ArrayType;
 import soot.BooleanType;
@@ -16,6 +19,7 @@ import soot.FastHierarchy;
 import soot.FloatType;
 import soot.Hierarchy;
 import soot.IntType;
+import soot.Local;
 import soot.LongType;
 import soot.RefType;
 import soot.Scene;
@@ -23,11 +27,15 @@ import soot.SootClass;
 import soot.SootField;
 import soot.SootMethod;
 import soot.Type;
+import soot.Unit;
 import soot.Value;
 import soot.jimple.DefinitionStmt;
 import soot.jimple.InstanceInvokeExpr;
 import soot.jimple.InvokeExpr;
+import soot.jimple.ReturnStmt;
 import soot.jimple.Stmt;
+import soot.jimple.infoflow.InfoflowManager;
+import soot.jimple.infoflow.data.Abstraction;
 import soot.jimple.infoflow.data.AccessPath;
 import soot.jimple.infoflow.methodSummary.data.AbstractFlowSinkSource;
 import soot.jimple.infoflow.methodSummary.data.FlowSink;
@@ -36,18 +44,26 @@ import soot.jimple.infoflow.methodSummary.data.GapDefinition;
 import soot.jimple.infoflow.methodSummary.data.MethodFlow;
 import soot.jimple.infoflow.methodSummary.data.SourceSinkType;
 import soot.jimple.infoflow.methodSummary.data.summary.LazySummary;
-import soot.jimple.infoflow.solver.IInfoflowCFG;
-import soot.jimple.infoflow.solver.IInfoflowSolver;
-import soot.jimple.infoflow.taintWrappers.AbstractTaintWrapper;
+import soot.jimple.infoflow.solver.IFollowReturnsPastSeedsHandler;
+import soot.jimple.infoflow.taintWrappers.ITaintPropagationWrapper;
+import soot.util.ConcurrentHashMultiMap;
+import soot.util.MultiMap;
 
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
-public class SummaryTaintWrapper extends AbstractTaintWrapper {
+public class SummaryTaintWrapper implements ITaintPropagationWrapper {
+	private InfoflowManager manager;
+	private AtomicInteger wrapperHits = new AtomicInteger();
+	private AtomicInteger wrapperMisses = new AtomicInteger();
+	
 	private LazySummary flows;
 	
 	private Hierarchy hierarchy;
 	private FastHierarchy fastHierarchy;
+	
+	private MultiMap<Pair<Abstraction, SootMethod>, AccessPathPropagator> userCodeTaints
+			= new ConcurrentHashMultiMap<>();
 	
 	protected final LoadingCache<SootMethod, Set<MethodFlow>> methodToFlows =
 			IDESolver.DEFAULT_CACHE_BUILDER.build(new CacheLoader<SootMethod, Set<MethodFlow>>() {
@@ -67,6 +83,102 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 			});
 	
 	/**
+	 * Handler that is used for injecting taints from callbacks implemented in
+	 * user code back into the summary application process
+	 * 	
+	 * @author Steven Arzt
+	 * 
+	 */
+	private class SummaryFRPSHandler implements IFollowReturnsPastSeedsHandler {
+
+		@Override
+		public void handleFollowReturnsPastSeeds(Abstraction d1, Unit u,
+				Abstraction d2) {
+			SootMethod sm = manager.getICFG().getMethodOf(u);
+			Set<AccessPathPropagator> propagators = getUserCodeTaints(d1, sm);
+			if (propagators != null) {				
+				for (AccessPathPropagator propagator : propagators) {
+					// Propagate these taints up. We leave the current gap
+					AccessPathPropagator parent = safePopParent(propagator);
+					GapDefinition parentGap = propagator.getParent() == null ?
+							null : propagator.getParent().getGap();
+					
+					// Create taints from the abstractions
+					Set<Taint> returnTaints = createTaintFromAccessPathOnReturn(d2.getAccessPath(),
+							(Stmt) u, propagator.getGap());
+					
+					// Create the new propagator, one for every taint
+					Set<AccessPathPropagator> workSet = new HashSet<>();
+					for (Taint returnTaint : returnTaints) {
+						AccessPathPropagator newPropagator = new AccessPathPropagator(
+								returnTaint, parentGap, parent,
+								propagator.getParent() == null ? null : propagator.getParent().getStmt(),
+								propagator.getParent() == null ? null : propagator.getParent().getD1(),
+								propagator.getParent() == null ? null : propagator.getParent().getD2());
+						workSet.add(newPropagator);
+					}
+					
+					// Get the correct set of flows to apply
+					Set<MethodFlow> flowsInTarget = parentGap == null
+							? getFlowsInOriginalCallee(propagator)
+							: getFlowSummariesForGap(parentGap);
+
+					// Apply the aggregated propagators
+					Set<AccessPath> resultAPs = applyFlowsIterative(flowsInTarget, new ArrayList<>(workSet));
+					
+					// Propagate the access paths
+					if (resultAPs != null && !resultAPs.isEmpty()) {
+						AccessPathPropagator rootPropagator = getOriginalCallSite(propagator);
+						for (AccessPath ap : resultAPs) {
+							Abstraction newAbs = rootPropagator.getD2().deriveNewAbstraction(
+									ap, rootPropagator.getStmt());
+							for (Unit succUnit : manager.getICFG().getSuccsOf(rootPropagator.getStmt()))
+								manager.getForwardSolver().processEdge(new PathEdge<Unit, Abstraction>(
+										rootPropagator.getD1(),
+										succUnit,
+										newAbs));
+						}
+					}
+				}
+			}
+		}
+		
+		/**
+		 * Gets the flows in the method that was originally called and from
+		 * where the summary application was started
+		 * @param propagator A propagator somewhere in the call tree
+		 * @return The summary flows inside the original callee
+		 */
+		private Set<MethodFlow> getFlowsInOriginalCallee(
+				AccessPathPropagator propagator) {
+			Stmt originalCallSite = getOriginalCallSite(propagator).getStmt();
+			
+			// Get the flows in the original callee
+			Set<MethodFlow> flowsInCallee = getFlowSummariesForMethod(originalCallSite,
+					originalCallSite.getInvokeExpr().getMethod());
+			return flowsInCallee;
+		}
+		
+		/**
+		 * Gets the call site at which the taint application was originally
+		 * started
+		 * @param propagator A propagator somewhere in the call tree
+		 * @return The call site at which the taint application was originally
+		 * started if successful, otherwise null
+		 */
+		private AccessPathPropagator getOriginalCallSite(AccessPathPropagator propagator) {
+			// Get the original call site
+			AccessPathPropagator curProp = propagator;
+			while (curProp != null) {
+				if (curProp.getParent() == null)
+					return curProp;
+				curProp = curProp.getParent();
+			}
+			return null;
+		}
+	}
+	
+	/**
 	 * Creates a new instance of the {@link SummaryTaintWrapper} class
 	 * @param flows The flows loaded from disk
 	 */
@@ -75,7 +187,9 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 	}
 	
 	@Override
-	public void initialize(IInfoflowSolver solver, IInfoflowCFG icfg) {
+	public void initialize(InfoflowManager manager) {
+		this.manager = manager;
+		
 		// Load all classes for which we have summaries to signatures
 		for (String className : flows.getLoadableClasses())
 			loadClass(className);
@@ -85,6 +199,9 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 		// Get the hierarchy
 		this.hierarchy = Scene.v().getActiveHierarchy();
 		this.fastHierarchy = Scene.v().getOrMakeFastHierarchy();
+		
+		// Register the taint propagation handler
+		manager.getForwardSolver().setFollowReturnsPastSeedsHandler(new SummaryFRPSHandler());
 	}
 	
 	/**
@@ -102,145 +219,17 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 		else if (sc.resolvingLevel() < SootClass.HIERARCHY)
 			Scene.v().forceResolve(className, SootClass.HIERARCHY);
 	}
-	
-	/**
-	 * Class representing a tainted item during propagation
-	 * 
-	 * @author Steven Arzt
-	 *
-	 */
-	private class Taint extends FlowSink implements Cloneable {
-
-		public Taint(SourceSinkType type, int paramterIdx, String baseType,
-				boolean taintSubFields) {
-			super(type, paramterIdx, baseType, taintSubFields);
-		}
 		
-		public Taint(SourceSinkType type, int paramterIdx,
-				String baseType, String[] fields, String[] fieldTypes,
-				boolean taintSubFields) {
-			super(type, paramterIdx, baseType, fields, fieldTypes, taintSubFields);
-		}
-		
-		public Taint(SourceSinkType type, int paramterIdx,
-				String baseType, String[] fields, String[] fieldTypes,
-				boolean taintSubFields, GapDefinition gap) {
-			super(type, paramterIdx, baseType, fields, fieldTypes, taintSubFields, gap);
-		}
-		
-		@Override
-		public Taint clone() {
-			return new Taint(getType(), getParameterIndex(), getBaseType(),
-					getAccessPath(), getAccessPathTypes(), taintSubFields());
-		}
-		
-	}
-	
-	/**
-	 * Class for describing an element at the frontier of the access path
-	 * propagation tree
-	 * 
-	 * @author Steven Arzt
-	 *
-	 */
-	private class AccessPathPropagator {
-		
-		private final Taint taint;
-		private final GapDefinition gap;
-		private final AccessPathPropagator parent;
-		
-		public AccessPathPropagator(Taint taint) {
-			this(taint, null, null);
-		}
-		
-		public AccessPathPropagator(Taint taint,
-				GapDefinition gap,
-				AccessPathPropagator parent) {
-			this.taint = taint;
-			this.gap = gap;
-			this.parent = parent;
-		}		
-		
-		public Taint getTaint() {
-			return this.taint;
-		}
-		
-		/**
-		 * Gets the gap in which the taint is being propagated. This gap
-		 * refers to the call stack / current method
-		 * @return The gap in which this taint is  being propagated
-		 */
-		public GapDefinition getGap() {
-			return this.gap;
-		}
-		
-		/**
-		 * Gets the parent of this AccessPathPropagator. This is the link to the
-		 * previous method in the call stack before we descended into the current
-		 * gap. If the gap is null, the parent must be null as well.
-		 * @return The parent of this AccessPathPropagator
-		 */
-		public AccessPathPropagator getParent() {
-			return this.parent;
-		}
-		
-		@Override
-		public String toString() {
-			return this.taint.toString();
-		}
-
-		@Override
-		public int hashCode() {
-			final int prime = 31;
-			int result = 1;
-			result = prime * result
-					+ ((taint == null) ? 0 : taint.hashCode());
-			result = prime * result
-					+ ((gap == null) ? 0 : gap.hashCode());
-			result = prime * result
-					+ ((parent == null) ? 0 : parent.hashCode());
-			return result;
-		}
-
-		@Override
-		public boolean equals(Object obj) {
-			if (this == obj)
-				return true;
-			if (obj == null)
-				return false;
-			if (getClass() != obj.getClass())
-				return false;
-			AccessPathPropagator other = (AccessPathPropagator) obj;
-			if (taint == null) {
-				if (other.taint != null)
-					return false;
-			} else if (!taint.equals(other.taint))
-				return false;
-			if (gap == null) {
-				if (other.gap != null)
-					return false;
-			} else if (!gap.equals(other.gap))
-				return false;
-			if (parent == null) {
-				if (other.parent != null)
-					return false;
-			} else if (!parent.equals(other.parent))
-				return false;
-			return true;
-		}
-		
-	}
-	
 	/**
 	 * Creates a taint that can be propagated through method summaries based on
-	 * the given access path
+	 * the given access path. This method assumes that the given statement is
+	 * a method call and that the access path is flowing into this call.
 	 * @param ap The access path from which to create a taint
 	 * @param stmt The statement at which the access path came in
-	 * @param icfg The interprocedural control flow graph
 	 * @return The taint derived from the given access path
 	 */
-	private Taint createTaintFromAccessPath(AccessPath ap, Stmt stmt, IInfoflowCFG icfg) {
-		SootMethod sm = icfg.getMethodOf(stmt);
+	private Taint createTaintFromAccessPathOnCall(AccessPath ap, Stmt stmt) {
+		SootMethod sm = manager.getICFG().getMethodOf(stmt);
 		Value base = getMethodBase(stmt);
 		
 		// Check whether the base object or some field in it is tainted
@@ -272,14 +261,75 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 	}
 	
 	/**
+	 * Creates a set of taints that can be propagated through method summaries
+	 * based on the given access path. This method assumes that the given
+	 * statement is a return site from a method.
+	 * @param ap The access path from which to create a taint
+	 * @param stmt The statement at which the access path came in
+	 * @param gap The gap in which the taint is valid
+	 * @return The taint derived from the given access path
+	 */
+	private Set<Taint> createTaintFromAccessPathOnReturn(AccessPath ap, Stmt stmt,
+			GapDefinition gap) {
+		SootMethod sm = manager.getICFG().getMethodOf(stmt);
+		Set<Taint> res = null;
+		
+		// Check whether the base object or some field in it is tainted
+		if (!sm.isStatic()
+				&& (ap.isLocal() || ap.isInstanceFieldRef())
+				&& ap.getPlainValue() == sm.getActiveBody().getThisLocal()) {
+			if (res == null)
+				res = new HashSet<>();			
+			res.add(new Taint(SourceSinkType.Field,
+					-1,
+					ap.getBaseType().toString(),
+					fieldArrayToStringArray(ap.getFields()),
+					typeArrayToStringArray(ap.getFieldTypes()),
+					ap.getTaintSubFields(),
+					gap));
+		}
+		
+		// Check whether a parameter is tainted
+		int paramIdx = getParameterIndex(sm, ap);
+		if (paramIdx >= 0) {
+			if (res == null)
+				res = new HashSet<>();
+			res.add(new Taint(SourceSinkType.Parameter,
+					paramIdx,
+					ap.getBaseType().toString(),
+					fieldArrayToStringArray(ap.getFields()),
+					typeArrayToStringArray(ap.getFieldTypes()),
+					ap.getTaintSubFields(),
+					gap));
+		}
+		
+		// Check whether the return value is tainted
+		if (stmt instanceof ReturnStmt) {
+			ReturnStmt retStmt = (ReturnStmt) stmt;
+			if (retStmt.getOp() == ap.getPlainValue()) {
+				if (res == null)
+					res = new HashSet<>();
+				res.add(new Taint(SourceSinkType.Return,
+						-1,
+						ap.getBaseType().toString(),
+						fieldArrayToStringArray(ap.getFields()),
+						typeArrayToStringArray(ap.getFieldTypes()),
+						ap.getTaintSubFields(),
+						gap));
+			}
+		}
+		
+		return res;
+	}
+	
+	/**
 	 * Converts a taint back into an access path that is valid at the given
 	 * statement
 	 * @param t The taint to convert into an access path
 	 * @param stmt The statement at which the access path shall be valid
-	 * @param icfg The interprocedural control flow graph
 	 * @return The access path derived from the given taint
 	 */
-	private AccessPath createAccessPathFromTaint(Taint t, Stmt stmt, IInfoflowCFG icfg) {
+	private AccessPath createAccessPathFromTaint(Taint t, Stmt stmt) {
 		// Convert the taints to Soot objects
 		SootField[] fields = safeGetFields(t.getAccessPath());
 		Type[] types = safeGetTypes(t.getAccessPathTypes());
@@ -319,6 +369,37 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 	}
 	
 	/**
+	 * Converts a taint into an access path that is valid inside a given method.
+	 * This models that a taint is propagated into the method and from there on
+	 * in normal IFDS.
+	 * @param t The taint to convert
+	 * @param sm The method in which the access path shall be created
+	 * @return The access path derived from the given taint and method
+	 */
+	private AccessPath createAccessPathInMethod(Taint t, SootMethod sm) {
+		// Convert the taints to Soot objects
+		SootField[] fields = safeGetFields(t.getAccessPath());
+		Type[] types = safeGetTypes(t.getAccessPathTypes());
+		Type baseType = getTypeFromString(t.getBaseType());
+		
+		// A return value cannot be propagated into a method
+		if (t.isReturn())
+			throw new RuntimeException("Unsupported taint type");
+		
+		if (t.isParameter()) {
+			Local l = sm.getActiveBody().getParameterLocal(t.getParameterIndex());
+			return new AccessPath(l, fields, baseType, types, true);
+		}
+		
+		if (t.isField()) {
+			Local l = sm.getActiveBody().getThisLocal();
+			return new AccessPath(l, fields, baseType, types, true);
+		}
+		
+		throw new RuntimeException("Failed to convert taint " + t);
+	}
+	
+	/**
 	 * Converts an array of SootFields to an array of strings
 	 * @param fields The array of SootFields to convert
 	 * @return The array of strings corresponding to the given array of
@@ -349,31 +430,55 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 	}
 	
 	@Override
-	public Set<AccessPath> getTaintsForMethodInternal(Stmt stmt,
-			AccessPath taintedPath) {
+	public Set<Abstraction> getTaintsForMethod(Stmt stmt, Abstraction d1,
+			Abstraction taintedAbs) {
 		// We only care about method invocations
 		if (!stmt.containsInvokeExpr())
-			return Collections.singleton(taintedPath);
-		
-		// We always retain the incoming taint
-		Set<AccessPath> res = new HashSet<AccessPath>();
-		res.add(taintedPath);
+			return Collections.singleton(taintedAbs);
 		
 		// Get the cached data flows
 		final SootMethod method = stmt.getInvokeExpr().getMethod();
-		Set<MethodFlow> flowsInCallee = getFlowSummariesForMethod(stmt, icfg,
-				method);
+		Set<MethodFlow> flowsInCallee = getFlowSummariesForMethod(stmt, method);
 		
 		// If we have no data flows, we can abort early
-		if (flowsInCallee.isEmpty())
+		if (flowsInCallee.isEmpty()) {
+			wrapperMisses.incrementAndGet();
 			return Collections.emptySet();
+		}
+		wrapperHits.incrementAndGet();
 		
 		// Create a level-0 propagator for the initially tainted access path
 		List<AccessPathPropagator> workList = new ArrayList<AccessPathPropagator>();
-		workList.add(new AccessPathPropagator(createTaintFromAccessPath(
-				taintedPath, stmt, icfg)));
-		
+		workList.add(new AccessPathPropagator(createTaintFromAccessPathOnCall(
+				taintedAbs.getAccessPath(), stmt), null, null, stmt, d1, taintedAbs));
+				
 		// Apply the data flows until we reach a fixed point
+		Set<AccessPath> res = applyFlowsIterative(flowsInCallee, workList);
+		
+		// We always retain the incoming taint
+		if (res == null || res.isEmpty())
+			return Collections.singleton(taintedAbs);
+		
+		// Create abstractions from the access paths
+		Set<Abstraction> resAbs = new HashSet<>(res.size() + 1);
+		resAbs.add(taintedAbs);
+		for (AccessPath ap : res)
+			resAbs.add(taintedAbs.deriveNewAbstraction(ap, stmt));
+		return resAbs;
+	}
+
+	/**
+	 * Iteratively applies all of the given flow summaries until a fixed point
+	 * is reached. if the flow enters user code, an analysis of the
+	 * corresponding method will be spawned.
+	 * @param flowsInCallee The flow summaries for the given callee
+	 * @param workList The incoming propagators on which to apply the flow
+	 * summaries
+	 * @return The set of outgoing access paths
+	 */
+	private Set<AccessPath> applyFlowsIterative(Set<MethodFlow> flowsInCallee,
+			List<AccessPathPropagator> workList) {
+		Set<AccessPath> res = null;
 		Set<AccessPathPropagator> doneSet = new HashSet<AccessPathPropagator>();
 		while (!workList.isEmpty()) {
 			final AccessPathPropagator curPropagator = workList.remove(0);
@@ -385,7 +490,7 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 			
 			// Get the correct set of flows to apply
 			Set<MethodFlow> flowsInTarget = curGap == null ? flowsInCallee
-					: getFlowSummariesForGap(icfg, curGap);
+					: getFlowSummariesForGap(curGap);
 			
 			// If we don't have summaries for the current gap, we look for
 			// implementations in the application code
@@ -393,9 +498,8 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 				SootMethod callee = Scene.v().grabMethod(curGap.getSignature());
 				if (callee != null)
 					for (SootMethod implementor : getAllImplementors(callee))
-						if (implementor.getDeclaringClass().isConcrete()) {
-							System.out.println("x");
-						}
+						if (implementor.getDeclaringClass().isConcrete())
+							spawnAnalysisIntoClientCode(implementor, curPropagator);
 			}
 			
 			// Apply the flow summaries for other libraries
@@ -408,32 +512,98 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 				if (newPropagator.getParent() == null
 						&& newPropagator.getTaint().getGap() == null) {
 					AccessPath ap = createAccessPathFromTaint(newPropagator.getTaint(),
-							stmt, icfg);
+							newPropagator.getStmt());
 					if (ap == null)
 						continue;
-					else
+					else {
+						if (res == null)
+							res = new HashSet<>();
 						res.add(ap);
+					}
 				}
 				if (doneSet.add(newPropagator))
 					workList.add(newPropagator);
 			}
 		}
-		
 		return res;
 	}
 	
-	private AccessPathPropagator safePopParent(AccessPathPropagator curPropagator) {
-		if (curPropagator.parent == null)
-			return null;
-		return curPropagator.parent.parent;
+	/**
+	 * Spawns the analysis into a gap implementation inside user code
+	 * @param implementor The target method inside the user code into which the
+	 * propagator shall be propagated
+	 * @param propagator The implementor that gets propagated into user code
+	 * @return The taints at the end of the implementor method if a summary
+	 * already exists, otherwise false
+	 */
+	private Set<AccessPathPropagator> spawnAnalysisIntoClientCode(SootMethod implementor,
+			AccessPathPropagator propagator) {
+		AccessPath ap = createAccessPathInMethod(propagator.getTaint(), implementor);
+		Abstraction abs = new Abstraction(ap, null, null, false, false);
+		
+		// Create a new edge at the start point of the callee
+		for (Unit sP : manager.getICFG().getStartPointsOf(implementor)) {
+			PathEdge<Unit, Abstraction> edge = new PathEdge<>(abs, sP, abs);
+			manager.getForwardSolver().processEdge(edge);
+		}
+		
+		// We need to pop the last gap element off the stack
+		AccessPathPropagator parent = safePopParent(propagator);
+		GapDefinition gap = propagator.getParent() == null ?
+				null : propagator.getParent().getGap();
+		
+		// We might already have a summary for the callee
+		Set<AccessPathPropagator> outgoingTaints = null;
+		Set<Pair<Unit, Abstraction>> endSummary = manager.getForwardSolver()
+				.endSummary(implementor, abs);
+		if (endSummary != null)
+			// TODO: Test me
+			for (Pair<Unit, Abstraction> pair : endSummary) {
+				if (outgoingTaints == null)
+					outgoingTaints = new HashSet<>();
+				
+				// Create the taint that corresponds to the access path leaving
+				// the user-code method
+				Set<Taint> newTaints = createTaintFromAccessPathOnReturn(
+						pair.getO2().getAccessPath(),
+						(Stmt) pair.getO1(),
+						propagator.getGap());
+				if (newTaints != null)
+					for (Taint newTaint : newTaints) {
+						AccessPathPropagator newPropagator = new AccessPathPropagator(
+								newTaint, gap, parent,
+								propagator.getParent() == null ? null : propagator.getParent().getStmt(),
+								propagator.getParent() == null ? null : propagator.getParent().getD1(),
+								propagator.getParent() == null ? null : propagator.getParent().getD2());
+						outgoingTaints.add(newPropagator);
+					}
+			}
+		if (outgoingTaints != null)
+			return outgoingTaints;
+		
+		// Register the new context so that we can get the taints back
+		this.userCodeTaints.put(new Pair<>(abs, implementor), propagator);
+		return null;
 	}
 
-	private Set<MethodFlow> getFlowSummariesForGap(IInfoflowCFG icfg,
-			GapDefinition gap) {
+	private AccessPathPropagator safePopParent(AccessPathPropagator curPropagator) {
+		if (curPropagator.getParent() == null)
+			return null;
+		return curPropagator.getParent().getParent();
+	}
+	
+	/**
+	 * Gets the flow summaries for the given gap definition, i.e., for the
+	 * method in the gap
+	 * @param gap The gap definition
+	 * @return Theflow summaries for the method in the given gap if they exist,
+	 * otherwise null
+	 */
+	private Set<MethodFlow> getFlowSummariesForGap(GapDefinition gap) {
 		// If we have the method in Soot, we can be more clever
 		if (Scene.v().containsMethod(gap.getSignature())) {
 			SootMethod gapMethod = Scene.v().getMethod(gap.getSignature());
-			return getFlowSummariesForMethod(null, icfg, gapMethod);
+			return getFlowSummariesForMethod(null, gapMethod);
 		}
 		
 		// If we don't have the method, we can only directly look for the
@@ -441,14 +611,22 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 		return flows.getMethodFlows(gap.getSignature());
 	}
 	
-	private Set<MethodFlow> getFlowSummariesForMethod(Stmt stmt,
-			IInfoflowCFG icfg, final SootMethod method) {
+	/**
+	 * Gets the flow summaries for the given method
+	 * @param stmt (Optional) The invocation statement at which the given method
+	 * is called. If this parameter is not null, it is used to find further
+	 * potential callees if there are no flow summaries for the given method.
+	 * @param method The method for which to get the flow summaries
+	 * @return The set of flow summaries for the given method if they exist,
+	 * otherwise null
+	 */
+	private Set<MethodFlow> getFlowSummariesForMethod(Stmt stmt, final SootMethod method) {
 		Set<MethodFlow> flowsInCallee = methodToFlows.getUnchecked(method);
 		
 		// If we have no direct entry, check the CG
 		if (flowsInCallee.isEmpty() && stmt != null) {
 			flowsInCallee = null;
-			for (SootMethod callee : icfg.getCalleesOfCallAt(stmt)) {
+			for (SootMethod callee : manager.getICFG().getCalleesOfCallAt(stmt)) {
 				if (flowsInCallee == null)
 					flowsInCallee = new HashSet<MethodFlow>();
 				flowsInCallee.addAll(methodToFlows.getUnchecked(callee));
@@ -555,17 +733,31 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 		// Maintain the stack of access path propagations
 		final AccessPathPropagator parent;
 		final GapDefinition gap;
+		final Stmt stmt;
+		final Abstraction d1, d2;
 		if (flow.sink().getGap() != null) {	// ends in gap, push on stack
 			parent = propagator;
 			gap = flow.sink().getGap();
+			stmt = null;
+			d1 = null;
+			d2 = null;
 		}
 		else if (flow.source().getGap() != null) { // starts in gap, propagates inside method
-			parent = propagator.parent;
-			gap = propagator.gap;
+			parent = propagator.getParent();
+			gap = propagator.getGap();
+			stmt = propagator.getStmt();
+			d1 = propagator.getD1();
+			d2 = propagator.getD2();
 		}
 		else {
 			parent = safePopParent(propagator);
-			gap = propagator.parent == null ? null : propagator.parent.gap;
+			gap = propagator.getParent() == null ? null : propagator.getParent().getGap();
+			stmt = propagator.getParent() == null ? propagator.getStmt()
+					: propagator.getParent().getStmt();
+			d1 = propagator.getParent() == null ? propagator.getD1()
+					: propagator.getParent().getD1();
+			d2 = propagator.getParent() == null ? propagator.getD2()
+					: propagator.getParent().getD2();
 		}
 		
 		boolean addTaint = false;
@@ -604,7 +796,7 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 			return null;
 		
 		AccessPathPropagator newPropagator = new AccessPathPropagator(newTaint,
-				gap, parent);
+				gap, parent, stmt, d1, d2);
 		return newPropagator;
 	}
 	
@@ -639,6 +831,24 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 		final InvokeExpr iexpr = stmt.getInvokeExpr();
 		for (int i = 0; i < iexpr.getArgCount(); i++)
 			if (iexpr.getArg(i) == curAP.getPlainValue())
+				return i;
+		return -1;
+	}
+	
+	/**
+	 * Gets the parameter index to which the given access path refers
+	 * @param sm The method in which to check the parameter locals
+	 * @param curAP The access path
+	 * @return The parameter index to which the given access path refers if it
+	 * exists. Otherwise, if the given access path does not refer to a parameter,
+	 * -1 is returned.
+	 */
+	private int getParameterIndex(SootMethod sm, AccessPath curAP) {
+		if (curAP.isStaticFieldRef())
+			return -1;
+		
+		for (int i = 0; i < sm.getParameterCount(); i++)
+			if (curAP.getPlainValue() == sm.getActiveBody().getParameterLocal(i))
 				return i;
 		return -1;
 	}
@@ -940,7 +1150,7 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 	}
 
 	@Override
-	protected boolean isExclusiveInternal(Stmt stmt, AccessPath taintedPath) {
+	public boolean isExclusive(Stmt stmt, Abstraction taintedPath) {
 		// If we support the method, we are exclusive for it
 		return supportsCallee(stmt);
 	}
@@ -960,15 +1170,30 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 			return false;
 
 		SootMethod method = callSite.getInvokeExpr().getMethod();
-		if (supportsCallee(method))
-			return true;
-		
-		// Check all callees
-		for (SootMethod sm : icfg.getCalleesOfCallAt(callSite))
-			if (supportsCallee(sm))
-				return true;
-		
-		return false;
+		return supportsCallee(method);
+	}
+	
+	/**
+	 * Gets the propagators that have been registered as being passed into user
+	 * code with the given context and for the given callee
+	 * @param abs The context abstraction with which the taint was passed into
+	 * the callee
+	 * @param callee The callee into which the taint was passed
+	 * @return The of taint propagators passed into the given callee with the
+	 * given context. If no such propagators exist, null is returned.
+	 */
+	Set<AccessPathPropagator> getUserCodeTaints(Abstraction abs, SootMethod callee) {
+		return this.userCodeTaints.get(new Pair<>(abs, callee));
+	}
+
+	@Override
+	public int getWrapperHits() {
+		return wrapperHits.get();
+	}
+
+	@Override
+	public int getWrapperMisses() {
+		return wrapperMisses.get();
 	}
 
 }
@@ -979,3 +1204,6 @@ public class SummaryTaintWrapper extends AbstractTaintWrapper {
 // TODO: Test case for return in field / return direct
 // TODO: Test accessing a tainted field in summarized method through an alias in user code
 // TODO: Gap base object from field + aliasing
+
+
+// TODO: a.foo(a) with a flow from only one of the two ocurrences of a
