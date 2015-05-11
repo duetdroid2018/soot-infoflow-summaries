@@ -6,6 +6,8 @@ public class Data {
 	Data next = null;
 	int value;
 	public String stringField;
+	public String stringField2;
+	
 	public Data() {
 		
 	

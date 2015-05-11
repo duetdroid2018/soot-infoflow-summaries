@@ -12,4 +12,9 @@ public class GapClass implements IGapClass {
 		d.stringField = in;
 	}
 
+	@Override
+	public Data dataThroughGap(Data d) {
+		return d;
+	}
+
 }

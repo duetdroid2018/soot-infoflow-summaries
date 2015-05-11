@@ -52,6 +52,13 @@ import soot.util.MultiMap;
 import com.google.common.cache.CacheLoader;
 import com.google.common.cache.LoadingCache;
 
+/**
+ * Taint wrapper implementation that applies method summaries created by
+ * StubDroid
+ * 
+ * @author Steven Arzt
+ *
+ */
 public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 	private InfoflowManager manager;
 	private AtomicInteger wrapperHits = new AtomicInteger();
@@ -782,7 +789,8 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 		// A value can also flow from the return value of a gap to somewhere
 		else if (flowSource.isReturn()
 				&& flowSource.getGap() != null
-				&& taint.getGap() != null)
+				&& taint.getGap() != null
+				&& compareFields(taint, flowSource))
 			addTaint = true;			
 		
 		// If we didn't find a match, there's little we can do
@@ -1199,7 +1207,6 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 }
 
 
-// TODO: Test cases for appending fields
 // TODO: Test cases for type checking with lists
 // TODO: Test case for return in field / return direct
 // TODO: Test accessing a tainted field in summarized method through an alias in user code

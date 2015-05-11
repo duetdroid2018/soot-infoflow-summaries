@@ -135,6 +135,16 @@ public class SummaryTaintWrapperTests {
 		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void gapFlowUserCode1()>");
 	}
 	
+	@Test(timeout = 30000)
+	public void transferStringThroughDataClass1() {
+		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void transferStringThroughDataClass1()>");
+	}
+	
+	@Test(timeout = 30000)
+	public void transferStringThroughDataClass2() {
+		testNoFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void transferStringThroughDataClass2()>");
+	}
+
 	private void testFlowForMethod(String m) {
 		Infoflow iFlow = null;
 		try {

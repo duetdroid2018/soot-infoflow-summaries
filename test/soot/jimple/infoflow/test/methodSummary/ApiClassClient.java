@@ -169,4 +169,18 @@ public class ApiClassClient {
 		System.out.println(out);
 	}
 
+	public void transferStringThroughDataClass1() {
+		ApiClass api = new ApiClass();
+		String s = stringSource();
+		String t = api.transferStringThroughDataClass(new GapClass(), s);
+		sink(t);
+	}
+
+	public void transferStringThroughDataClass2() {
+		ApiClass api = new ApiClass();
+		String s = stringSource();
+		String t = api.transferNoStringThroughDataClass(new GapClass(), s);
+		sink(t);
+	}
+
 }

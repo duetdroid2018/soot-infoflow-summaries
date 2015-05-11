@@ -473,4 +473,20 @@ public class ApiClass implements IApiClass {
 		return data;
 	}
 	
+	@Override
+	public String transferStringThroughDataClass(IGapClass gap, String in) {
+		Data d = new Data();
+		d.stringField = in;
+		Data d2 = gap.dataThroughGap(d);
+		return d2.stringField;
+	}
+	
+	@Override
+	public String transferNoStringThroughDataClass(IGapClass gap, String in) {
+		Data d = new Data();
+		d.stringField = in;
+		Data d2 = gap.dataThroughGap(d);
+		return d2.stringField2;
+	}
+
 }

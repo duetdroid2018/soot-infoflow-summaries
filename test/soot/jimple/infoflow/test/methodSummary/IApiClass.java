@@ -31,4 +31,6 @@ public interface IApiClass {
 	public void swap();
 	public void data1ToDate2();
 	public void fieldToPara(Data d);
+	public String transferStringThroughDataClass(IGapClass gap, String in);
+	public String transferNoStringThroughDataClass(IGapClass gap, String in);
 }
