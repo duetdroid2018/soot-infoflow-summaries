@@ -33,4 +33,6 @@ public interface IApiClass {
 	public void fieldToPara(Data d);
 	public String transferStringThroughDataClass(IGapClass gap, String in);
 	public String transferNoStringThroughDataClass(IGapClass gap, String in);
+	public String storeStringInGapClass(IGapClass gap, String in);
+	public String storeAliasInGapClass(IGapClass gap, String in);
 }

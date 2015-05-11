@@ -183,4 +183,18 @@ public class ApiClassClient {
 		sink(t);
 	}
 
+	public void storeStringInGapClass() {
+		ApiClass api = new ApiClass();
+		String s = stringSource();
+		String t = api.storeStringInGapClass(new GapClass(), s);
+		sink(t);
+	}
+
+	public void storeAliasInGapClass() {
+		ApiClass api = new ApiClass();
+		String s = stringSource();
+		String t = api.storeAliasInGapClass(new GapClass(), s);
+		sink(t);
+	}
+
 }

@@ -1207,8 +1207,6 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 }
 
 
-// TODO: Test cases for type checking with lists
-// TODO: Test case for return in field / return direct
 // TODO: Test accessing a tainted field in summarized method through an alias in user code
 // TODO: Gap base object from field + aliasing
 

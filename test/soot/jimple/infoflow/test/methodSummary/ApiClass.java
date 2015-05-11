@@ -489,4 +489,19 @@ public class ApiClass implements IApiClass {
 		return d2.stringField2;
 	}
 
+	@Override
+	public String storeStringInGapClass(IGapClass gap, String in) {
+		gap.storeString(in);
+		return gap.retrieveString();
+	}
+
+	@Override
+	public String storeAliasInGapClass(IGapClass gap, String in) {
+		gap.storeData(new Data());
+		Data d = gap.retrieveData();
+		d.stringField = in;
+		Data d2 = gap.retrieveData();
+		return d2.stringField;
+	}
+
 }
