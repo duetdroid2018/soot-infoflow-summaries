@@ -5,7 +5,6 @@ import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.ATTRIBUTE_ACCE
 import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.ATTRIBUTE_BASETYPE;
 import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.ATTRIBUTE_FLOWTYPE;
 import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.ATTRIBUTE_PARAMTER_INDEX;
-import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.ATTRIBUTE_RETURN;
 import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.ATTRIBUT_METHOD_SIG;
 import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.TREE_FLOW;
 import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.TREE_FLOWS;
@@ -119,8 +118,6 @@ public class XMLWriter  {
 		}
 		else if(currentFlow.isParameter())
 			writer.writeAttribute(ATTRIBUTE_PARAMTER_INDEX, currentFlow.getParameterIndex() +"");
-		else if(currentFlow.isReturn())
-			writer.writeAttribute(ATTRIBUTE_RETURN, VALUE_TRUE);
 		else if(currentFlow.isGapBaseObject()) {
 			// nothing special to write
 		}

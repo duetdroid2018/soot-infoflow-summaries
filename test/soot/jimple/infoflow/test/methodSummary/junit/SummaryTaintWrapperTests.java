@@ -156,6 +156,12 @@ public class SummaryTaintWrapperTests {
 		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void storeAliasInGapClass()>");
 	}
 
+	@Ignore("Aliasing is not supported yet")
+	@Test(timeout = 30000)
+	public void storeAliasInSummaryClass() {
+		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void storeAliasInSummaryClass()>");
+	}
+
 	private void testFlowForMethod(String m) {
 		Infoflow iFlow = null;
 		try {

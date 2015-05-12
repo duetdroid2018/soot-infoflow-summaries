@@ -42,7 +42,6 @@ public class XMLConstants {
 	public static final String ATTRIBUTE_ACCESSPATHTYPES = "AccessPathTypes";
 	public static final String ATTRIBUTE_BASETYPE = "BaseType";
 	public static final String ATTRIBUTE_ERROR = "ERROR";
-	public static final String ATTRIBUTE_RETURN = "ReturnLocal";
 	public static final String ATTRIBUTE_TAINT_SUB_FIELDS = "taintSubFields";
 	public static final String ATTRIBUTE_GAP = "gap";
 	

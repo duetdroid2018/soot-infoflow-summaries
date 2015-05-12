@@ -503,5 +503,13 @@ public class ApiClass implements IApiClass {
 		Data d2 = gap.retrieveData();
 		return d2.stringField;
 	}
+	
+	public void storeData(Data data) {
+		this.dataField = data;
+	}
+	
+	public Data retrieveData() {
+		return this.dataField;
+	}
 
 }

@@ -197,4 +197,17 @@ public class ApiClassClient {
 		sink(t);
 	}
 
+	public void storeAliasInSummaryClass() {
+		ApiClass api = new ApiClass();
+
+		Data d = new Data();
+		api.storeData(d);
+		
+		String s = stringSource();
+		api.retrieveData().stringField = s;
+		
+		String t = api.retrieveData().stringField;
+		sink(t);
+	}
+
 }
