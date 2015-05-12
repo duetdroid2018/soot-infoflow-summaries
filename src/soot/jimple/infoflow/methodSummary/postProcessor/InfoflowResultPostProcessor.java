@@ -167,12 +167,21 @@ public class InfoflowResultPostProcessor {
 		return flows;
 	}
 	
+	/**
+	 * Checks whether the two given access paths may alias at the given
+	 * statement
+	 * @param apAtSink The first access path
+	 * @param apAtSource The second access path
+	 * @param sourceStmt The statement at which to check for may-alias
+	 * @return True if the two given access paths may alias at the given
+	 * statement, otherwise false
+	 */
 	private boolean isAliasedField(AccessPath apAtSink,
 			AccessPath apAtSource, Stmt sourceStmt) {
 		// Only reference types can have aliases
 		if (!(apAtSink.getLastFieldType() instanceof RefType))
 			return false;
-				
+		
 		// Return values are always passed on, regardless of aliasing
 		if (sourceStmt instanceof DefinitionStmt)
 			if (((DefinitionStmt) sourceStmt).getLeftOp() == apAtSource.getPlainValue())
