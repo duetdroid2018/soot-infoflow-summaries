@@ -153,14 +153,12 @@ public class SummaryTaintWrapperTests {
 		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void storeStringInGapClass()>");
 	}
 	
-	@Ignore("not supported yet")
-	@Test//(timeout = 30000)
+	@Test(timeout = 30000)
 	public void storeAliasInGapClass() {
 		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void storeAliasInGapClass()>");
 	}
 	
-	@Ignore("not supported yet")
-	@Test//(timeout = 30000)
+	@Test(timeout = 30000)
 	public void storeAliasInGapClass2() {
 		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void storeAliasInGapClass2()>");
 	}

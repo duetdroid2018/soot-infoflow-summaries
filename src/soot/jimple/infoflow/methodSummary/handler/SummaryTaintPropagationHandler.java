@@ -92,17 +92,17 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 	 */
 	private void handleReturnFlow(Unit stmt,
 			Abstraction abs,
-			BiDiInterproceduralCFG<Unit, SootMethod> cfg) {
+			BiDiInterproceduralCFG<Unit, SootMethod> cfg) {		
 		// Check whether we must register the abstraction for post-processing
 		// We ignore inactive abstractions
 		if (!abs.isAbstractionActive())
 			return;
-		
+				
 		// If this a taint on a field of a gap object, we need to report it as
 		// well. Code can obtain references to library objects are store data in
 		// there.
-		boolean isGapField = abs.getAccessPath().isInstanceFieldRef()
-				&& gapManager.isLocalReferencedInGap(abs.getAccessPath().getPlainValue());
+		boolean isGapField = gapManager.isLocalReferencedInGap(
+				abs.getAccessPath().getPlainValue());
 		
 		if (isValueReturnedFromCall(stmt, abs) || isGapField)
 			this.result.put(abs, (Stmt) stmt);
