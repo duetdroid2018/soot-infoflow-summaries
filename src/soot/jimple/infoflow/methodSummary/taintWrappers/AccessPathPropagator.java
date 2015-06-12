@@ -16,6 +16,7 @@ class AccessPathPropagator {
 	private final Taint taint;
 	private final GapDefinition gap;
 	private final AccessPathPropagator parent;
+	private final boolean inversePropagator;
 	
 	private final Stmt stmt;
 	private final Abstraction d1;
@@ -37,14 +38,25 @@ class AccessPathPropagator {
 			Stmt stmt,
 			Abstraction d1,
 			Abstraction d2) {
+		this(taint, gap, parent, stmt, d1, d1, false);
+	}
+	
+	public AccessPathPropagator(Taint taint,
+			GapDefinition gap,
+			AccessPathPropagator parent,
+			Stmt stmt,
+			Abstraction d1,
+			Abstraction d2,
+			boolean inversePropagator) {
 		this.taint = taint;
 		this.gap = gap;
 		this.parent = parent;
 		this.stmt = stmt;
 		this.d1 = d1;
 		this.d2 = d2;
+		this.inversePropagator = inversePropagator;
 	}
-	
+
 	public Taint getTaint() {
 		return this.taint;
 	}
@@ -104,12 +116,33 @@ class AccessPathPropagator {
 	 * except for the taint which is replaced by the given value
 	 */
 	public AccessPathPropagator copyWithNewTaint(Taint newTaint) {
-		return new AccessPathPropagator(newTaint, gap, parent, stmt, d1, d2);
+		return new AccessPathPropagator(newTaint, gap, parent, stmt, d1, d2,
+				inversePropagator);
+	}
+	
+	/**
+	 * Gets whether this is an inverse propagator used for identifying aliasing
+	 * relationships
+	 * @return True if this is an inverse propagator for which summary flows
+	 * need to reversed, otherwise false
+	 */
+	public boolean isInversePropagator() {
+		return this.inversePropagator;
+	}
+	
+	/**
+	 * Creates a new access path propagator that is the inverse of this one.
+	 * Invariant a.deriveInversePropagator().deriveInversePropagator().equals(a)
+	 * @return The inverse propagator of this one
+	 */
+	public AccessPathPropagator deriveInversePropagator() {
+		return new AccessPathPropagator(this.taint, this.gap, this.parent,
+				this.stmt, this.d1, this.d2, !this.inversePropagator);
 	}
 	
 	@Override
 	public String toString() {
-		return this.taint.toString();
+		return (inversePropagator ? "_" : "") + this.taint.toString();
 	}
 
 	@Override
@@ -128,6 +161,8 @@ class AccessPathPropagator {
 				+ ((d1 == null) ? 0 : d1.hashCode());
 		result = prime * result
 				+ ((d2 == null) ? 0 : d2.hashCode());
+		result = prime * result
+				+ (inversePropagator ? 1 : 0);
 		return result;
 	}
 
@@ -169,6 +204,8 @@ class AccessPathPropagator {
 			if (other.d2 != null)
 				return false;
 		} else if (!d2.equals(other.d2))
+			return false;
+		if (inversePropagator != other.inversePropagator)
 			return false;
 		return true;
 	}

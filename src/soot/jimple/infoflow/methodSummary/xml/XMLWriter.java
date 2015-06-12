@@ -5,10 +5,8 @@ import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.ATTRIBUTE_ACCE
 import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.ATTRIBUTE_BASETYPE;
 import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.ATTRIBUTE_FLOWTYPE;
 import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.ATTRIBUTE_PARAMTER_INDEX;
-import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.ATTRIBUT_METHOD_SIG;
 import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.TREE_FLOW;
 import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.TREE_FLOWS;
-import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.TREE_METHOD;
 import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.TREE_SINK;
 import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.TREE_SOURCE;
 import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.VALUE_TRUE;
@@ -32,7 +30,7 @@ import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
 
 public class XMLWriter  {
 	
-	private final int FILE_FORMAT_VERSION = 100;
+	private final int FILE_FORMAT_VERSION = 101;
 	
 	public XMLWriter(){
 		
@@ -53,7 +51,7 @@ public class XMLWriter  {
 		
 		writer.writeStartDocument();
 		writer.writeStartElement(XMLConstants.TREE_SUMMARY);
-		writer.writeAttribute(XMLConstants.ATTRIBUT_FORMAT_VERSION, FILE_FORMAT_VERSION + "");
+		writer.writeAttribute(XMLConstants.ATTRIBUTE_FORMAT_VERSION, FILE_FORMAT_VERSION + "");
 		
 		writer.writeStartElement(XMLConstants.TREE_METHODS);		
 		writeMethodFlows(summary, writer);
@@ -70,8 +68,8 @@ public class XMLWriter  {
 	private void writeGaps(MethodSummaries summary, XMLStreamWriter writer) throws XMLStreamException {
 		for (GapDefinition gap : summary.getGaps().values()) {
 			writer.writeStartElement(XMLConstants.TREE_GAP);
-			writer.writeAttribute(XMLConstants.ATTRIBUT_ID, gap.getID() + "");			
-			writer.writeAttribute(XMLConstants.ATTRIBUT_METHOD_SIG, gap.getSignature());
+			writer.writeAttribute(XMLConstants.ATTRIBUTE_ID, gap.getID() + "");			
+			writer.writeAttribute(XMLConstants.ATTRIBUTE_METHOD_SIG, gap.getSignature());
 			writer.writeEndElement(); // close gap
 		}
 	}
@@ -79,12 +77,13 @@ public class XMLWriter  {
 	private void writeMethodFlows(MethodSummaries summary, XMLStreamWriter writer) throws XMLStreamException {
 		for (Entry<String, Set<MethodFlow>> m : summary.getFlows().entrySet()) {
 			//write method sub tree
-			writer.writeStartElement(TREE_METHOD);
-			writer.writeAttribute(ATTRIBUT_METHOD_SIG, m.getKey());
+			writer.writeStartElement(XMLConstants.TREE_METHOD);
+			writer.writeAttribute(XMLConstants.ATTRIBUTE_METHOD_SIG, m.getKey());
 			
 			writer.writeStartElement(TREE_FLOWS);
 			for (MethodFlow data : m.getValue()) {
 				writer.writeStartElement(TREE_FLOW);				
+				writer.writeAttribute(XMLConstants.ATTRIBUTE_IS_ALIAS, data.isAlias() + "");
 				writeFlowSource(writer,data);
 				writeFlowSink(writer,data);
 				writer.writeEndElement(); // end flow 
@@ -113,7 +112,7 @@ public class XMLWriter  {
 			AbstractFlowSinkSource currentFlow, String methodSig) throws XMLStreamException{
 		writer.writeAttribute(ATTRIBUTE_FLOWTYPE, currentFlow.getType().toString());
 		
-		if(currentFlow.isField()){
+		if(currentFlow.isField() || currentFlow.isReturn()){
 			// nothing we need to write in the xml file here (we write the access path later)
 		}
 		else if(currentFlow.isParameter())

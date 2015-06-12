@@ -35,4 +35,5 @@ public interface IApiClass {
 	public String transferNoStringThroughDataClass(IGapClass gap, String in);
 	public String storeStringInGapClass(IGapClass gap, String in);
 	public String storeAliasInGapClass(IGapClass gap, String in);
+	public String storeAliasInGapClass2(IGapClass gap, String in);
 }

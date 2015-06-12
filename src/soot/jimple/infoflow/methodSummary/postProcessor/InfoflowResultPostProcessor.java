@@ -1,10 +1,13 @@
 package soot.jimple.infoflow.methodSummary.postProcessor;
 
+import heros.solver.Pair;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +15,7 @@ import org.slf4j.LoggerFactory;
 import soot.ArrayType;
 import soot.Local;
 import soot.PrimType;
+import soot.RefLikeType;
 import soot.RefType;
 import soot.Scene;
 import soot.SootField;
@@ -240,12 +244,14 @@ public class InfoflowResultPostProcessor {
 				continue;
 			
 			// We need to reconstruct the original source access path
-			AccessPath sourceAP = reconstructSourceAP(ap, sourceInfo.getAbstractionPath(),
-					cfg.getMethodOf(stmt));
-			if (sourceAP == null) {
+			Pair<AccessPath, Boolean> sourcePair = reconstructSourceAP(
+					ap, sourceInfo.getAbstractionPath(), cfg.getMethodOf(stmt));
+			if (sourcePair == null) {
 				System.out.println("failed for: " + ap);
 				return;
 			}
+			AccessPath sourceAP = sourcePair.getO1();
+			boolean isAlias = sourcePair.getO2();
 			
 			// Create the flow source data object
 			flowSource = sourceSinkFactory.createSource(flowSource.getType(),
@@ -254,9 +260,9 @@ public class InfoflowResultPostProcessor {
 			// Depending on the statement at which the flow ended, we need to create
 			// a different type of summary
 			if (cfg.isExitStmt(stmt))
-				processAbstractionAtReturn(flows, ap, m, flowSource, stmt, sourceAP);
+				processAbstractionAtReturn(flows, ap, m, flowSource, stmt, sourceAP, isAlias);
 			else if (cfg.isCallStmt(stmt))
-				processAbstractionAtCall(flows, ap, m, flowSource, stmt, sourceAP);
+				processAbstractionAtCall(flows, ap, flowSource, stmt, sourceAP, isAlias);
 			else
 				throw new RuntimeException("Invalid statement for flow "
 						+ "termination: " + stmt);
@@ -280,14 +286,30 @@ public class InfoflowResultPostProcessor {
 	 * @param sinkAP The final access path at the end of the propagation path
 	 * @param path The propagation path
 	 * @param startMethod The method in which the sink access path was recorded
-	 * @return The fully reconstructed access path
+	 * @return A pair consisting of the fully reconstructed access path and a
+	 * boolean indicating whether the flow is a normal data flow (false) or
+	 * whether the object referenced by sinkAP is an alias of the one referenced
+	 * by the source AP (true).
 	 */
-	private AccessPath reconstructSourceAP(AccessPath sinkAP, List<Abstraction> path,
+	private Pair<AccessPath, Boolean> reconstructSourceAP(AccessPath sinkAP, List<Abstraction> path,
 			SootMethod startMethod) {
 		// Dump the path
 		List<Stmt> stmts = new ArrayList<Stmt>();
 		for (Abstraction abs : path)
 			stmts.add(abs.getCurrentStmt());
+		
+		// Only heap objects can alias. Strings are immutable and thus never
+		// alias
+		boolean isAlias = true;
+		{
+			Type lastFieldType = sinkAP.getLastFieldType();
+			if (lastFieldType instanceof RefType) {
+				isAlias = !((RefType) lastFieldType).getSootClass()
+						.getName().equals("java.lang.String");
+			}
+			else
+				isAlias = lastFieldType instanceof RefLikeType;
+		}
 		
 		// TODO: Static fields?
 		
@@ -302,7 +324,7 @@ public class InfoflowResultPostProcessor {
 			// If we have reached the source definition, we can directly take
 			// the access path
 			if (stmt == null && abs.getSourceContext() != null)
-				return abs.getSourceContext().getAccessPath();
+				return new Pair<>(abs.getSourceContext().getAccessPath(), isAlias);
 			
 			// In case of a call-to-return edge, we have no information about
 			// what happened in the callee, so we take the incoming access path
@@ -451,7 +473,7 @@ public class InfoflowResultPostProcessor {
 				}
 			}
 		}
-		return curAP;
+		return new Pair<>(curAP, isAlias);
 	}
 
 	private AccessPath matchAccessPath(AccessPath curAP, Value base, SootField field) {
@@ -623,13 +645,14 @@ public class InfoflowResultPostProcessor {
 	 * ends at a gap which can for instance be a callback into unknown code.
 	 * @param flows The flows object to which to add the newly found flow
 	 * @param apAtCall The access path that has reached the method call
-	 * @param m The method in which the flow has been found
 	 * @param source The source at which the data flow started
 	 * @param stmt The statement at which the call happened
 	 * @param sourceAP The access path of the flow source
+	 * @param isAlias True if source and sink alias, otherwise false
 	 */
 	private void processAbstractionAtCall(MethodSummaries flows, AccessPath apAtCall,
-			SootMethod m, FlowSource source, Stmt stmt, AccessPath sourceAP) {
+			FlowSource source, Stmt stmt, AccessPath sourceAP,
+			boolean isAlias) {
 		// Create a gap
 		GapDefinition gd = gapManager.getOrCreateGapForCall(flows, stmt);
 		
@@ -641,7 +664,7 @@ public class InfoflowResultPostProcessor {
 				if (baseLocal == apAtCall.getPlainValue()) {
 					FlowSink sink = sourceSinkFactory.createGapBaseObjectSink(gd,
 							apAtCall.getBaseType());
-					addFlow(source, sink, flows);
+					addFlow(source, sink, isAlias, flows);
 				}
 			}
 		
@@ -650,7 +673,7 @@ public class InfoflowResultPostProcessor {
 			Value p = stmt.getInvokeExpr().getArg(i);
 			if (apAtCall.getPlainValue() == p) {
 				FlowSink sink = sourceSinkFactory.createParameterSink(i, apAtCall, gd);
-				addFlow(source, sink, flows);
+				addFlow(source, sink, isAlias, flows);
 			}
 		}
 
@@ -659,7 +682,7 @@ public class InfoflowResultPostProcessor {
 			InstanceInvokeExpr iinv = (InstanceInvokeExpr) stmt.getInvokeExpr();
 			if (apAtCall.getPlainValue() == iinv.getBase()) {
 				FlowSink sink = sourceSinkFactory.createFieldSink(apAtCall);
-				addFlow(source, sink, flows);
+				addFlow(source, sink, isAlias, flows);
 			}
 		}
 	}
@@ -673,15 +696,17 @@ public class InfoflowResultPostProcessor {
 	 * @param source The source at which the data flow started
 	 * @param stmt The statement at which the flow left the method
 	 * @param sourceAP The access path of the flow source
+	 * @param isAlias True if source and sink alias, otherwise false
 	 */
 	private void processAbstractionAtReturn(MethodSummaries flows, AccessPath apAtReturn,
-			SootMethod m, FlowSource source, Stmt stmt, AccessPath sourceAP) {
+			SootMethod m, FlowSource source, Stmt stmt, AccessPath sourceAP,
+			boolean isAlias) {
 		// Was this the value returned by the method?
 		if (stmt instanceof ReturnStmt) {
 			ReturnStmt retStmt = (ReturnStmt) stmt;
 			if (apAtReturn.getPlainValue() == retStmt.getOp()) {
 				FlowSink sink = sourceSinkFactory.createReturnSink(apAtReturn);
-				addFlow(source, sink, flows);
+				addFlow(source, sink, isAlias, flows);
 			}
 		}
 		
@@ -693,15 +718,26 @@ public class InfoflowResultPostProcessor {
 				Local p = m.getActiveBody().getParameterLocal(i);
 				if (apAtReturn.getPlainValue() == p) {
 					FlowSink sink = sourceSinkFactory.createParameterSink(i, apAtReturn);
-					addFlow(source, sink, flows);
+					addFlow(source, sink, isAlias, flows);
 				}
 			}
-
+		
 		// The sink may be a local field
 		if (!m.isStatic() && apAtReturn.getPlainValue() ==
 				m.getActiveBody().getThisLocal()) {
 			FlowSink sink = sourceSinkFactory.createFieldSink(apAtReturn);
-			addFlow(source, sink, flows);
+			addFlow(source, sink, isAlias, flows);
+		}
+		
+		// The sink may be a field on a value obtained from a gap
+		if (apAtReturn.isInstanceFieldRef()) {
+			Set<GapDefinition> referencedGaps = gapManager.getGapDefinitionsForLocal(
+					apAtReturn.getPlainValue());
+			if (referencedGaps != null && !referencedGaps.isEmpty())
+				for (GapDefinition gap : referencedGaps){
+					FlowSink sink = sourceSinkFactory.createFieldSink(apAtReturn, gap);
+					addFlow(source, sink, isAlias, flows);
+				}
 		}
 	}
 	
@@ -742,13 +778,22 @@ public class InfoflowResultPostProcessor {
 		}
 		return true;
 	}
-
-	private void addFlow(FlowSource source, FlowSink sink, MethodSummaries summaries) {
+	
+	/**
+	 * Adds a flow from the given source to the given sink to the given method
+	 * summary
+	 * @param source The source at which the data flow starts
+	 * @param sink The sink at which the data flow ends
+	 * @param isAlias True if the source and sink alias, otherwise false
+	 * @param summaries The method summary to which to add the data flow
+	 */
+	private void addFlow(FlowSource source, FlowSink sink, boolean isAlias,
+			MethodSummaries summaries) {
 		// Ignore identity flows
 		if (isIdentityFlow(source, sink))
 			return;
 
-		MethodFlow mFlow = new MethodFlow(method, source, sink);
+		MethodFlow mFlow = new MethodFlow(method, source, sink, isAlias);
 		if (summaries.addFlowForMethod(method, mFlow))
 			debugMSG(source, sink);
 	}

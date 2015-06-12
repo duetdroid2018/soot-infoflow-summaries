@@ -199,13 +199,31 @@ public class SummaryGenerator {
 		for (MethodFlow flow : summaries) {
 			if (flow.source().hasAccessPath())
 				for (String className : flow.source().getAccessPath())
-					summaries.addDependency(Scene.v().signatureToClass(className));
+					checkAndAddDependency(summaries, className);
 			if (flow.sink().hasAccessPath())
 				for (String className : flow.sink().getAccessPath())
-					summaries.addDependency(Scene.v().signatureToClass(className));
+					checkAndAddDependency(summaries, className);
 		}
 	}
 	
+	/**
+	 * Checks whether we don't have any summaries for the class of the given
+	 * method. If so, a dependency on that class is added.
+	 * @param summaries The method summaries to which to add the dependency
+	 * @param methodSignature The signature of a method in a possible dependency
+	 * class
+	 */
+	private void checkAndAddDependency(MethodSummaries summaries,
+			String methodSignature) {
+		//Check that we don't have summaries for the given class
+		final String className = Scene.v().signatureToClass(methodSignature);
+		for (MethodFlow flow : summaries)
+			if (Scene.v().signatureToClass(flow.methodSig()).equals(className))
+				return;
+		
+		summaries.addDependency(className);
+	}
+
 	/**
 	 * Creates a method summary for the method m
 	 * 
@@ -391,7 +409,7 @@ public class SummaryGenerator {
 						Abstraction d1, Abstraction taintedPath) {
 					Set<Abstraction> taints = taintWrapper.getTaintsForMethod(
 							stmt, d1, taintedPath);
-					if (!taints.isEmpty())
+					if (taints != null && !taints.isEmpty())
 						return taints;
 
 					return summaryWrapper.getTaintsForMethod(stmt, d1, taintedPath);
@@ -426,6 +444,17 @@ public class SummaryGenerator {
 				public int getWrapperMisses() {
 					// Statistics are not supported by this taint wrapper
 					return -1;
+				}
+
+				@Override
+				public Set<Abstraction> getAliasesForMethod(Stmt stmt,
+						Abstraction d1, Abstraction taintedPath) {
+					Set<Abstraction> absSet = taintWrapper.getAliasesForMethod(
+							stmt, d1, taintedPath);
+					if (absSet != null && !absSet.isEmpty())
+						return absSet;
+					
+					return taintWrapper.getAliasesForMethod(stmt, d1, taintedPath);
 				}
 
 			};

@@ -84,6 +84,12 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 			handleCallToReturnFlow(stmt, result, cfg);
 	}
 	
+	/**
+	 * Handles a taint that leaves a method at an exit node
+	 * @param stmt The statement at which the taint leaves the method
+	 * @param abs The taint abstraction that leaves the method
+	 * @param cfg The control flow graph
+	 */
 	private void handleReturnFlow(Unit stmt,
 			Abstraction abs,
 			BiDiInterproceduralCFG<Unit, SootMethod> cfg) {
@@ -91,8 +97,14 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 		// We ignore inactive abstractions
 		if (!abs.isAbstractionActive())
 			return;
-				
-		if (isValueReturnedFromCall(stmt, abs))
+		
+		// If this a taint on a field of a gap object, we need to report it as
+		// well. Code can obtain references to library objects are store data in
+		// there.
+		boolean isGapField = abs.getAccessPath().isInstanceFieldRef()
+				&& gapManager.isLocalReferencedInGap(abs.getAccessPath().getPlainValue());
+		
+		if (isValueReturnedFromCall(stmt, abs) || isGapField)
 			this.result.put(abs, (Stmt) stmt);
 	}
 	

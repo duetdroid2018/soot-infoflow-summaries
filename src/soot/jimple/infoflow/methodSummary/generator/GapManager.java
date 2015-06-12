@@ -1,8 +1,13 @@
 package soot.jimple.infoflow.methodSummary.generator;
 
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
+import soot.Local;
+import soot.ValueBox;
+import soot.jimple.DefinitionStmt;
 import soot.jimple.Stmt;
 import soot.jimple.infoflow.methodSummary.data.GapDefinition;
 import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
@@ -50,5 +55,51 @@ public class GapManager {
 	public GapDefinition getGapForCall(Stmt gapCall) {
 		return this.gaps.get(gapCall);
 	}
-
+	
+	/**
+	 * Gets whether the given local is referenced in any gap. This can either be
+	 * as a parameter, a base object, or a return value
+	 * @param local The local to check
+	 * @return True if the given local is referenced in at least one gap,
+	 * otherwise false
+	 */
+	public boolean isLocalReferencedInGap(Local local) {
+		for (Stmt stmt : gaps.keySet()) {
+			for (ValueBox vb : stmt.getUseBoxes())
+				if (vb.getValue() == local)
+					return true;
+			if (stmt instanceof DefinitionStmt)
+				if (((DefinitionStmt) stmt).getLeftOp() == local)
+					return true;
+		}
+		return false;
+	}
+	
+	/**
+	 * Gets the gap definitions that references the given local. References can 
+	 * either be as parameters, as base objects, or as return values. Note that 
+	 * @param local The local for which to find the gap references
+	 * @return The gaps that reference the given local
+	 */
+	public Set<GapDefinition> getGapDefinitionsForLocal(Local local) {
+		Set<GapDefinition> res = null;
+		stmt : for (Stmt stmt : gaps.keySet()) {
+			for (ValueBox vb : stmt.getUseBoxes())
+				if (vb.getValue() == local) {
+					if (res == null)
+						res = new HashSet<>();
+					res.add(gaps.get(stmt));
+					continue stmt;
+				}
+			if (stmt instanceof DefinitionStmt)
+				if (((DefinitionStmt) stmt).getLeftOp() == local) {
+					if (res == null)
+						res = new HashSet<>();
+					res.add(gaps.get(stmt));
+					continue stmt;
+				}
+		}
+		return res;
+ 	}
+	
 }

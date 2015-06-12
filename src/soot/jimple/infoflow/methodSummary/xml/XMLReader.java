@@ -4,7 +4,6 @@ import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.ATTRIBUTE_BASE
 import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.ATTRIBUTE_FLOWTYPE;
 import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.ATTRIBUTE_PARAMTER_INDEX;
 import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.ATTRIBUTE_TAINT_SUB_FIELDS;
-import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.ATTRIBUT_METHOD_SIG;
 import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.TREE_FLOW;
 import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.TREE_METHOD;
 import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.TREE_SINK;
@@ -50,6 +49,7 @@ public class XMLReader {
 		
 		String currentMethod = "";
 		int currentID = -1;
+		boolean isAlias = false;
 		
 		State state = State.summary;
 		while(reader.hasNext()){
@@ -66,7 +66,7 @@ public class XMLReader {
 			}
 			else if (reader.getLocalName().equals(TREE_METHOD) && reader.isStartElement() ){
 				if(state == State.methods){
-					currentMethod = getAttributeByName(reader, ATTRIBUT_METHOD_SIG);
+					currentMethod = getAttributeByName(reader, XMLConstants.ATTRIBUTE_METHOD_SIG);
 					state = State.method;
 				}			
 				else
@@ -82,6 +82,8 @@ public class XMLReader {
 					sourceAttributes.clear();
 					sinkAttributes.clear();
 					state = State.flow;
+					String sAlias = getAttributeByName(reader, XMLConstants.ATTRIBUTE_IS_ALIAS);
+					isAlias = sAlias != null && sAlias.equals(XMLConstants.VALUE_TRUE);
 				}
 				else
 					throw new SummaryXMLException();
@@ -104,11 +106,14 @@ public class XMLReader {
 			}
 			else if(reader.getLocalName().equals(TREE_FLOW) && reader.isEndElement()){
 				if(state == State.flow){
-					state = State.method;
-					
-					MethodFlow flow = new MethodFlow(currentMethod, createSource(summary, sourceAttributes),
-							createSink(summary, sinkAttributes));
+					state = State.method;					
+					MethodFlow flow = new MethodFlow(currentMethod,
+							createSource(summary, sourceAttributes),
+							createSink(summary, sinkAttributes),
+							isAlias);
 					summary.addFlowForMethod(currentMethod, flow);
+					
+					isAlias = false;
 				}
 				else
 					throw new SummaryXMLException();
@@ -133,8 +138,8 @@ public class XMLReader {
 			}
 			else if(reader.getLocalName().equals(XMLConstants.TREE_GAP) && reader.isStartElement()){
 				if(state == State.gaps) {
-					currentMethod = getAttributeByName(reader, ATTRIBUT_METHOD_SIG);
-					currentID = Integer.valueOf(getAttributeByName(reader, XMLConstants.ATTRIBUT_ID));
+					currentMethod = getAttributeByName(reader, XMLConstants.ATTRIBUTE_METHOD_SIG);
+					currentID = Integer.valueOf(getAttributeByName(reader, XMLConstants.ATTRIBUTE_ID));
 					summary.getOrCreateGap(currentID, currentMethod);
 					state = State.gap;
 				}

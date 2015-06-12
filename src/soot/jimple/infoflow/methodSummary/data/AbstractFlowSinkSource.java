@@ -73,7 +73,12 @@ public abstract class AbstractFlowSinkSource {
 	public boolean isParameter() {
 		return type().equals(SourceSinkType.Parameter);
 	}
-
+	
+	public boolean isThis()
+	{
+		return type().equals(SourceSinkType.Field) && !hasAccessPath();
+	}
+	
 	public int getParameterIndex() {
 		return parameterIdx;
 	}
@@ -81,7 +86,12 @@ public abstract class AbstractFlowSinkSource {
 	public String getBaseType() {
 		return baseType;
 	}
-
+	
+	/**
+	 * Gets whether this taint is on a *base* field. Note that this does not
+	 * include fields starting on parameters or return values.
+	 * @return True if this taint references a base field, false otherwise
+	 */
 	public boolean isField() {
 		return type().equals(SourceSinkType.Field);
 	}
@@ -127,6 +137,12 @@ public abstract class AbstractFlowSinkSource {
 	
 	public GapDefinition getGap() {
 		return this.gap;
+	}
+	
+	public String getLastFieldType() {
+		if (accessPathTypes == null || accessPathTypes.length == 0)
+			return baseType;
+		return accessPathTypes[accessPathTypes.length - 1];
 	}
 	
 	@Override

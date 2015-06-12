@@ -33,9 +33,9 @@ public class XMLConstants {
 	public static final String TREE_GAPS = "gaps";
 	public static final String TREE_GAP = "gap";
 	
-	public static final String ATTRIBUT_FORMAT_VERSION = "fileFormatVersion";
-	public static final String ATTRIBUT_ID = "num";
-	public static final String ATTRIBUT_METHOD_SIG = "id";
+	public static final String ATTRIBUTE_FORMAT_VERSION = "fileFormatVersion";
+	public static final String ATTRIBUTE_ID = "num";
+	public static final String ATTRIBUTE_METHOD_SIG = "id";
 	public static final String ATTRIBUTE_FLOWTYPE = "sourceSinkType";
 	public static final String ATTRIBUTE_PARAMTER_INDEX = "ParameterIndex";
 	public static final String ATTRIBUTE_ACCESSPATH = "AccessPath";
@@ -44,6 +44,7 @@ public class XMLConstants {
 	public static final String ATTRIBUTE_ERROR = "ERROR";
 	public static final String ATTRIBUTE_TAINT_SUB_FIELDS = "taintSubFields";
 	public static final String ATTRIBUTE_GAP = "gap";
+	public static final String ATTRIBUTE_IS_ALIAS = "isAlias";
 	
 	public static final String VALUE_TRUE = "true";
 	public static final String VALUE_FALSE = "false";

@@ -201,5 +201,12 @@ public class SummaryGenerationTaintWrapper implements ITaintPropagationWrapper {
 		// Statics reporting is not supported by this taint wrapper
 		return -1;
 	}
+
+	@Override
+	public Set<Abstraction> getAliasesForMethod(Stmt stmt, Abstraction d1,
+			Abstraction taintedPath) {
+		// We don't need to process aliases
+		return null;
+	}
 	
 }

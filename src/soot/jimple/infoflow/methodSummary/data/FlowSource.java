@@ -68,12 +68,6 @@ public class FlowSource extends AbstractFlowSinkSource {
 		
 		return "<unknown>";
 	}
-
-	//a this source is a field source with apl = 0
-	public boolean isThis()
-	{
-		return type().equals(SourceSinkType.Field) && !hasAccessPath();
-	}
 	
 	/**
 	 * Validates this flow source

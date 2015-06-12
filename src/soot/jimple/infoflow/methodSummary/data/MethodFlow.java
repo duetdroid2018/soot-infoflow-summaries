@@ -11,11 +11,22 @@ public class MethodFlow {
 	private final String methodSig;
 	private final FlowSource from;
 	private final FlowSink to;
-
-	public MethodFlow(String methodSig, FlowSource from, FlowSink to) {
+	private final boolean isAlias;
+	
+	/**
+	 * Creates a new instance of the MethodFlow class
+	 * @param methodSig The signature of the method containing the flow
+	 * @param from The start of the data flow (source)
+	 * @param to The end of the data flow (sink)
+	 * @param isAlias True if the source and the sink alias, false if this is
+	 * not the case.
+	 */
+	public MethodFlow(String methodSig, FlowSource from, FlowSink to,
+			boolean isAlias) {
 		this.methodSig = methodSig;
 		this.from = from;
 		this.to = to;
+		this.isAlias = isAlias;
 	}
 	
 	/**
@@ -47,6 +58,30 @@ public class MethodFlow {
 				
 		return this.from.isCoarserThan(flow.source())
 				&& this.to.isCoarserThan(flow.sink());
+	}
+	
+	/**
+	 * Reverses the current flow
+	 * @return The reverse of the current flow
+	 */
+	public MethodFlow reverse() {
+		FlowSource reverseSource = new FlowSource(to.getType(),
+				to.getParameterIndex(), to.getBaseType(), to.getAccessPath(),
+				to.getAccessPathTypes(), to.getGap());
+		FlowSink reverseSink = new FlowSink(from.getType(),
+				from.getParameterIndex(), from.getBaseType(),
+				from.getAccessPath(), from.getAccessPathTypes(),
+				to.taintSubFields(), from.getGap());
+		return new MethodFlow(methodSig, reverseSource, reverseSink, isAlias);
+	}
+	
+	/**
+	 * Gets whether the source and the sink of this data flow alias
+	 * @return True the source and the sink of this data flow alias, otherwise
+	 * false
+	 */
+	public boolean isAlias() {
+		return this.isAlias;
 	}
 	
 	@Override

@@ -65,6 +65,7 @@ public class ApiClassClient {
 		Object tmp = api.getNonPrimitive2Variable().getData();
 		sink(tmp);
 	}
+	
 	public void paraReturnFlowOverInterface(){
 		IApiClass api = new ApiClass();
 		Object s = source();
@@ -196,7 +197,14 @@ public class ApiClassClient {
 		String t = api.storeAliasInGapClass(new GapClass(), s);
 		sink(t);
 	}
-
+	
+	public void storeAliasInGapClass2() {
+		ApiClass api = new ApiClass();
+		String s = stringSource();
+		String t = api.storeAliasInGapClass2(new GapClass(), s);
+		sink(t);
+	}
+	
 	public void storeAliasInSummaryClass() {
 		ApiClass api = new ApiClass();
 

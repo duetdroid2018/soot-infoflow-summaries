@@ -7,9 +7,11 @@ import static org.junit.Assert.fail;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 import javax.xml.stream.XMLStreamException;
@@ -20,11 +22,12 @@ import org.junit.Ignore;
 import org.junit.Test;
 
 import soot.jimple.infoflow.Infoflow;
-import soot.jimple.infoflow.config.ConfigForTest;
+import soot.jimple.infoflow.config.IInfoflowConfig;
 import soot.jimple.infoflow.entryPointCreators.DefaultEntryPointCreator;
 import soot.jimple.infoflow.methodSummary.taintWrappers.TaintWrapperFactory;
 import soot.jimple.infoflow.results.InfoflowResults;
 import soot.jimple.infoflow.taintWrappers.ITaintPropagationWrapper;
+import soot.options.Options;
 
 public class SummaryTaintWrapperTests {
 	private static String appPath, libPath;
@@ -150,13 +153,18 @@ public class SummaryTaintWrapperTests {
 		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void storeStringInGapClass()>");
 	}
 	
-	@Ignore("Aliasing is not supported yet")
-	@Test(timeout = 30000)
+	@Ignore("not supported yet")
+	@Test//(timeout = 30000)
 	public void storeAliasInGapClass() {
 		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void storeAliasInGapClass()>");
 	}
-
-	@Ignore("Aliasing is not supported yet")
+	
+	@Ignore("not supported yet")
+	@Test//(timeout = 30000)
+	public void storeAliasInGapClass2() {
+		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void storeAliasInGapClass2()>");
+	}
+	
 	@Test(timeout = 30000)
 	public void storeAliasInSummaryClass() {
 		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void storeAliasInSummaryClass()>");
@@ -212,12 +220,30 @@ public class SummaryTaintWrapperTests {
 	protected Infoflow initInfoflow() throws FileNotFoundException, XMLStreamException {
 		Infoflow result = new Infoflow();
 		Infoflow.setUseRecursiveAccessPaths(false);
-		ConfigForTest testConfig = new ConfigForTest();
+		IInfoflowConfig testConfig = new IInfoflowConfig() {
+			
+			@Override
+			public void setSootOptions(Options options) {
+				List<String> excludeList = new ArrayList<>();
+				excludeList.add("soot.jimple.infoflow.test.methodSummary.ApiClass");
+				excludeList.add("soot.jimple.infoflow.test.methodSummary.GapClass");
+				Options.v().set_exclude(excludeList);
+				
+				List<String> includeList = new ArrayList<>();
+				includeList.add("soot.jimple.infoflow.test.methodSummary.UserCodeClass");
+				Options.v().set_include(includeList);
+				
+				Options.v().set_no_bodies_for_excluded(true);
+				Options.v().set_allow_phantom_refs(true);
+			}
+			
+		};
 		result.setSootConfig(testConfig);
 		
 		Set<String> summaryFiles = new HashSet<String>();
 		summaryFiles.add("./testSummaries/soot.jimple.infoflow.test.methodSummary.ApiClass.xml");
 		summaryFiles.add("./testSummaries/soot.jimple.infoflow.test.methodSummary.GapClass.xml");
+		summaryFiles.add("./testSummaries/soot.jimple.infoflow.test.methodSummary.Data.xml");
 		
 		summaryWrapper = TaintWrapperFactory.createTaintWrapper(summaryFiles);
 		result.setTaintWrapper(summaryWrapper);
