@@ -38,7 +38,7 @@ class AccessPathPropagator {
 			Stmt stmt,
 			Abstraction d1,
 			Abstraction d2) {
-		this(taint, gap, parent, stmt, d1, d1, false);
+		this(taint, gap, parent, stmt, d1, d2, false);
 	}
 	
 	public AccessPathPropagator(Taint taint,
