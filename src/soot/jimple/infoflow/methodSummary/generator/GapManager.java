@@ -63,7 +63,7 @@ public class GapManager {
 	 * @return True if the given local is referenced in at least one gap,
 	 * otherwise false
 	 */
-	public boolean isLocalReferencedInGap(Local local) {
+	public synchronized boolean isLocalReferencedInGap(Local local) {
 		for (Stmt stmt : gaps.keySet()) {
 			for (ValueBox vb : stmt.getUseBoxes())
 				if (vb.getValue() == local)
