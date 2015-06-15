@@ -468,9 +468,6 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 		if (!stmt.containsInvokeExpr())
 			return Collections.singleton(taintedAbs);
 		
-		if (stmt.toString().contains("getData"))
-			System.out.println("x");
-		
 		// Get the cached data flows
 		final SootMethod method = stmt.getInvokeExpr().getMethod();
 		Set<MethodFlow> flowsInCallee = getFlowSummariesForMethod(stmt, method);

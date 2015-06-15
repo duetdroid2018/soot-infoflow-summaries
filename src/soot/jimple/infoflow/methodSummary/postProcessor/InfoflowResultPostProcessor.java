@@ -151,9 +151,13 @@ public class InfoflowResultPostProcessor {
 							&& isAliasedField(sinkAP, sourceAP, sourceStmt);
 					if (!sinkAP.equals(sourceAP) || isAliasedField) {
 						// Process the flow from this source
-						processFlowSource(flows, m, sinkAP, stmt, si.getSourceInfo());		// TODO: throw as curStmt?
+						processFlowSource(flows, m, sinkAP, stmt, si.getSourceInfo());
 						analyzedPaths++;
 					}
+					
+					// Clean up our stuff
+					for (Abstraction abs : si.getSourceInfo().getAbstractionPath())
+						abs.clearPathCache();
 				}
 			}
 		
