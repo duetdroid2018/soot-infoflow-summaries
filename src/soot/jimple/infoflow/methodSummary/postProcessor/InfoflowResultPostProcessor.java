@@ -27,6 +27,7 @@ import soot.jimple.AssignStmt;
 import soot.jimple.DefinitionStmt;
 import soot.jimple.InstanceFieldRef;
 import soot.jimple.InstanceInvokeExpr;
+import soot.jimple.LengthExpr;
 import soot.jimple.ReturnStmt;
 import soot.jimple.Stmt;
 import soot.jimple.infoflow.data.Abstraction;
@@ -444,7 +445,8 @@ public class InfoflowResultPostProcessor {
 				// side
 				if (rightOp instanceof Local
 						&& rightOp == curAP.getPlainValue()
-						&& !assignStmt.containsInvokeExpr()) {
+						&& !assignStmt.containsInvokeExpr()
+						&& !(assignStmt.getRightOp() instanceof LengthExpr)) {
 					// Get the next value from the right side of the assignment
 					final Value[] leftOps = BaseSelector.selectBaseList(assignStmt.getLeftOp(), false);
 					Value lop = null;
