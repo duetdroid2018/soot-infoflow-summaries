@@ -5,6 +5,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -110,13 +111,32 @@ public class SummaryGenerator {
 		Options.v().set_allow_phantom_refs(true);
 
 		for (String className : classNames)
-			Scene.v().addBasicClass(className, SootClass.SIGNATURES);
+			if (!className.endsWith(".*"))
+				Scene.v().addBasicClass(className, SootClass.SIGNATURES);
 		Scene.v().loadNecessaryClasses();
-
+		
+		// Resolve placeholder classes
+		Set<String> realClasses = new HashSet<>(classNames.size());
+		for (String className : classNames)
+			if (className.endsWith(".*")) {
+				String prefix = className.substring(0, className.length() - 1);
+				for (Iterator<SootClass> scIt = Scene.v().getClasses().snapshotIterator();
+						scIt.hasNext(); ) {
+					SootClass sc = scIt.next();
+					if (sc.getName().startsWith(prefix)) {
+						Scene.v().forceResolve(sc.getName(), SootClass.SIGNATURES);
+						if (sc.isConcrete())
+							realClasses.add(sc.getName());
+					}
+				}
+			}
+			else
+				realClasses.add(className);
+		
 		// Collect all the public methods in the given classes. We cannot
 		// directly start the summary generation as this resets Soot.
 		Map<String, Collection<String>> methodsToAnalyze = new HashMap<>();
-		for (String className : classNames) {
+		for (String className : realClasses) {
 			Collection<String> methods = new ArrayList<>();
 			methodsToAnalyze.put(className, methods);
 
@@ -148,6 +168,7 @@ public class SummaryGenerator {
 		MethodSummaries summaries = new MethodSummaries();
 		for (Entry<String, Collection<String>> entry : methodsToAnalyze
 				.entrySet()) {
+			long nanosBeforeClass = System.nanoTime();
 			MethodSummaries classSummaries = new MethodSummaries();
 			for (String methodSig : entry.getValue()) {
 				MethodSummaries newSums = createMethodSummary(classpath,
@@ -163,6 +184,8 @@ public class SummaryGenerator {
 			if (handler != null)
 				handler.onClassFinished(entry.getKey(), classSummaries);
 			summaries.merge(classSummaries);
+			System.out.println("Class summaries for " + entry.getKey() + " done in "
+					+ (System.nanoTime() - nanosBeforeClass) / 1E9 + " seconds");
 		}
 		
 		// Calculate the dependencies
@@ -302,6 +325,7 @@ public class SummaryGenerator {
 			final String methodSig, final String parentClass,
 			List<String> mDependencies, final GapManager gapManager) {
 		System.out.println("Computing method summary for " + methodSig);
+		long nanosBeforeMethod = System.nanoTime();
 		
 		final SourceSinkFactory sourceSinkFactory = new SourceSinkFactory(
 				summaryAPLength);
@@ -339,6 +363,9 @@ public class SummaryGenerator {
 			e.printStackTrace();
 			throw e;
 		}
+		
+		System.out.println("Method summary for " + methodSig + " done in "
+				+ (System.nanoTime() - nanosBeforeMethod) / 1E9 + " seconds");
 		return summaries;
 	}
 
