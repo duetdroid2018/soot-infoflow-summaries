@@ -433,7 +433,8 @@ public class InfoflowResultPostProcessor {
 					InstanceFieldRef ifref = (InstanceFieldRef) assignStmt.getLeftOp();
 					AccessPath matchedAP = matchAccessPath(curAP, ifref.getBase(), ifref.getField());
 					if (matchedAP != null) {
-						curAP = matchedAP.copyWithNewValue(assignStmt.getRightOp(), matchedAP.getFirstFieldType(), true);
+						curAP = matchedAP.copyWithNewValue(assignStmt.getRightOp(),
+								matchedAP.getFirstFieldType(), true);
 						matched = true;
 					}
 				}
@@ -495,8 +496,9 @@ public class InfoflowResultPostProcessor {
 		
 		// If we have a field, it must match
 		if (curAP.isInstanceFieldRef()) {
-			if (curAP.getFirstField() == field)
-				return curAP.copyWithNewValue(base, base.getType(), true);
+			if (curAP.getFirstField() == field) {
+				return curAP;
+			}
 			else {
 				// Get the bases for this type
 				final Collection<BasePair> bases =
