@@ -1347,12 +1347,3 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 	}
 
 }
-
-
-// TODO: Test accessing a tainted field in summarized method through an alias in user code
-// TODO: Gap base object from field + aliasing
-
-
-// TODO: a.foo(a) with a flow from only one of the two ocurrences of a
-
-// TODO: reverse flow that copies a primitive value
