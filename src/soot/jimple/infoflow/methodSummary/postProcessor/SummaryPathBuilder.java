@@ -34,8 +34,8 @@ public class SummaryPathBuilder extends ContextSensitivePathBuilder {
 		private final List<Abstraction> abstractionPath;
 		
 		public SummarySourceInfo(AccessPath source, Stmt context, Object userData,
-				List<Stmt> path, List<Abstraction> abstractionPath) {
-			super(source, context, userData, path);
+				List<Abstraction> abstractionPath) {
+			super(source, context, userData, null, null);
 			this.abstractionPath = abstractionPath;
 		}
 		
@@ -164,7 +164,6 @@ public class SummaryPathBuilder extends ContextSensitivePathBuilder {
 				abs.getSourceContext().getAccessPath(),
 				abs.getSourceContext().getStmt(),
 				abs.getSourceContext().getUserData(),
-				scap.getPath(),
 				scap.getAbstractionPath());
 		ResultSinkInfo rsi = new ResultSinkInfo(
 				scap.getAccessPath(),

@@ -85,8 +85,8 @@ public class InfoflowResultPostProcessor {
 	 * flows
 	 */
 	public MethodSummaries postProcess(MethodSummaries flows) {
-		logger.info("start processing {} infoflow abstractions", 
-				collectedAbstractions.size());
+		logger.info("start processing {} infoflow abstractions for method {}", 
+				collectedAbstractions.size(), method);
 		final SootMethod m = Scene.v().getMethod(method);
 				
 		// Create a context-sensitive path builder. Without context-sensitivity,
@@ -113,7 +113,7 @@ public class InfoflowResultPostProcessor {
 					
 					processFlowSource(flows, m, a.getAccessPath(), stmt,
 							pathBuilder.new SummarySourceInfo(a.getAccessPath(), a.getCurrentStmt(),
-									a.getSourceContext().getUserData(), Collections.singletonList(a.getCurrentStmt()),
+									a.getSourceContext().getUserData(),
 									Collections.singletonList(a)));
 					continue;
 				}
