@@ -127,8 +127,7 @@ public class InfoflowResultPostProcessor {
 				pathBuilder.clear();
 				pathBuilder.computeTaintPaths(Collections.singleton(new AbstractionAtSink(a,
 						a.getCurrentStmt())));
-				System.out.println("Obtained " + pathBuilder.getResultInfos().size()
-						+ " source-to-sink connections.");
+				logger.info("Obtained {} source-to-sink connections.", pathBuilder.getResultInfos().size());
 				
 				for (SummaryResultInfo si : pathBuilder.getResultInfos()) {
 					final AccessPath sourceAP = si.getSourceInfo().getAccessPath();
@@ -163,6 +162,9 @@ public class InfoflowResultPostProcessor {
 					for (Abstraction abs : si.getSourceInfo().getAbstractionPath())
 						abs.clearPathCache();
 				}
+				
+				// Free some memory
+				pathBuilder.clear();
 			}
 		
 		pathBuilder.shutdown();
