@@ -96,13 +96,11 @@ public class InfoflowResultPostProcessor {
 		
 		int analyzedPaths = 0;
 		int abstractionCount = 0;
-		for (Abstraction a : collectedAbstractions.keySet())
-			for (Stmt stmt : collectedAbstractions.get(a)) {
-				abstractionCount++;
-				
-				// If this abstraction is directly the source abstraction, we do not
-				// need to construct paths
-				if (a.getSourceContext() != null) {
+		for (Abstraction a : collectedAbstractions.keySet()) {
+			// If this abstraction is directly the source abstraction, we do not
+			// need to construct paths
+			if (a.getSourceContext() != null) {
+				for (Stmt stmt : collectedAbstractions.get(a)) {
 					// Make sure that we do not get a fake alias of a primitive value
 					// from a gap.
 					if (gapManager.getGapForCall(a.getSourceContext().getStmt()) != null) {
@@ -115,9 +113,9 @@ public class InfoflowResultPostProcessor {
 							pathBuilder.new SummarySourceInfo(a.getAccessPath(), a.getCurrentStmt(),
 									a.getSourceContext().getUserData(),
 									Collections.singletonList(a)));
-					continue;
 				}
-						
+			}
+			else {
 				// In case we have the same abstraction in multiple places and we
 				// extend it with external sink information regardless of the
 				// original propagation, we need to clean up first
@@ -125,47 +123,60 @@ public class InfoflowResultPostProcessor {
 				
 				// Get the source info and process the flow
 				pathBuilder.clear();
-				pathBuilder.computeTaintPaths(Collections.singleton(new AbstractionAtSink(a,
-						a.getCurrentStmt())));
-				logger.info("Obtained {} source-to-sink connections.", pathBuilder.getResultInfos().size());
-				
-				for (SummaryResultInfo si : pathBuilder.getResultInfos()) {
-					final AccessPath sourceAP = si.getSourceInfo().getAccessPath();
-					final AccessPath sinkAP = si.getSinkInfo().getAccessPath();
-					final Stmt sourceStmt = si.getSourceInfo().getSource();
+				pathBuilder.computeTaintPaths(Collections.singleton(
+						new AbstractionAtSink(a, a.getCurrentStmt())));
+				logger.info("Obtained {} source-to-sink connections.",
+						pathBuilder.getResultInfos().size());
+			
+				// Reconstruct the sources
+				for (Stmt stmt : collectedAbstractions.get(a)) {
+					abstractionCount++;
 					
-					// Check that we don't get any weird results
-					if (sourceAP == null || sinkAP == null)
-						throw new RuntimeException("Invalid access path");
-					
-					// If the path is only partial, i.e., does not end at the
-					// abstraction we are interested in, we skip it
-//					if (si.getSourceInfo().getAbstractionPath().get(
-//							si.getSourceInfo().getAbstractionPath().size() - 1) != a) {
-//						System.out.println("partialed one for " + a);
-//						continue;
-//					}
-					
-					// We only take flows which are not identity flows.
-					// If we have a flow from a gap parameter to the original
-					// method parameter, the access paths are equal, but that's
-					// ok in the case of aliasing.
-					boolean isAliasedField = gapManager.getGapForCall(sourceStmt) != null
-							&& isAliasedField(sinkAP, sourceAP, sourceStmt);
-					if (!sinkAP.equals(sourceAP) || isAliasedField) {
-						// Process the flow from this source
-						processFlowSource(flows, m, sinkAP, stmt, si.getSourceInfo());
-						analyzedPaths++;
+					// If this abstraction is directly the source abstraction, we do not
+					// need to construct paths
+					if (a.getSourceContext() != null) {
+						continue;
 					}
 					
-					// Clean up our stuff
-					for (Abstraction abs : si.getSourceInfo().getAbstractionPath())
-						abs.clearPathCache();
+					for (SummaryResultInfo si : pathBuilder.getResultInfos()) {
+						final AccessPath sourceAP = si.getSourceInfo().getAccessPath();
+						final AccessPath sinkAP = si.getSinkInfo().getAccessPath();
+						final Stmt sourceStmt = si.getSourceInfo().getSource();
+						
+						// Check that we don't get any weird results
+						if (sourceAP == null || sinkAP == null)
+							throw new RuntimeException("Invalid access path");
+						
+						// If the path is only partial, i.e., does not end at the
+						// abstraction we are interested in, we skip it
+	//					if (si.getSourceInfo().getAbstractionPath().get(
+	//							si.getSourceInfo().getAbstractionPath().size() - 1) != a) {
+	//						System.out.println("partialed one for " + a);
+	//						continue;
+	//					}
+						
+						// We only take flows which are not identity flows.
+						// If we have a flow from a gap parameter to the original
+						// method parameter, the access paths are equal, but that's
+						// ok in the case of aliasing.
+						boolean isAliasedField = gapManager.getGapForCall(sourceStmt) != null
+								&& isAliasedField(sinkAP, sourceAP, sourceStmt);
+						if (!sinkAP.equals(sourceAP) || isAliasedField) {
+							// Process the flow from this source
+							processFlowSource(flows, m, sinkAP, stmt, si.getSourceInfo());
+							analyzedPaths++;
+						}
+						
+						// Clean up our stuff
+						for (Abstraction abs : si.getSourceInfo().getAbstractionPath())
+							abs.clearPathCache();
+					}
+					
+					// Free some memory
+					pathBuilder.clear();
 				}
-				
-				// Free some memory
-				pathBuilder.clear();
 			}
+		}
 		
 		pathBuilder.shutdown();
 		

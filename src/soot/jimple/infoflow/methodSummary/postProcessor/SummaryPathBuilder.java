@@ -1,14 +1,16 @@
 package soot.jimple.infoflow.methodSummary.postProcessor;
 
-import java.util.HashSet;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
 import soot.jimple.Stmt;
+import soot.jimple.infoflow.collect.ConcurrentHashSet;
 import soot.jimple.infoflow.data.Abstraction;
 import soot.jimple.infoflow.data.AccessPath;
 import soot.jimple.infoflow.data.SourceContextAndPath;
 import soot.jimple.infoflow.data.pathBuilders.ContextSensitivePathBuilder;
+import soot.jimple.infoflow.results.InfoflowResults;
 import soot.jimple.infoflow.results.ResultSinkInfo;
 import soot.jimple.infoflow.results.ResultSourceInfo;
 import soot.jimple.infoflow.solver.cfg.IInfoflowCFG;
@@ -21,7 +23,7 @@ import soot.jimple.infoflow.source.SourceInfo;
  */
 public class SummaryPathBuilder extends ContextSensitivePathBuilder {
 	
-	private Set<SummaryResultInfo> resultInfos = new HashSet<SummaryResultInfo>();
+	private Set<SummaryResultInfo> resultInfos = new ConcurrentHashSet<SummaryResultInfo>();
 	
 	/**
 	 * Extended version of the {@link SourceInfo} class that also allows to
@@ -46,6 +48,15 @@ public class SummaryPathBuilder extends ContextSensitivePathBuilder {
 		public List<Abstraction> getAbstractionPath() {
 			return this.abstractionPath;
 		}
+		
+		@Override
+		public List<Stmt> getPath() {
+			List<Stmt> stmts = new ArrayList<>(abstractionPath.size());
+			for (Abstraction abs : abstractionPath)
+				if (abs.getCurrentStmt() != null)
+					stmts.add(abs.getCurrentStmt());
+			return stmts;
+		}
 
 		@Override
 		public int hashCode() {
@@ -64,11 +75,13 @@ public class SummaryPathBuilder extends ContextSensitivePathBuilder {
 			if (getClass() != obj.getClass())
 				return false;
 			SummarySourceInfo other = (SummarySourceInfo) obj;
+			/*
 			if (abstractionPath == null) {
 				if (other.abstractionPath != null)
 					return false;
 			} else if (!abstractionPath.equals(other.abstractionPath))
 				return false;
+			*/
 			return true;
 		}
 		
@@ -111,7 +124,12 @@ public class SummaryPathBuilder extends ContextSensitivePathBuilder {
 		public ResultSinkInfo getSinkInfo() {
 			return this.sinkInfo;
 		}
-
+		
+		@Override
+		public String toString() {
+			return "Source: " + sourceInfo + " -> Sink: " + sinkInfo;
+		}
+		
 		@Override
 		public int hashCode() {
 			final int prime = 31;
@@ -156,7 +174,8 @@ public class SummaryPathBuilder extends ContextSensitivePathBuilder {
 	
 	@Override
 	protected boolean checkForSource(Abstraction abs, SourceContextAndPath scap) {
-		if (!super.checkForSource(abs, scap))
+		// Source abstractions do not have predecessors
+		if (abs.getPredecessor() != null)
 			return false;
 		
 		// Save the abstraction path
@@ -168,6 +187,7 @@ public class SummaryPathBuilder extends ContextSensitivePathBuilder {
 		ResultSinkInfo rsi = new ResultSinkInfo(
 				scap.getAccessPath(),
 				scap.getStmt());
+		
 		this.resultInfos.add(new SummaryResultInfo(ssi, rsi));
 		return true;
 	}
@@ -176,7 +196,7 @@ public class SummaryPathBuilder extends ContextSensitivePathBuilder {
 	 * Clears all results computed by this path reconstruction algorithm so far
 	 */
 	public void clear() {
-		getResults().clear();
+		super.getResults().clear();
 		resultInfos.clear();
 	}
 	
@@ -187,6 +207,11 @@ public class SummaryPathBuilder extends ContextSensitivePathBuilder {
 	 */
 	public Set<SummaryResultInfo> getResultInfos() {
 		return this.resultInfos;
+	}
+	
+	@Override
+	public InfoflowResults getResults() {
+		throw new RuntimeException("Not implemented, use getResultInfos() instead");
 	}
 
 }
