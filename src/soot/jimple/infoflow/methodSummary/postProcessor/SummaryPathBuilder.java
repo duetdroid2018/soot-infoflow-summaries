@@ -75,13 +75,11 @@ public class SummaryPathBuilder extends ContextSensitivePathBuilder {
 			if (getClass() != obj.getClass())
 				return false;
 			SummarySourceInfo other = (SummarySourceInfo) obj;
-			/*
 			if (abstractionPath == null) {
 				if (other.abstractionPath != null)
 					return false;
 			} else if (!abstractionPath.equals(other.abstractionPath))
 				return false;
-			*/
 			return true;
 		}
 		

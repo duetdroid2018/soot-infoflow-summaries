@@ -174,7 +174,7 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 		Collection<SootMethod> callees = cfg.getCalleesOfCallAt(u);
 		if (callees != null && !callees.isEmpty())
 			return;
-				
+		
 		// Do not create gaps for constructors or static initializers
 		final Stmt stmt = (Stmt) u;
 		final SootMethod targetMethod = stmt.getInvokeExpr().getMethod();

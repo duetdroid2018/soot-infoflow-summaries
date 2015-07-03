@@ -23,6 +23,13 @@ public class JDKTests extends TestHelper {
 	}
 	
 	@Test(timeout = 100000)
+	public void arrayListIterator() {
+		String mSig = "<java.util.ArrayList: java.util.Iterator iterator()>";
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
+		Assert.assertNotNull(flow);
+	}
+	
+	@Test(timeout = 100000)
 	public void abstractListEquals() {
 		String mSig = "<java.util.AbstractList: boolean equals(java.lang.Object)>";
 		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
@@ -44,6 +51,13 @@ public class JDKTests extends TestHelper {
 		MethodSummaries summaries = generator.createMethodSummaries(libPath,
 				Collections.singleton("java.util.AbstractList"));
 		Set<MethodFlow> flow = summaries.getAllFlows();
+		Assert.assertNotNull(flow);
+	}
+	
+	@Test//(timeout = 100000)
+	public void weakHashMapPut() {
+		String mSig = "<java.util.WeakHashMap: java.lang.Object put(java.lang.Object,java.lang.Object)>";
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 		Assert.assertNotNull(flow);
 	}
 	

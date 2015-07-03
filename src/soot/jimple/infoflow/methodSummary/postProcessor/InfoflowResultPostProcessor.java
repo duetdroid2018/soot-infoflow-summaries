@@ -171,10 +171,10 @@ public class InfoflowResultPostProcessor {
 						for (Abstraction abs : si.getSourceInfo().getAbstractionPath())
 							abs.clearPathCache();
 					}
-					
-					// Free some memory
-					pathBuilder.clear();
 				}
+				
+				// Free some memory
+				pathBuilder.clear();
 			}
 		}
 		
@@ -442,7 +442,7 @@ public class InfoflowResultPostProcessor {
 						}
 					}
 					
-					curAP = curAP.copyWithNewValue(rop, null, false);
+					curAP = curAP.copyWithNewValue(rop, null, false, false);
 					matched = true;
 				}
 				else if (assignStmt.getLeftOp() instanceof InstanceFieldRef) {
@@ -450,7 +450,7 @@ public class InfoflowResultPostProcessor {
 					AccessPath matchedAP = matchAccessPath(curAP, ifref.getBase(), ifref.getField());
 					if (matchedAP != null) {
 						curAP = matchedAP.copyWithNewValue(assignStmt.getRightOp(),
-								matchedAP.getFirstFieldType(), true);
+								matchedAP.getFirstFieldType(), true, false);
 						matched = true;
 					}
 				}
@@ -482,7 +482,7 @@ public class InfoflowResultPostProcessor {
 						}
 					}
 					
-					curAP = curAP.copyWithNewValue(lop, null, false);
+					curAP = curAP.copyWithNewValue(lop, null, false, false);
 					matched = true;
 				}
 				else if (assignStmt.getRightOp() instanceof InstanceFieldRef) {
@@ -490,7 +490,7 @@ public class InfoflowResultPostProcessor {
 					if (ifref.getBase() == curAP.getPlainValue()
 							&& ifref.getField() == curAP.getFirstField()) {
 						curAP = curAP.copyWithNewValue(assignStmt.getLeftOp(),
-								curAP.getFirstFieldType(), true);
+								curAP.getFirstFieldType(), true, false);
 						matched = true;
 					}
 				}
