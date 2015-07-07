@@ -1,6 +1,8 @@
 package soot.jimple.infoflow.methodSummary.generator;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -103,10 +105,21 @@ public class SummaryGenerator {
 	public MethodSummaries createMethodSummaries(String classpath,
 			Collection<String> classNames, IClassSummaryHandler handler) {
 		G.reset();
-
+		
+		// Check whether we have a wildcard in the target classes
+		boolean hasWildcard = false;
+		for (String className : classNames)
+			if (className.endsWith(".*")) {
+				hasWildcard = true;
+				break;
+			}
+		
 		Options.v().set_src_prec(Options.src_prec_class);
 		Options.v().set_output_format(Options.output_format_none);
-		Options.v().set_soot_classpath(classpath);
+		if (hasWildcard)
+			Options.v().set_process_dir(Arrays.asList(classpath.split(File.pathSeparator)));
+		else
+			Options.v().set_soot_classpath(classpath);
 		Options.v().set_whole_program(false);
 		Options.v().set_allow_phantom_refs(true);
 
