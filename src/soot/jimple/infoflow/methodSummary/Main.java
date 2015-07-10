@@ -3,8 +3,10 @@ package soot.jimple.infoflow.methodSummary;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import javax.xml.stream.XMLStreamException;
 
@@ -24,14 +26,35 @@ class Main {
 			return;
 		}
 		
+		boolean loadFullJAR = false;
+		Set<String> excludes = new HashSet<>();
+		
 		// Collect the classes to be analyzed from our command line
 		final int offset = 2;
 		List<String> classesToAnalyze = new ArrayList<String>(args.length - offset);
-		for (int i = offset; i < args.length; i++)
-			classesToAnalyze.add(args[i]);
+		int i = offset;
+		while (i < args.length) {
+			if (args[i].startsWith("--")) {
+				if (args[i].equalsIgnoreCase("--loadFullJar"))
+					loadFullJAR = true;
+				else if (args[i].equalsIgnoreCase("--exclude")) {
+					excludes.add(args[i + 1]);
+					i++;
+				}
+				else {
+					System.err.println("Invalid command line argument: " + args[i]);
+					return;
+				}
+			}
+			else
+				classesToAnalyze.add(args[i]);
+			i++;
+		}
 		
 		// Run it
 		SummaryGenerator generator = new SummaryGeneratorFactory().initSummaryGenerator();
+		generator.setLoadFullJAR(loadFullJAR);
+		generator.setExcludes(excludes);
 		MethodSummaries summaries = generator.createMethodSummaries(args[0],
 				classesToAnalyze, new IClassSummaryHandler() {
 			
@@ -66,21 +89,12 @@ class Main {
 		System.out.println("FlowDroid Summary Generator (c) Secure Software Engineering Group @ EC SPRIDE");
 		System.out.println();
 		System.out.println("Incorrect arguments: [0] = JAR File, [1] = output folder "
-				+ "[2] = <list of classes>");
+				+ "[2] = <list of classes>, [3] = <optional arguments>");
+		System.out.println();
+		System.out.println("Supported optional arguments:");
+		System.out.println("\t--loadFullJar: Load all classes in the given JAR");
+		System.out.println("\t--exclude: Exclude the given class or package");
 	}
-	
-	/*
-	private Map<String, Set<MethodFlow>> createDummyTaintAllFlow(String m) {
-		FlowSource source = SourceSinkFactory.createThisSource();
-		FlowSink sink = SourceSinkFactory.createReturnSink(true);
-		MethodFlow flow = new DefaultMethodFlow(m, source, sink);
-		Map<String,Set<MethodFlow>> res = new HashMap<>();
-		Set<MethodFlow> flows = new HashSet<>();
-		flows.add(flow);
-		res.put(m, flows);
-		return res;
-	}
-	*/
 	
 	/**
 	 * Writes the given flows into an xml file

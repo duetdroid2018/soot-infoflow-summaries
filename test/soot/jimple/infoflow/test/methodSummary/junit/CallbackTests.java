@@ -155,7 +155,6 @@ public class CallbackTests extends TestHelper {
 		List<String> sub = new LinkedList<String>();
 		sub.add("java.util.ArrayList");
 		sg.setSubstitutedWith(sub);
-		sg.setAnalyseMethodsTogether(false);
 		sg.setAccessPathLength(5);
 		sg.setIgnoreFlowsInSystemPackages(false);
 		sg.setConfig(new IInfoflowConfig() {

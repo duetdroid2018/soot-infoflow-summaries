@@ -66,7 +66,7 @@ public class JDKTests extends TestHelper {
 		SummaryGenerator sg = new SummaryGenerator();
 		sg.setAccessPathLength(4);
 		sg.setSummaryAPLength(3);
-		sg.setAnalyseMethodsTogether(false);
+		sg.setLoadFullJAR(false);
 		sg.setIgnoreFlowsInSystemPackages(false);
 		sg.setEnableExceptionTracking(true);
 		return sg;

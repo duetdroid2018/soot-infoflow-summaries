@@ -16,7 +16,7 @@ public class SummaryGeneratorFactory {
 	private final boolean enableExceptionTracking = true;
 	private final boolean flowSensitiveAliasing = true;
 	private final boolean useRecursiveAccessPaths = true;
-	private final boolean analyseMethodsTogether = true;
+	private final boolean loadFullJAR = true;
 	private final boolean useTaintWrapper = false;
 	
 	/**
@@ -32,7 +32,7 @@ public class SummaryGeneratorFactory {
 		s.setEnableImplicitFlows(enableImplicitFlows);
 		s.setFlowSensitiveAliasing(flowSensitiveAliasing);
 		s.setUseRecursiveAccessPaths(useRecursiveAccessPaths);
-		s.setAnalyseMethodsTogether(analyseMethodsTogether);
+		s.setLoadFullJAR(loadFullJAR);
 		
 		if(useTaintWrapper)
 			try {

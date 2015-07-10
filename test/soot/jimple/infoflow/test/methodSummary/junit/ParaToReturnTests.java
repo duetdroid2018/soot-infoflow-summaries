@@ -108,7 +108,6 @@ public class ParaToReturnTests extends TestHelper {
 		List<String> sub = new LinkedList<String>();
 		sub.add("java.util.LinkedList");
 		sg.setSubstitutedWith(sub);
-		sg.setAnalyseMethodsTogether(false);
 		sg.setAccessPathLength(3);
 		sg.setIgnoreFlowsInSystemPackages(false);
 		return sg;

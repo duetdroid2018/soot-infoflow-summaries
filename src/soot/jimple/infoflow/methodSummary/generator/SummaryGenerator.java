@@ -71,8 +71,9 @@ public class SummaryGenerator {
 	protected ITaintPropagationWrapper taintWrapper;
 	protected IInfoflowConfig config;
 	protected List<String> substitutedWith = new LinkedList<String>();
-	private boolean analyseMethodsTogether = true;
-
+	private boolean loadFullJAR = false;
+	private Set<String> excludes = null;
+	
 	public SummaryGenerator() {
 	}
 
@@ -116,7 +117,7 @@ public class SummaryGenerator {
 		
 		Options.v().set_src_prec(Options.src_prec_class);
 		Options.v().set_output_format(Options.output_format_none);
-		if (hasWildcard)
+		if (hasWildcard || loadFullJAR)
 			Options.v().set_process_dir(Arrays.asList(classpath.split(File.pathSeparator)));
 		else
 			Options.v().set_soot_classpath(classpath);
@@ -139,12 +140,21 @@ public class SummaryGenerator {
 					if (sc.getName().startsWith(prefix)) {
 						Scene.v().forceResolve(sc.getName(), SootClass.SIGNATURES);
 						if (sc.isConcrete())
-							realClasses.add(sc.getName());
+							checkAndAdd(realClasses, sc.getName());
 					}
 				}
 			}
-			else
-				realClasses.add(className);
+			else {
+				SootClass sc = Scene.v().getSootClass(className);
+				if (!sc.isConcrete()) {
+					// If this is an interface or an abstract class, we
+					// take all concrete child classes
+					for (String impl : getImplementorsOf(sc))
+						checkAndAdd(realClasses, impl);
+				}
+				else
+					checkAndAdd(realClasses, className);
+			}
 		
 		// Collect all the public methods in the given classes. We cannot
 		// directly start the summary generation as this resets Soot.
@@ -207,6 +217,56 @@ public class SummaryGenerator {
 		return summaries;	
 	}
 	
+	/**
+	 * Checks whether the given method is to be included in the summary
+	 * generation. If so, it is added to the set of classes to be analyzed
+	 * @param classes The set of classes to be analyzed
+	 * @param className The class to check
+	 */
+	private void checkAndAdd(Set<String> classes, String className) {
+		for (String excl : this.excludes) {
+			if (excl.equals(className))
+				return;
+			if (excl.endsWith(".*")) {
+				String baseName = excl.substring(0, excl.length() - 1);
+				if (className.startsWith(baseName))
+					return;
+			}
+		}
+		classes.add(className);
+	}
+
+	/**
+	 * Gets all classes that are sub-classes of the given class / implementors
+	 * of the given interface
+	 * @param sc The class or interface of which to get the implementors
+	 * @return The concrete implementors of the given interface / subclasses
+	 * of the given parent class
+	 */
+	private Collection<? extends String> getImplementorsOf(SootClass sc) {
+		Set<String> classes = new HashSet<>();
+		Set<SootClass> doneSet = new HashSet<>();
+		List<SootClass> workList = new ArrayList<>();
+		workList.add(sc);
+		
+		while (!workList.isEmpty()) {
+			SootClass curClass = workList.remove(0);
+			if (!doneSet.add(curClass))
+				continue;
+			if (curClass.isConcrete())
+				classes.add(curClass.getName());
+			
+			if (sc.isInterface()) {
+				workList.addAll(Scene.v().getActiveHierarchy().getImplementersOf(sc));
+				workList.addAll(Scene.v().getActiveHierarchy().getSubinterfacesOf(sc));
+			}
+			else
+				for (SootClass c : Scene.v().getActiveHierarchy().getSubclassesOf(sc))
+					classes.add(c.getName());
+		}
+		return classes;
+	}
+
 	/**
 	 * Removes all gaps with no flows in and out from the given method summary
 	 * object
@@ -279,37 +339,7 @@ public class SummaryGenerator {
 	public MethodSummaries createMethodSummary(String classpath, String methodSig) {
 		return createMethodSummary(classpath, methodSig,
 				"",
-				Collections.<String> emptyList(),
 				new GapManager());
-	}
-	
-	/**
-	 * Creates a method summary for the method m
-	 * 
-	 * It is assumed that only the default constructor of c is executed before m
-	 * is called.
-	 * 
-	 * The result of that assumption is that some fields of c may be null. A
-	 * null field is not identified as a source and there for will not create a
-	 * Field -> X flow.
-	 * 
-	 * @param classpath
-	 *            The classpath containing the classes to summarize
-	 * @param methodSig
-	 *            method for which a summary will be created
-	 * @param parentClass
-	 * 			  The parent class on which the method to be analyzed shall be
-	 * 			  invoked
-	 * @param gapManager
-	 * 			  The gap manager to be used for creating new gaps 
-	 * @return summary of method m
-	 */
-	private MethodSummaries createMethodSummary(String classpath,
-			String methodSig, String parentClass, GapManager gapManager) {
-		return createMethodSummary(classpath, methodSig,
-				parentClass,
-				Collections.<String> emptyList(),
-				gapManager);
 	}
 
 	/**
@@ -328,15 +358,13 @@ public class SummaryGenerator {
 	 * @param parentClass
 	 * 			  The parent class on which the method to be analyzed shall be
 	 * 			  invoked
-	 * @param mDependencies
-	 *            all methods which will be "executed" before m
 	 * @param gapManager
 	 * 			  The gap manager to be used for creating new gaps 
 	 * @return summary of method m
 	 */
 	private MethodSummaries createMethodSummary(String classpath,
 			final String methodSig, final String parentClass,
-			List<String> mDependencies, final GapManager gapManager) {
+			final GapManager gapManager) {
 		System.out.println("Computing method summary for " + methodSig);
 		long nanosBeforeMethod = System.nanoTime();
 		
@@ -363,16 +391,12 @@ public class SummaryGenerator {
 			}
 		});
 
-		List<String> ms = new LinkedList<String>();
-		ms.add(methodSig);
-		if (analyseMethodsTogether) {
-			addDependentMethods(methodSig, ms, mDependencies);
-		}
 		try {
-			infoflow.computeInfoflow(null, classpath, createEntryPoint(ms, parentClass), manager);
+			infoflow.computeInfoflow(null, classpath, createEntryPoint(
+					Collections.singletonList(methodSig), parentClass), manager);
 		}
 		catch (Exception e) {
-			System.err.println("Could not generate summary for method " + ms);
+			System.err.println("Could not generate summary for method " + methodSig);
 			e.printStackTrace();
 			throw e;
 		}
@@ -381,17 +405,7 @@ public class SummaryGenerator {
 				+ (System.nanoTime() - nanosBeforeMethod) / 1E9 + " seconds");
 		return summaries;
 	}
-
-	private void addDependentMethods(String sig, List<String> methods,
-			List<String> mDependencies) {
-		if (mDependencies != null) {
-			for (String s : mDependencies) {
-				if (!s.equals(sig))
-					methods.add(s);
-			}
-		}
-	}
-
+	
 	private BaseEntryPointCreator createEntryPoint(
 			Collection<String> entryPoints, String parentClass) {
 		SequentialEntryPointCreator dEntryPointCreater = new SequentialEntryPointCreator(
@@ -583,8 +597,12 @@ public class SummaryGenerator {
 		this.useRecursiveAccessPaths = useRecursiveAccessPaths;
 	}
 
-	public void setAnalyseMethodsTogether(boolean analyseMethodsTogether) {
-		this.analyseMethodsTogether = analyseMethodsTogether;
+	public void setLoadFullJAR(boolean loadFullJAR) {
+		this.loadFullJAR = loadFullJAR;
+	}
+	
+	public void setExcludes(Set<String> excludes) {
+		this.excludes = excludes;
 	}
 
 }

@@ -621,8 +621,11 @@ public class InfoflowResultPostProcessor {
 		boolean matched = false;
 		
 		// Make sure that we don't end up with a senseless callee
-		if (!callee.getSubSignature().equals(stmt.getInvokeExpr().getMethod().getSubSignature()))
-			throw new RuntimeException("Invalid callee on stack"); 
+		if (!callee.getSubSignature().equals(stmt.getInvokeExpr().getMethod().getSubSignature())
+				&& !isThreadCall(stmt.getInvokeExpr().getMethod(), callee))
+			throw new RuntimeException(String.format("Invalid callee on stack. Caller "
+					+ "was {}, callee was {}", stmt.getInvokeExpr().getMethod().getSubSignature(),
+					callee));
 		
 		// Map the parameters back into the caller
 		for (int i = 0; i < stmt.getInvokeExpr().getArgCount(); i++) {
@@ -662,6 +665,17 @@ public class InfoflowResultPostProcessor {
 		}
 		
 		return matched ? curAP : null;
+	}
+	
+	/**
+	 * Simplistic check to see whether the given formal callee and actual callee
+	 * can be in a thread-start relationship
+	 * @param callSite The method at the call site
+	 * @param callee The actual callee
+	 * @return True if this can be a thread-start call edge, otherwise false
+	 */
+	private boolean isThreadCall(SootMethod callSite, SootMethod callee) {
+		return (callSite.getName().equals("start") && callee.getName().equals("run"));
 	}
 
 	/**
