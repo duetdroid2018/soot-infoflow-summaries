@@ -65,6 +65,11 @@ public class SummaryGenerationTaintWrapper implements ITaintPropagationWrapper {
 		if (!taintedPath.isAbstractionActive())
 			return Collections.singleton(taintedPath);
 		
+		// If this is a call to a system method, we just over-approximate the
+		// taint
+		if (icfg.getMethodOf(stmt).getDeclaringClass().getName().equals("java.lang.System"))
+			return Collections.singleton(taintedPath);
+		
 		// Do create the gap
 		GapDefinition gap = gapManager.getOrCreateGapForCall(summaries, stmt);
 		

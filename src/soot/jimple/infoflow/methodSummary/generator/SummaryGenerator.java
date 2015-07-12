@@ -224,15 +224,16 @@ public class SummaryGenerator {
 	 * @param className The class to check
 	 */
 	private void checkAndAdd(Set<String> classes, String className) {
-		for (String excl : this.excludes) {
-			if (excl.equals(className))
-				return;
-			if (excl.endsWith(".*")) {
-				String baseName = excl.substring(0, excl.length() - 1);
-				if (className.startsWith(baseName))
+		if (this.excludes != null)
+			for (String excl : this.excludes) {
+				if (excl.equals(className))
 					return;
+				if (excl.endsWith(".*")) {
+					String baseName = excl.substring(0, excl.length() - 1);
+					if (className.startsWith(baseName))
+						return;
+				}
 			}
-		}
 		classes.add(className);
 	}
 

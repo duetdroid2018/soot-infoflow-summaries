@@ -620,6 +620,10 @@ public class InfoflowResultPostProcessor {
 			final Stmt stmt, SootMethod callee) {
 		boolean matched = false;
 		
+		// Static initializers do not modify access paths on call and return
+		if (callee.isStaticInitializer())
+			return curAP;
+		
 		// Make sure that we don't end up with a senseless callee
 		if (!callee.getSubSignature().equals(stmt.getInvokeExpr().getMethod().getSubSignature())
 				&& !isThreadCall(stmt.getInvokeExpr().getMethod(), callee))

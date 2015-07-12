@@ -188,6 +188,10 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 				&& abs.getSourceContext().getStmt() == u)
 			return;
 		
+		// Do not build gap flows for the java.lang.System class
+		if (cfg.getMethodOf(stmt).getDeclaringClass().getName().equals("java.lang.System"))
+			return;
+		
 		// If we don't have any callees, we need to build a gap into our
 		// summary. The taint wrapper takes care of continuing the analysis
 		// after the gap.
