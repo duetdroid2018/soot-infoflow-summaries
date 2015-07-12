@@ -44,17 +44,8 @@ public class JDKTests extends TestHelper {
 		Set<MethodFlow> flow = summaries.getAllFlows();
 		Assert.assertNotNull(flow);
 	}
-	
+		
 	@Test(timeout = 100000)
-	public void abstractListTest() {
-		SummaryGenerator generator = new SummaryGeneratorFactory().initSummaryGenerator();
-		MethodSummaries summaries = generator.createMethodSummaries(libPath,
-				Collections.singleton("java.util.AbstractList"));
-		Set<MethodFlow> flow = summaries.getAllFlows();
-		Assert.assertNotNull(flow);
-	}
-	
-	@Test//(timeout = 100000)
 	public void weakHashMapPut() {
 		String mSig = "<java.util.WeakHashMap: java.lang.Object put(java.lang.Object,java.lang.Object)>";
 		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
