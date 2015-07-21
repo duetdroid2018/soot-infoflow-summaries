@@ -51,6 +51,12 @@ class Main {
 			i++;
 		}
 		
+		// We need classes to analyze
+		if (classesToAnalyze.isEmpty()) {
+			printUsage();	
+			return;
+		}
+		
 		// Run it
 		SummaryGenerator generator = new SummaryGeneratorFactory().initSummaryGenerator();
 		generator.setLoadFullJAR(loadFullJAR);
