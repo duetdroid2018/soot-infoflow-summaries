@@ -192,6 +192,8 @@ public class SummaryGenerator {
 		for (Entry<String, Collection<String>> entry : methodsToAnalyze
 				.entrySet()) {
 			long nanosBeforeClass = System.nanoTime();
+			System.out.println("Analyzing class " + entry.getKey());
+			
 			MethodSummaries classSummaries = new MethodSummaries();
 			for (String methodSig : entry.getValue()) {
 				MethodSummaries newSums = createMethodSummary(classpath,
@@ -207,6 +209,7 @@ public class SummaryGenerator {
 			if (handler != null)
 				handler.onClassFinished(entry.getKey(), classSummaries);
 			summaries.merge(classSummaries);
+			
 			System.out.println("Class summaries for " + entry.getKey() + " done in "
 					+ (System.nanoTime() - nanosBeforeClass) / 1E9 + " seconds");
 		}
