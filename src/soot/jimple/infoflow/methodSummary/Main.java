@@ -21,7 +21,8 @@ class Main {
 	
 	public static void main(final String[] args) throws FileNotFoundException, XMLStreamException {
 		// Check the parameters
-		if (args.length < 3) {
+		if (args.length < 3 || args[0].contains("--") || args[1].contains("--")
+				|| args[2].contains("--")) {
 			printUsage();	
 			return;
 		}
