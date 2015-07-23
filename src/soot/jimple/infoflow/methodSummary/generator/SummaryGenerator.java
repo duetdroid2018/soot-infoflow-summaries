@@ -162,7 +162,7 @@ public class SummaryGenerator {
 		for (String className : realClasses) {
 			Collection<String> methods = new ArrayList<>();
 			methodsToAnalyze.put(className, methods);
-
+			
 			SootClass sc = Scene.v().getSootClass(className);
 			for (SootMethod sm : sc.getMethods())
 				if (sm.isPublic() || sm.isProtected())
@@ -196,6 +196,9 @@ public class SummaryGenerator {
 			
 			MethodSummaries classSummaries = new MethodSummaries();
 			for (String methodSig : entry.getValue()) {
+				if (!methodSig.contains("containsAll"))
+					continue;	// TODO
+				
 				MethodSummaries newSums = createMethodSummary(classpath,
 						methodSig, entry.getKey(), gapManager);
 				if (handler != null)
@@ -254,7 +257,7 @@ public class SummaryGenerator {
 		workList.add(sc);
 		
 		while (!workList.isEmpty()) {
-			SootClass curClass = workList.remove(0);
+			SootClass curClass = workList.remove(0);			
 			if (!doneSet.add(curClass))
 				continue;
 			if (curClass.isConcrete())

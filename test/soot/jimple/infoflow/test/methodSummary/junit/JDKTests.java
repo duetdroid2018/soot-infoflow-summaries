@@ -52,6 +52,22 @@ public class JDKTests extends TestHelper {
 		Assert.assertNotNull(flow);
 	}
 	
+	@Test(timeout = 100000)
+	public void gapTest1() {
+		String mSig = "<java.util.Collections$UnmodifiableMap$UnmodifiableEntrySet: boolean containsAll(java.util.Collection)>";
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
+		Assert.assertNotNull(flow);
+	}
+	
+	@Test(timeout = 100000)
+	public void gapTest2() {
+		SummaryGenerator generator = new SummaryGeneratorFactory().initSummaryGenerator();
+		MethodSummaries summaries = generator.createMethodSummaries(libPath,
+				Collections.singleton("java.util.Collections$UnmodifiableMap$UnmodifiableEntrySet"));
+		Set<MethodFlow> flow = summaries.getAllFlows();
+		Assert.assertNotNull(flow);
+	}
+	
 	@Override
 	protected SummaryGenerator getSummary() {
 		SummaryGenerator sg = new SummaryGenerator();

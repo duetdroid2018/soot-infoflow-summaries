@@ -1,6 +1,5 @@
 package soot.jimple.infoflow.methodSummary.handler;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
@@ -18,7 +17,7 @@ import soot.jimple.infoflow.data.Abstraction;
 import soot.jimple.infoflow.data.AccessPath;
 import soot.jimple.infoflow.handlers.TaintPropagationHandler;
 import soot.jimple.infoflow.methodSummary.generator.GapManager;
-import soot.jimple.toolkits.ide.icfg.BiDiInterproceduralCFG;
+import soot.jimple.infoflow.solver.cfg.IInfoflowCFG;
 import soot.util.ConcurrentHashMultiMap;
 import soot.util.MultiMap;
 
@@ -63,7 +62,7 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 	@Override
 	public void notifyFlowIn(Unit stmt,
 			Abstraction result,
-			BiDiInterproceduralCFG<Unit, SootMethod> cfg,
+			IInfoflowCFG cfg,
 			FlowFunctionType type) {		
 		// Initialize the method we are interested in
 		if(method == null)
@@ -81,7 +80,7 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 			handleReturnFlow(stmt, result, cfg);
 		}
 		else if (type.equals(TaintPropagationHandler.FlowFunctionType.CallToReturnFlowFunction))
-			handleCallToReturnFlow(stmt, result, cfg);
+			handleCallToReturnFlow((Stmt) stmt, result, cfg);
 	}
 	
 	/**
@@ -92,7 +91,7 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 	 */
 	private void handleReturnFlow(Unit stmt,
 			Abstraction abs,
-			BiDiInterproceduralCFG<Unit, SootMethod> cfg) {		
+			IInfoflowCFG cfg) {		
 		// Check whether we must register the abstraction for post-processing
 		// We ignore inactive abstractions
 		if (!abs.isAbstractionActive())
@@ -163,34 +162,11 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 				&& abs.getAccessPath().getPlainValue() == method.getActiveBody().getThisLocal());
 	}
 	
-	private void handleCallToReturnFlow(Unit u,
-			Abstraction abs,
-			BiDiInterproceduralCFG<Unit, SootMethod> cfg) {
-		// Do not report inactive flows into gaps
-		if (!abs.isAbstractionActive())
-			return;
-		
-		// If we have callees, we analyze them as usual
-		Collection<SootMethod> callees = cfg.getCalleesOfCallAt(u);
-		if (callees != null && !callees.isEmpty())
-			return;
-		
-		// Do not create gaps for constructors or static initializers
-		final Stmt stmt = (Stmt) u;
-		final SootMethod targetMethod = stmt.getInvokeExpr().getMethod();
-		if (targetMethod.isConstructor()
-				|| targetMethod.isStaticInitializer()
-				|| targetMethod.isNative())
-			return;
-		
-		// Do not produce flows from one statement to itself
-		if (abs.getSourceContext() != null
-				&& abs.getSourceContext().getStmt() == u)
-			return;
-		
-		// Do not build gap flows for the java.lang.System class
-		if (cfg.getMethodOf(stmt).getDeclaringClass().getName().equals("java.lang.System"))
-			return;
+	private void handleCallToReturnFlow(Stmt stmt, Abstraction abs,
+			IInfoflowCFG cfg) {		
+		// Check whether we must construct a gap
+		if (!gapManager.needsGapConstruction(stmt, abs, cfg))
+			return;		
 		
 		// If we don't have any callees, we need to build a gap into our
 		// summary. The taint wrapper takes care of continuing the analysis
@@ -205,7 +181,7 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 			Abstraction d1,
 			Abstraction incoming,
 			Set<Abstraction> outgoing,
-			BiDiInterproceduralCFG<Unit, SootMethod> cfg,
+			IInfoflowCFG cfg,
 			FlowFunctionType type) {
 		// Do not propagate through excluded methods
 		SootMethod sm = cfg.getMethodOf(u);

@@ -1,6 +1,5 @@
 package soot.jimple.infoflow.methodSummary.generator;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -58,7 +57,7 @@ public class SummaryGenerationTaintWrapper implements ITaintPropagationWrapper {
 			return Collections.singleton(taintedPath);
 		
 		// Check whether we need to create a gap
-		if (!needsGapConstruction(stmt, icfg))
+		if (!gapManager.needsGapConstruction(stmt, taintedPath, icfg))
 			return Collections.singleton(taintedPath);
 		
 		// If we have already seen this statement, we just pass on
@@ -155,28 +154,6 @@ public class SummaryGenerationTaintWrapper implements ITaintPropagationWrapper {
 		return res;
 	}
 	
-	/**
-	 * Checks whether we need to produce a gap for the given method call
-	 * @param stmt The call statement
-	 * @param icfg The interprocedural control flow graph
-	 * @return True if we need to create a gap, otherwise false
-	 */
-	private boolean needsGapConstruction(Stmt stmt, IInfoflowCFG icfg) {
-		SootMethod targetMethod = stmt.getInvokeExpr().getMethod();
-		
-		// If the callee is native, there is no need for a gap
-		if (targetMethod.isNative())
-			return false;
-		
-		// Do not construct a gap for constructors
-		if (targetMethod.isConstructor() || targetMethod.isStaticInitializer())
-			return false;
-		
-		// We always construct a gap if we have no callees
-		Collection<SootMethod> callees = icfg.getCalleesOfCallAt(stmt);
-		return callees == null || callees.isEmpty();
-	}
-
 	@Override
 	public boolean isExclusive(Stmt stmt, Abstraction taintedPath) {
 		return false;

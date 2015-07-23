@@ -130,6 +130,10 @@ public class InfoflowResultPostProcessor {
 			
 				// Reconstruct the sources
 				for (Stmt stmt : collectedAbstractions.get(a)) {
+					
+					if (stmt.toString().equals("$z0 = virtualinvoke l0.<java.lang.Object: boolean equals(java.lang.Object)>(l1)"))
+						System.out.println("x");
+					
 					abstractionCount++;
 					
 					// If this abstraction is directly the source abstraction, we do not

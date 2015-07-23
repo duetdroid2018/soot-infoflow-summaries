@@ -19,7 +19,7 @@ public class DataClassTests extends TestHelper {
 	
 	private static final String NEXT_FIELD = "<soot.jimple.infoflow.test.methodSummary.Data: soot.jimple.infoflow.test.methodSummary.Data next>";
 	
-	@Test//(timeout = 100000)
+	@Test(timeout = 100000)
 	public void switchSwitch() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.Data: void switchSwitch()>";
 		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();

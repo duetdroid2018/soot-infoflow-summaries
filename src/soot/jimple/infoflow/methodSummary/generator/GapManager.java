@@ -1,16 +1,20 @@
 package soot.jimple.infoflow.methodSummary.generator;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
 import soot.Local;
+import soot.SootMethod;
 import soot.ValueBox;
 import soot.jimple.DefinitionStmt;
 import soot.jimple.Stmt;
+import soot.jimple.infoflow.data.Abstraction;
 import soot.jimple.infoflow.methodSummary.data.GapDefinition;
 import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
+import soot.jimple.infoflow.solver.cfg.IInfoflowCFG;
 
 /**
  * Class that manages the creation of gaps during the taint propagation and the
@@ -101,5 +105,52 @@ public class GapManager {
 		}
 		return res;
  	}
+	
+	/**
+	 * Checks whether we need to produce a gap for the given method call
+	 * @param stmt The call statement
+	 * @param abs The abstraction that reaches the given call
+	 * @param icfg The interprocedural control flow graph
+	 * @return True if we need to create a gap, otherwise false
+	 */
+	public boolean needsGapConstruction(Stmt stmt, Abstraction abs, IInfoflowCFG icfg) {
+		SootMethod targetMethod = stmt.getInvokeExpr().getMethod();
+		
+		// Do not report inactive flows into gaps
+		if (!abs.isAbstractionActive())
+			return false;
+		
+		// If the callee is native, there is no need for a gap
+		if (targetMethod.isNative())
+			return false;
+		
+		// Do not construct a gap for constructors or static initializers
+		if (targetMethod.isConstructor() || targetMethod.isStaticInitializer())
+			return false;
+		
+		// Do not produce flows from one statement to itself
+		if (abs.getSourceContext() != null
+				&& abs.getSourceContext().getStmt() == stmt)
+			return false;
+		
+		// We always construct a gap if we have no callees
+		SootMethod sm = icfg.getMethodOf(stmt);
+		Collection<SootMethod> callees = icfg.getCalleesOfCallAt(stmt);
+		if (callees != null && !callees.isEmpty()) {
+			// If we have a call to an abstract method, this might instead of an 
+			// empty callee list give  us one with a self-loop. Semantically, this
+			// is however still an unknown callee.
+			if (!(callees.size() == 1 && callees.contains(sm)
+					&& stmt.getInvokeExpr().getMethod().isAbstract()))
+				return false;
+		}
+		
+		// Do not build gap flows for the java.lang.System class
+		if (sm.getDeclaringClass().getName().equals("java.lang.System"))
+			return false;
+		
+		// We create a gap
+		return true;
+	}
 	
 }
