@@ -196,9 +196,6 @@ public class SummaryGenerator {
 			
 			MethodSummaries classSummaries = new MethodSummaries();
 			for (String methodSig : entry.getValue()) {
-				if (!methodSig.contains("containsAll"))
-					continue;	// TODO
-				
 				MethodSummaries newSums = createMethodSummary(classpath,
 						methodSig, entry.getKey(), gapManager);
 				if (handler != null)
