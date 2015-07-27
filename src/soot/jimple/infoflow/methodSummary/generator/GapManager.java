@@ -10,6 +10,8 @@ import soot.Local;
 import soot.SootMethod;
 import soot.ValueBox;
 import soot.jimple.DefinitionStmt;
+import soot.jimple.InstanceInvokeExpr;
+import soot.jimple.InvokeExpr;
 import soot.jimple.Stmt;
 import soot.jimple.infoflow.data.Abstraction;
 import soot.jimple.infoflow.methodSummary.data.GapDefinition;
@@ -115,7 +117,7 @@ public class GapManager {
 	 */
 	public boolean needsGapConstruction(Stmt stmt, Abstraction abs, IInfoflowCFG icfg) {
 		SootMethod targetMethod = stmt.getInvokeExpr().getMethod();
-		
+				
 		// Do not report inactive flows into gaps
 		if (!abs.isAbstractionActive())
 			return false;
@@ -133,6 +135,10 @@ public class GapManager {
 				&& abs.getSourceContext().getStmt() == stmt)
 			return false;
 		
+		// Is the given incoming value even used in the gap statement?
+		if (!isValueUsedInStmt(stmt, abs))
+			return false;
+		
 		// We always construct a gap if we have no callees
 		SootMethod sm = icfg.getMethodOf(stmt);
 		Collection<SootMethod> callees = icfg.getCalleesOfCallAt(stmt);
@@ -141,8 +147,9 @@ public class GapManager {
 			// empty callee list give  us one with a self-loop. Semantically, this
 			// is however still an unknown callee.
 			if (!(callees.size() == 1 && callees.contains(sm)
-					&& stmt.getInvokeExpr().getMethod().isAbstract()))
+					&& stmt.getInvokeExpr().getMethod().isAbstract())) {
 				return false;
+			}
 		}
 		
 		// Do not build gap flows for the java.lang.System class
@@ -151,6 +158,28 @@ public class GapManager {
 		
 		// We create a gap
 		return true;
+	}
+	
+	/**
+	 * Checks whether the given value is used in the given statement
+	 * @param stmt The statement to check
+	 * @param abs The value to check
+	 * @return True if the given value is used in the given statement, otherwise
+	 * false
+	 */
+	private boolean isValueUsedInStmt(Stmt stmt, Abstraction abs) {
+		if (!stmt.containsInvokeExpr())
+			return false;
+		InvokeExpr iexpr = stmt.getInvokeExpr();
+		
+		// If this value is a parameter, we take it
+		for (int i = 0; i < iexpr.getArgCount(); i++)
+			if (abs.getAccessPath().getPlainValue() == iexpr.getArg(i))
+				return true;
+		
+		// If this is the base local, we take it
+		return iexpr instanceof InstanceInvokeExpr
+				&& ((InstanceInvokeExpr) iexpr).getBase() == abs.getAccessPath().getPlainValue();
 	}
 	
 }

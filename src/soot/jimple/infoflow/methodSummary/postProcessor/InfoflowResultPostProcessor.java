@@ -130,10 +130,6 @@ public class InfoflowResultPostProcessor {
 			
 				// Reconstruct the sources
 				for (Stmt stmt : collectedAbstractions.get(a)) {
-					
-					if (stmt.toString().equals("$z0 = virtualinvoke l0.<java.lang.Object: boolean equals(java.lang.Object)>(l1)"))
-						System.out.println("x");
-					
 					abstractionCount++;
 					
 					// If this abstraction is directly the source abstraction, we do not
@@ -405,9 +401,6 @@ public class InfoflowResultPostProcessor {
 				if (callees.isEmpty() || callee != callees.get(0))
 					callees.add(0, callee);
 				
-				// Backwards propagation (aliases), forward reconstruction: We
-				// enter a method at the beginning
-				
 				// Map the access path into the scope of the callee
 				AccessPath newAP = mapAccessPathIntoCallee(curAP, stmt, callSite, callee,
 						!abs.isAbstractionActive());
@@ -459,7 +452,7 @@ public class InfoflowResultPostProcessor {
 					}
 				}
 				
-				if (matched)
+				if (matched || abs.isAbstractionActive())
 					continue;
 				
 				// For aliasing relationships, we also need to check the right
@@ -492,7 +485,7 @@ public class InfoflowResultPostProcessor {
 				else if (assignStmt.getRightOp() instanceof InstanceFieldRef) {
 					InstanceFieldRef ifref = (InstanceFieldRef) assignStmt.getRightOp();
 					if (ifref.getBase() == curAP.getPlainValue()
-							&& ifref.getField() == curAP.getFirstField()) {
+							&& (ifref.getField() == curAP.getFirstField() || curAP.isLocal())) {
 						curAP = curAP.copyWithNewValue(assignStmt.getLeftOp(),
 								curAP.getFirstFieldType(), true, false);
 						matched = true;
@@ -574,7 +567,7 @@ public class InfoflowResultPostProcessor {
 				return curAP.copyWithNewValue(retStmt.getOp());
 			}
 		}
-						
+		
 		// Map the "this" fields into the callee
 		if (!callee.isStatic() && callSite.getInvokeExpr() instanceof InstanceInvokeExpr) {
 			InstanceInvokeExpr iiExpr = (InstanceInvokeExpr) callSite.getInvokeExpr();
@@ -838,7 +831,7 @@ public class InfoflowResultPostProcessor {
 		// Ignore identity flows
 		if (isIdentityFlow(source, sink))
 			return;
-
+		
 		MethodFlow mFlow = new MethodFlow(method, source, sink, isAlias);
 		if (summaries.addFlowForMethod(method, mFlow))
 			debugMSG(source, sink);

@@ -1,6 +1,8 @@
 package soot.jimple.infoflow.methodSummary.postProcessor;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.IdentityHashMap;
 import java.util.List;
 import java.util.Set;
 
@@ -24,6 +26,7 @@ import soot.jimple.infoflow.source.SourceInfo;
 public class SummaryPathBuilder extends ContextSensitivePathBuilder {
 	
 	private Set<SummaryResultInfo> resultInfos = new ConcurrentHashSet<SummaryResultInfo>();
+	private Set<Abstraction> visitedAbstractions = Collections.newSetFromMap(new IdentityHashMap<Abstraction,Boolean>());
 	
 	/**
 	 * Extended version of the {@link SourceInfo} class that also allows to
@@ -172,6 +175,9 @@ public class SummaryPathBuilder extends ContextSensitivePathBuilder {
 	
 	@Override
 	protected boolean checkForSource(Abstraction abs, SourceContextAndPath scap) {
+		// Record the abstraction
+		visitedAbstractions.add(abs);
+		
 		// Source abstractions do not have predecessors
 		if (abs.getPredecessor() != null)
 			return false;
@@ -196,6 +202,9 @@ public class SummaryPathBuilder extends ContextSensitivePathBuilder {
 	public void clear() {
 		super.getResults().clear();
 		resultInfos.clear();
+		for (Abstraction abs : visitedAbstractions)
+			abs.clearPathCache();
+		visitedAbstractions.clear();
 	}
 	
 	/**

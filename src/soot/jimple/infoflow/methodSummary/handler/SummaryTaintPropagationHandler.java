@@ -7,14 +7,10 @@ import soot.Scene;
 import soot.SootMethod;
 import soot.Unit;
 import soot.Value;
-import soot.jimple.DefinitionStmt;
-import soot.jimple.InstanceInvokeExpr;
-import soot.jimple.InvokeExpr;
 import soot.jimple.ReturnStmt;
 import soot.jimple.Stmt;
 import soot.jimple.ThrowStmt;
 import soot.jimple.infoflow.data.Abstraction;
-import soot.jimple.infoflow.data.AccessPath;
 import soot.jimple.infoflow.handlers.TaintPropagationHandler;
 import soot.jimple.infoflow.methodSummary.generator.GapManager;
 import soot.jimple.infoflow.solver.cfg.IInfoflowCFG;
@@ -105,29 +101,7 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 		
 		if (isValueReturnedFromCall(stmt, abs) || isGapField)
 			this.result.put(abs, (Stmt) stmt);
-	}
-	
-	/**
-	 * Checks whether the given value is used in the given statement
-	 * @param stmt The statement to check
-	 * @param abs The value to check
-	 * @return True if the given value is used in the given statement, otherwise
-	 * false
-	 */
-	private boolean isValueUsedInStmt(Stmt stmt, Abstraction abs) {
-		if (!stmt.containsInvokeExpr())
-			return false;
-		InvokeExpr iexpr = stmt.getInvokeExpr();
-		
-		// If this value is a parameter, we take it
-		for (int i = 0; i < iexpr.getArgCount(); i++)
-			if (abs.getAccessPath().getPlainValue() == iexpr.getArg(i))
-				return true;
-		
-		// If this is the base local, we take it
-		return iexpr instanceof InstanceInvokeExpr
-				&& ((InstanceInvokeExpr) iexpr).getBase() == abs.getAccessPath().getPlainValue();
-	}
+	}	
 	
 	/**
 	 * Checks whether the given value is returned from inside the callee at the
@@ -163,17 +137,10 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 	}
 	
 	private void handleCallToReturnFlow(Stmt stmt, Abstraction abs,
-			IInfoflowCFG cfg) {		
+			IInfoflowCFG cfg) {
 		// Check whether we must construct a gap
-		if (!gapManager.needsGapConstruction(stmt, abs, cfg))
-			return;		
-		
-		// If we don't have any callees, we need to build a gap into our
-		// summary. The taint wrapper takes care of continuing the analysis
-		// after the gap.
-		if (isValueUsedInStmt(stmt, abs))
-			if (hasFlowSource(abs.getAccessPath(), stmt))
-				this.result.put(abs, stmt);
+		if (gapManager.needsGapConstruction(stmt, abs, cfg))
+			this.result.put(abs, stmt);
 	}
 	
 	@Override
@@ -189,34 +156,6 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 			return Collections.emptySet();
 		
 		return outgoing;
-	}
-	
-	/**
-	 * Checks whether the given access path can be a flow source at the given
-	 * statement if the statement is interpreted as a gap   
-	 * @param accessPath The access path for which to check the flow source
-	 * @param stmt The statement that calls the sink with the given
-	 * access path
-	 * @return True if the given access path can lead to a gap at the given
-	 * statement, otherwise false
-	 */
-	private boolean hasFlowSource(AccessPath accessPath, Stmt stmt) {
-		// This can be a base object
-		if (stmt.getInvokeExpr() instanceof InstanceInvokeExpr)
-			if (((InstanceInvokeExpr) stmt.getInvokeExpr()).getBase() == accessPath.getPlainValue())
-				return true;
-		
-		// This can be a parameter
-		for (int i = 0; i < stmt.getInvokeExpr().getArgCount(); i++)
-			if (stmt.getInvokeExpr().getArg(i) == accessPath.getPlainValue())
-				return true;
-		
-		// This can be a return value
-		if (stmt instanceof DefinitionStmt)
-			if (((DefinitionStmt) stmt).getLeftOp() == accessPath.getPlainValue())
-				return true;				
-		
-		return false;
 	}
 	
 	public MultiMap<Abstraction, Stmt> getResult() {
