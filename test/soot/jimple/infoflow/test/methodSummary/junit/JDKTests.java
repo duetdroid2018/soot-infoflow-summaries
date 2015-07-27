@@ -70,14 +70,20 @@ public class JDKTests extends TestHelper {
 	
 	@Test(timeout = 300000)
 	public void gapTest3() {
-		for (int i = 0; i < 25; i++) {
 		SummaryGenerator generator = new SummaryGeneratorFactory().initSummaryGenerator();
 		MethodSummaries summaries = generator.createMethodSummaries(libPath,
 				Collections.singleton("java.util.HashMap$EntrySet"));
 		Set<MethodFlow> flow = summaries.getAllFlows();
 		Assert.assertNotNull(flow);
-		System.out.println("=============================================================");
-		}
+	}
+	
+	@Test(timeout = 300000)
+	public void gapTest4() {
+		SummaryGenerator generator = new SummaryGeneratorFactory().initSummaryGenerator();
+		MethodSummaries summaries = generator.createMethodSummaries(libPath,
+				Collections.singleton("java.util.concurrent.ConcurrentHashMap$Values"));
+		Set<MethodFlow> flow = summaries.getAllFlows();
+		Assert.assertNotNull(flow);
 	}
 	
 	@Override

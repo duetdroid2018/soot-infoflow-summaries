@@ -449,6 +449,7 @@ public class SummaryGenerator {
 		iFlow.setEnableExceptionTracking(enableExceptionTracking);
 		iFlow.setEnableStaticFieldTracking(enableStaticFieldTracking);
 		iFlow.setFlowSensitiveAliasing(flowSensitiveAliasing);
+		iFlow.setNativeCallHandler(new SummaryNativeCallHandler());
 		
 		final SummaryGenerationTaintWrapper summaryWrapper =
 				new SummaryGenerationTaintWrapper(summaries, gapManager);
