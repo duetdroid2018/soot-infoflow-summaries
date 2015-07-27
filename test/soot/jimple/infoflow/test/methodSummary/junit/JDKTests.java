@@ -68,7 +68,7 @@ public class JDKTests extends TestHelper {
 		Assert.assertNotNull(flow);
 	}
 	
-	@Test(timeout = 100000)
+	@Test(timeout = 300000)
 	public void gapTest3() {
 		for (int i = 0; i < 25; i++) {
 		SummaryGenerator generator = new SummaryGeneratorFactory().initSummaryGenerator();
