@@ -156,6 +156,9 @@ public class GapManager {
 		if (sm.getDeclaringClass().getName().equals("java.lang.System"))
 			return false;
 		
+		if (stmt.toString().contains("<java.lang.String: byte[] getBytes()>"))
+			System.out.println("x");
+		
 		// We create a gap
 		return true;
 	}

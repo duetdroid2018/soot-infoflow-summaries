@@ -277,6 +277,9 @@ public class InfoflowResultPostProcessor {
 					ap, sourceInfo.getAbstractionPath(), cfg.getMethodOf(stmt));
 			if (sourcePair == null) {
 				System.out.println("failed for: " + ap);
+				
+				reconstructSourceAP(ap, sourceInfo.getAbstractionPath(), cfg.getMethodOf(stmt));
+				
 				return;
 			}
 			AccessPath sourceAP = sourcePair.getO1();
@@ -627,7 +630,7 @@ public class InfoflowResultPostProcessor {
 		
 		// Static initializers do not modify access paths on call and return
 		if (callee.isStaticInitializer())
-			return curAP;
+			return null;
 		
 		// Make sure that we don't end up with a senseless callee
 		if (!callee.getSubSignature().equals(stmt.getInvokeExpr().getMethod().getSubSignature())
