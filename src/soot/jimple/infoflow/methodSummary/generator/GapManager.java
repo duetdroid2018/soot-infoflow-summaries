@@ -117,7 +117,7 @@ public class GapManager {
 	 */
 	public boolean needsGapConstruction(Stmt stmt, Abstraction abs, IInfoflowCFG icfg) {
 		SootMethod targetMethod = stmt.getInvokeExpr().getMethod();
-				
+		
 		// Do not report inactive flows into gaps
 		if (!abs.isAbstractionActive())
 			return false;
@@ -155,9 +155,6 @@ public class GapManager {
 		// Do not build gap flows for the java.lang.System class
 		if (sm.getDeclaringClass().getName().equals("java.lang.System"))
 			return false;
-		
-		if (stmt.toString().contains("<java.lang.String: byte[] getBytes()>"))
-			System.out.println("x");
 		
 		// We create a gap
 		return true;

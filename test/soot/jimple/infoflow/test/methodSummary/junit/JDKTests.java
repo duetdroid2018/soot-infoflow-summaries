@@ -95,6 +95,15 @@ public class JDKTests extends TestHelper {
 		Assert.assertNotNull(flow);
 	}
 	
+	@Test(timeout = 300000)
+	public void gapTest6() {
+		SummaryGenerator generator = new SummaryGeneratorFactory().initSummaryGenerator();
+		MethodSummaries summaries = generator.createMethodSummaries(libPath,
+				Collections.singleton("java.util.PriorityQueue"));
+		Set<MethodFlow> flow = summaries.getAllFlows();
+		Assert.assertNotNull(flow);
+	}
+	
 	@Override
 	protected SummaryGenerator getSummary() {
 		SummaryGenerator sg = new SummaryGenerator();

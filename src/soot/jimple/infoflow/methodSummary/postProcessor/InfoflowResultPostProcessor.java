@@ -147,14 +147,6 @@ public class InfoflowResultPostProcessor {
 						if (sourceAP == null || sinkAP == null)
 							throw new RuntimeException("Invalid access path");
 						
-						// If the path is only partial, i.e., does not end at the
-						// abstraction we are interested in, we skip it
-	//					if (si.getSourceInfo().getAbstractionPath().get(
-	//							si.getSourceInfo().getAbstractionPath().size() - 1) != a) {
-	//						System.out.println("partialed one for " + a);
-	//						continue;
-	//					}
-						
 						// We only take flows which are not identity flows.
 						// If we have a flow from a gap parameter to the original
 						// method parameter, the access paths are equal, but that's
@@ -277,11 +269,9 @@ public class InfoflowResultPostProcessor {
 					ap, sourceInfo.getAbstractionPath(), cfg.getMethodOf(stmt));
 			if (sourcePair == null) {
 				System.out.println("failed for: " + ap);
-				
-				reconstructSourceAP(ap, sourceInfo.getAbstractionPath(), cfg.getMethodOf(stmt));
-				
 				return;
 			}
+			
 			AccessPath sourceAP = sourcePair.getO1();
 			boolean isAlias = sourcePair.getO2();
 			

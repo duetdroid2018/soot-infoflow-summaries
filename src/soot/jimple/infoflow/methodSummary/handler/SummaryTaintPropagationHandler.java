@@ -100,7 +100,7 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 				abs.getAccessPath().getPlainValue());
 		
 		if (isValueReturnedFromCall(stmt, abs) || isGapField)
-			this.result.put(abs, (Stmt) stmt);
+			addResult(abs, (Stmt) stmt);
 	}	
 	
 	/**
@@ -140,9 +140,26 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 			IInfoflowCFG cfg) {
 		// Check whether we must construct a gap
 		if (gapManager.needsGapConstruction(stmt, abs, cfg))
-			this.result.put(abs, stmt);
+			addResult(abs, stmt);
 	}
 	
+	/**
+	 * Adds the given abstraction and statement to the result map
+	 * @param abs The abstraction to be collected
+	 * @param stmt The statement at which the abstraction was collected
+	 */
+	private void addResult(Abstraction abs, Stmt stmt) {
+		// Add the abstraction to the map. If we already have an equal
+		// abstraction, we must add the current one as a neighbor.
+		if (!this.result.put(abs, stmt)) {
+			for (Abstraction abs2 : result.keySet()) {
+				if (abs.equals(abs2)) {
+					abs2.addNeighbor(abs);
+				}
+			}
+		}
+	}
+
 	@Override
 	public Set<Abstraction> notifyFlowOut(Unit u,
 			Abstraction d1,
