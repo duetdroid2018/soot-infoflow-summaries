@@ -226,20 +226,28 @@ public class InfoflowResultPostProcessor {
 	 * @param flows The flow set to compact
 	 */
 	private void compactFlowSet(MethodSummaries flows) {
-		for (Iterator<MethodFlow> flowIt = flows.iterator(); flowIt.hasNext(); ) {
-			MethodFlow flow = flowIt.next();
-			
-			// Check if there is a more precise flow
-			boolean hasMorePreciseFlow = false;
-			for (MethodFlow flow2 : flows)
-				if (flow != flow2 && flow.isCoarserThan(flow2)) {
-					flowIt.remove();
-					hasMorePreciseFlow = true;
+		int flowsRemoved = 0;
+		boolean hasChanged = false;
+		do {
+			hasChanged = false;
+			for (Iterator<MethodFlow> flowIt = flows.iterator(); flowIt.hasNext(); ) {
+				MethodFlow flow = flowIt.next();
+				
+				// Check if there is a more precise flow
+				for (MethodFlow flow2 : flows)
+					if (flow != flow2 && flow.isCoarserThan(flow2)) {
+						flowIt.remove();
+						flowsRemoved++;
+						hasChanged = true;
+						break;
+					}
+				
+				if (hasChanged)
 					break;
-				}
-			if (hasMorePreciseFlow)
-				continue;
-		}
+			}
+		} while (hasChanged);
+		
+		logger.info("Removed {} flows in favour of more precise ones", flowsRemoved);
 	}
 
 	/**

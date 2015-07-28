@@ -8,6 +8,7 @@ import soot.jimple.DefinitionStmt;
 import soot.jimple.Stmt;
 import soot.jimple.infoflow.data.Abstraction;
 import soot.jimple.infoflow.data.AccessPath;
+import soot.jimple.infoflow.nativ.DefaultNativeCallHandler;
 import soot.jimple.infoflow.nativ.NativeCallHandler;
 
 /**
@@ -17,10 +18,16 @@ import soot.jimple.infoflow.nativ.NativeCallHandler;
  *
  */
 public class SummaryNativeCallHandler extends NativeCallHandler {
-
+	
+	private NativeCallHandler fallbackHandler = new DefaultNativeCallHandler();
+	
 	@Override
 	public Set<Abstraction> getTaintedValues(Stmt call, Abstraction source,
 			Value[] params) {
+		// Check the fallback handler first, before doing an over-approximation
+		if (fallbackHandler.supportsCall(call))
+			return fallbackHandler.getTaintedValues(call, source, params);
+		
 		// Check whether we have an incoming access path
 		boolean found = false;
 		for (Value val : call.getInvokeExpr().getArgs())
@@ -39,6 +46,12 @@ public class SummaryNativeCallHandler extends NativeCallHandler {
 		}
 		
 		return Collections.emptySet();
+	}
+
+	@Override
+	public boolean supportsCall(Stmt call) {
+		// We over-approximate everything
+		return true;
 	}
 
 }
