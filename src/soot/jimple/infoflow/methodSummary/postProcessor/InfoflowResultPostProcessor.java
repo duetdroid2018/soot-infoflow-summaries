@@ -240,6 +240,15 @@ public class InfoflowResultPostProcessor {
 		} while (hasChanged);
 		
 		logger.info("Removed {} flows in favour of more precise ones", flowsRemoved);
+		
+		// If we only have incoming flows into a gap, but no outgoing ones, we
+		// can remove the gap and all its flows altogether
+		for (GapDefinition gd : flows.getAllGaps()) {
+			if (flows.getOutFlowsForGap(gd).isEmpty()) {
+				flows.removeAll(flows.getInFlowsForGap(gd));
+				flows.removeGap(gd);
+			}
+		}
 	}
 
 	/**

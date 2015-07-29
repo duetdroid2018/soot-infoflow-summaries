@@ -191,6 +191,13 @@ public class SummaryGenerator {
 		MethodSummaries summaries = new MethodSummaries();
 		for (Entry<String, Collection<String>> entry : methodsToAnalyze
 				.entrySet()) {
+			// Check if we really need to analyze this class
+			if (handler != null)
+				if (!handler.onBeforeAnalyzeClass(entry.getKey())) {
+					System.out.println("Skipping over class " + entry.getKey());
+					continue;
+				}
+			
 			long nanosBeforeClass = System.nanoTime();
 			System.out.println("Analyzing class " + entry.getKey());
 			

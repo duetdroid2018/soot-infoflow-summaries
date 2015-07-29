@@ -358,4 +358,46 @@ public class MethodSummaries implements Iterable<MethodFlow> {
 			}
 	}
 	
+	/**
+	 * Gets all flows into the given gap
+	 * @param gd The gap for which to get the incoming flows
+	 * @return The set of flows into the given gap
+	 */
+	public Set<MethodFlow> getInFlowsForGap(GapDefinition gd) {
+		Set<MethodFlow> res = new HashSet<>();
+		for (String methodName : getFlows().keySet())
+			for (MethodFlow flow : getFlows().get(methodName)) {
+				if (flow.sink().getGap() == gd)
+					res.add(flow);
+			}
+		return res;
+	}
+	
+	/**
+	 * Gets all flows out of the given gap
+	 * @param gd The gap for which to get the outgoing flows
+	 * @return The set of flows out of the given gap
+	 */
+	public Set<MethodFlow> getOutFlowsForGap(GapDefinition gd) {
+		Set<MethodFlow> res = new HashSet<>();
+		for (String methodName : getFlows().keySet())
+			for (MethodFlow flow : getFlows().get(methodName)) {
+				if (flow.source().getGap() == gd)
+					res.add(flow);
+			}
+		return res;
+	}
+	
+	/**
+	 * Removes all of the given flows from this flow set
+	 * @param toRemove The collection of flows to remove
+	 */
+	public void removeAll(Collection<MethodFlow> toRemove) {
+		for (Iterator<MethodFlow> flowIt = this.iterator(); flowIt.hasNext(); ) {
+			MethodFlow flow = flowIt.next();
+			if (toRemove.contains(flow))
+				flowIt.remove();
+		}
+	}
+	
 }

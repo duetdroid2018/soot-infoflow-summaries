@@ -66,6 +66,13 @@ class Main {
 				classesToAnalyze, new IClassSummaryHandler() {
 			
 			@Override
+			public boolean onBeforeAnalyzeClass(String className) {
+				// If we already have a summary file for this class, we skip over it
+				String summaryFile = className + ".xml";
+				return !new File(args[1], summaryFile).exists();
+			}
+			
+			@Override
 			public void onMethodFinished(String methodSignature, MethodSummaries summaries) {
 				System.out.println("Method " + methodSignature + " done.");
 			}

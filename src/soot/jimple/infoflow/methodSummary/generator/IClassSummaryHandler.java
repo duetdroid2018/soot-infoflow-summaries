@@ -11,6 +11,14 @@ import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
 public interface IClassSummaryHandler {
 	
 	/**
+	 * Callback that is invoked before summaries for the given class are created.
+	 * Implementers can use this callback to skip over certain classes.
+	 * @param className
+	 * @return
+	 */
+	public boolean onBeforeAnalyzeClass(String className);
+	
+	/**
 	 * Callback that is invoked when a methods inside a class has been summarized
 	 * @param methodSignature The signature of the method that has been
 	 * summarized

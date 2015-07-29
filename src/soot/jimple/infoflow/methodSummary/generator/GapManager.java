@@ -155,6 +155,8 @@ public class GapManager {
 		// Do not build gap flows for the java.lang.System class
 		if (sm.getDeclaringClass().getName().equals("java.lang.System"))
 			return false;
+		if (targetMethod.getDeclaringClass().getName().startsWith("sun."))
+			return false;
 		
 		// We create a gap
 		return true;
