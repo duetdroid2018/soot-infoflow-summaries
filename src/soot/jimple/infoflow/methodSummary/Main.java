@@ -27,6 +27,7 @@ class Main {
 			return;
 		}
 		
+		boolean forceOverwrite = false;
 		boolean loadFullJAR = false;
 		Set<String> excludes = new HashSet<>();
 		
@@ -36,7 +37,9 @@ class Main {
 		int i = offset;
 		while (i < args.length) {
 			if (args[i].startsWith("--")) {
-				if (args[i].equalsIgnoreCase("--loadFullJar"))
+				if (args[i].equalsIgnoreCase("--forceOverwrite"))
+					forceOverwrite = true;
+				else if (args[i].equalsIgnoreCase("--loadFullJar"))
 					loadFullJAR = true;
 				else if (args[i].equalsIgnoreCase("--exclude")) {
 					excludes.add(args[i + 1]);
@@ -62,11 +65,16 @@ class Main {
 		SummaryGenerator generator = new SummaryGeneratorFactory().initSummaryGenerator();
 		generator.setLoadFullJAR(loadFullJAR);
 		generator.setExcludes(excludes);
+		final boolean doForceOverwrite = forceOverwrite;
 		MethodSummaries summaries = generator.createMethodSummaries(args[0],
 				classesToAnalyze, new IClassSummaryHandler() {
 			
 			@Override
 			public boolean onBeforeAnalyzeClass(String className) {
+				// Are we forced to analyze all classes?
+				if (doForceOverwrite)
+					return true;
+				
 				// If we already have a summary file for this class, we skip over it
 				String summaryFile = className + ".xml";
 				return !new File(args[1], summaryFile).exists();
@@ -106,6 +114,7 @@ class Main {
 				+ "[2] = <list of classes>, [3] = <optional arguments>");
 		System.out.println();
 		System.out.println("Supported optional arguments:");
+		System.out.println("\t--forceOverwrite: Load all classes in the given JAR");
 		System.out.println("\t--loadFullJar: Load all classes in the given JAR");
 		System.out.println("\t--exclude: Exclude the given class or package");
 	}
