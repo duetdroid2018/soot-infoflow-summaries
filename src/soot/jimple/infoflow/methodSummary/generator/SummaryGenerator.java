@@ -73,6 +73,7 @@ public class SummaryGenerator {
 	protected List<String> substitutedWith = new LinkedList<String>();
 	private boolean loadFullJAR = false;
 	private Set<String> excludes = null;
+	private int repeatCount = 1;
 	
 	public SummaryGenerator() {
 	}
@@ -198,27 +199,31 @@ public class SummaryGenerator {
 					continue;
 				}
 			
-			long nanosBeforeClass = System.nanoTime();
-			System.out.println("Analyzing class " + entry.getKey());
-			
-			MethodSummaries classSummaries = new MethodSummaries();
-			for (String methodSig : entry.getValue()) {
-				MethodSummaries newSums = createMethodSummary(classpath,
-						methodSig, entry.getKey(), gapManager);
-				if (handler != null)
-					handler.onMethodFinished(methodSig, classSummaries);
-				classSummaries.merge(newSums);
+			MethodSummaries classSummaries = null;
+			for (int i = 0; i < repeatCount; i++) {
+				long nanosBeforeClass = System.nanoTime();
+				System.out.println("Analyzing class " + entry.getKey());
+				
+				classSummaries = new MethodSummaries();
+				for (String methodSig : entry.getValue()) {
+					MethodSummaries newSums = createMethodSummary(classpath,
+							methodSig, entry.getKey(), gapManager);
+					if (handler != null)
+						handler.onMethodFinished(methodSig, classSummaries);
+					classSummaries.merge(newSums);
+				}
+				
+				// Clean up the gaps
+				cleanupGaps(classSummaries);
+				
+				System.out.println("Class summaries for " + entry.getKey() + " done in "
+						+ (System.nanoTime() - nanosBeforeClass) / 1E9 + " seconds");
 			}
 			
-			// Clean up the gaps
-			cleanupGaps(classSummaries);
-			
+			// Notify the handler that we're done
 			if (handler != null)
 				handler.onClassFinished(entry.getKey(), classSummaries);
 			summaries.merge(classSummaries);
-			
-			System.out.println("Class summaries for " + entry.getKey() + " done in "
-					+ (System.nanoTime() - nanosBeforeClass) / 1E9 + " seconds");
 		}
 		
 		// Calculate the dependencies
@@ -604,17 +609,41 @@ public class SummaryGenerator {
 			boolean ignoreFlowsInSystemPackages) {
 		this.ignoreFlowsInSystemPackages = ignoreFlowsInSystemPackages;
 	}
-
+	
 	public void setUseRecursiveAccessPaths(boolean useRecursiveAccessPaths) {
 		this.useRecursiveAccessPaths = useRecursiveAccessPaths;
 	}
-
+	
+	/**
+	 * Sets whether the target JAR file shall be loaded fully before the
+	 * analysis starts. More precisely, this instructs StubDroid to not only
+	 * explicitly load the target classes, but put the whole target JAR into
+	 * Soot's process directory. This is, for instance, useful when analyzing
+	 * all classes derived from a certain superclass. 
+	 * @param loadFullJAR True if the target JAR file shall be fully loaded
+	 * before performing the analysis, otherwise false.
+	 */
 	public void setLoadFullJAR(boolean loadFullJAR) {
 		this.loadFullJAR = loadFullJAR;
 	}
 	
+	/**
+	 * Sets the set of classes to be excluded from the analysis. Use pkg.* to
+	 * exclude all classes in package "pkg"
+	 * @param excludes The set of classes and packages to be excluded
+	 */
 	public void setExcludes(Set<String> excludes) {
 		this.excludes = excludes;
+	}
+	
+	/**
+	 * Sets the number of time the analysis of every class shall be repeated.
+	 * This is useful for measurements and evaluations.
+	 * @param repeatCount The number of time the analysis of every class shall
+	 * be repeated
+	 */
+	public void setRepeatCount(int repeatCount) {
+		this.repeatCount = repeatCount;
 	}
 
 }

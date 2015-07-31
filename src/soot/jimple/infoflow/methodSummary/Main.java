@@ -30,6 +30,7 @@ class Main {
 		boolean forceOverwrite = false;
 		boolean loadFullJAR = false;
 		Set<String> excludes = new HashSet<>();
+		int repeatCount = 1;
 		
 		// Collect the classes to be analyzed from our command line
 		final int offset = 2;
@@ -43,6 +44,10 @@ class Main {
 					loadFullJAR = true;
 				else if (args[i].equalsIgnoreCase("--exclude")) {
 					excludes.add(args[i + 1]);
+					i++;
+				}
+				else if (args[i].equalsIgnoreCase("--repeat")) {
+					repeatCount = Integer.parseInt(args[i + 1]);
 					i++;
 				}
 				else {
@@ -65,6 +70,7 @@ class Main {
 		SummaryGenerator generator = new SummaryGeneratorFactory().initSummaryGenerator();
 		generator.setLoadFullJAR(loadFullJAR);
 		generator.setExcludes(excludes);
+		generator.setRepeatCount(repeatCount);
 		final boolean doForceOverwrite = forceOverwrite;
 		MethodSummaries summaries = generator.createMethodSummaries(args[0],
 				classesToAnalyze, new IClassSummaryHandler() {
@@ -117,6 +123,7 @@ class Main {
 		System.out.println("\t--forceOverwrite: Load all classes in the given JAR");
 		System.out.println("\t--loadFullJar: Load all classes in the given JAR");
 		System.out.println("\t--exclude: Exclude the given class or package");
+		System.out.println("\t--repeat n: Repeat the analysis of each class n times");
 	}
 	
 	/**
