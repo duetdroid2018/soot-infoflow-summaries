@@ -130,8 +130,6 @@ public class InfoflowResultPostProcessor {
 				
 				// Reconstruct the sources
 				for (Stmt stmt : collectedAbstractions.get(a)) {
-					System.out.println(a + "\n\tAT " + stmt);
-					
 					abstractionCount++;
 					
 					// If this abstraction is directly the source abstraction, we do not
