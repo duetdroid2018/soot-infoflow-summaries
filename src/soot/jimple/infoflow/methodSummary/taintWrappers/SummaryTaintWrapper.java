@@ -383,8 +383,12 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 		// corresponding local
 		if (t.isParameter() && stmt.containsInvokeExpr()) {
 			InvokeExpr iexpr = stmt.getInvokeExpr();
-			return new AccessPath(iexpr.getArg(t.getParameterIndex()),
-					fields, baseType, types, t.taintSubFields());
+			Value paramVal = iexpr.getArg(t.getParameterIndex());
+			if (!AccessPath.canContainValue(paramVal))
+				return null;
+			
+			return new AccessPath(paramVal, fields, baseType, types,
+					t.taintSubFields());
 		}
 		
 		// If the taint is on the base value, we need to taint the base local
@@ -521,6 +525,10 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 		while (!workList.isEmpty()) {
 			final AccessPathPropagator curPropagator = workList.remove(0);
 			final GapDefinition curGap = curPropagator.getGap();
+			
+			// Make sure that we really don't run in circles
+			if (!doneSet.add(curPropagator))
+				continue;
 						
 			// Make sure we don't have invalid data
 			if (curGap != null && curPropagator.getParent() == null)
