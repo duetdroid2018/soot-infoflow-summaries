@@ -27,11 +27,15 @@ public abstract class TestHelper {
 	protected static final String INT_ARRAY_TYPE = "int[]";
 	protected static final String LIST_TYPE = "java.util.List";
 	protected static final String STRING_TYPE = "java.lang.String";
-	protected static final String DATA_TYPE = "soot.jimple.infoflow.test.methodSummary.Data";
-	protected final static String DATACLASS_SIG = DATA_TYPE;
+	
+	protected static final String DATACLASS_SIG = "soot.jimple.infoflow.test.methodSummary.Data";
 	protected final static String DATACLASS_INT_FIELD = "<" + DATACLASS_SIG + ": int value>";
 	protected final static String DATACLASS_OBJECT_FIELD = "<" + DATACLASS_SIG + ": " + OBJECT_TYPE + " objectField>";
 	protected final static String DATACLASS_STRING_FIELD = "<" + DATACLASS_SIG + ": " + STRING_TYPE + " stringField>";
+	
+	protected static final String APICLASS_SIG = "soot.jimple.infoflow.test.methodSummary.ApiClass";
+	protected final static String APICLASS_DATA_FIELD = "<" + APICLASS_SIG + ": soot.jimple.infoflow.test.methodSummary.Data dataField>";
+	
 	protected final static String LINKEDLIST_FIRST = "<java.util.LinkedList: java.util.LinkedList$Node first>";
 	protected final static String LINKEDLIST_LAST = "<java.util.LinkedList: java.util.LinkedList$Node last>";
 	protected final static String LINKEDLIST_ITEM = "<java.util.LinkedList$Node: java.lang.Object item>";

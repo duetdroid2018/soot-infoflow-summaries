@@ -1,6 +1,7 @@
 package soot.jimple.infoflow.methodSummary.handler;
 
 import java.util.Collections;
+import java.util.Iterator;
 import java.util.Set;
 
 import soot.Scene;
@@ -29,7 +30,7 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 	private final GapManager gapManager;
 	private SootMethod method = null;
 	
-	private MultiMap<Abstraction, Stmt> result = new ConcurrentHashMultiMap<>();
+	private ConcurrentHashMultiMap<Abstraction, Stmt> result = new ConcurrentHashMultiMap<>();
 	
 	public SummaryTaintPropagationHandler(String m, String parentClass,
 			GapManager gapManager) {
@@ -73,7 +74,7 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 				return;
 			
 			// Record the flow which leaves the method
-			handleReturnFlow(stmt, result, cfg);
+			handleReturnFlow((Stmt) stmt, result, cfg);
 		}
 		else if (type.equals(TaintPropagationHandler.FlowFunctionType.CallToReturnFlowFunction))
 			handleCallToReturnFlow((Stmt) stmt, result, cfg);
@@ -85,23 +86,49 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 	 * @param abs The taint abstraction that leaves the method
 	 * @param cfg The control flow graph
 	 */
-	private void handleReturnFlow(Unit stmt,
+	private void handleReturnFlow(Stmt stmt,
 			Abstraction abs,
 			IInfoflowCFG cfg) {		
 		// Check whether we must register the abstraction for post-processing
 		// We ignore inactive abstractions
 		if (!abs.isAbstractionActive())
 			return;
-				
-		// If this a taint on a field of a gap object, we need to report it as
-		// well. Code can obtain references to library objects are store data in
-		// there.
-		boolean isGapField = gapManager.isLocalReferencedInGap(
-				abs.getAccessPath().getPlainValue());
 		
-		if (isValueReturnedFromCall(stmt, abs) || isGapField)
-			addResult(abs, (Stmt) stmt);
+		// We record all results during the taint propagation. At this point in
+		// time, we cannot yet decide whether a gap that references the respective
+		// base local will later be created.
+		addResult(abs, stmt);
 	}	
+	
+	/**
+	 * Removes all collected abstractions that are neither returned from the
+	 * method to be summarized, nor referenced in gaps
+	 */
+	private void purgeResults() {
+		for (Iterator<Abstraction> absIt = result.keySet().iterator();
+				absIt.hasNext(); ) {
+			Abstraction abs = absIt.next();
+			
+			// If this a taint on a field of a gap object, we need to report it as
+			// well. Code can obtain references to library objects are store data in
+			// there.
+			boolean isGapField = gapManager.isLocalReferencedInGap(
+					abs.getAccessPath().getPlainValue());
+			
+			// If this abstraction is neither referenced in a gap, nor returned,
+			// we remove it
+			if (!isGapField) {
+				boolean isReturned = false;
+				for (Stmt stmt : result.get(abs))
+					if (isValueReturnedFromCall(stmt, abs)) {
+						isReturned = true;
+						break;
+					}
+				if (!isReturned)
+					absIt.remove();
+			}		
+		}
+	}
 	
 	/**
 	 * Checks whether the given value is returned from inside the callee at the
@@ -155,6 +182,7 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 			for (Abstraction abs2 : result.keySet()) {
 				if (abs.equals(abs2)) {
 					abs2.addNeighbor(abs);
+					break;
 				}
 			}
 		}
@@ -176,6 +204,7 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 	}
 	
 	public MultiMap<Abstraction, Stmt> getResult() {
+		purgeResults();
 		return result;
 	}
 	

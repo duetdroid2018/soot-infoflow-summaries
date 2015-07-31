@@ -29,7 +29,7 @@ public class ArbitraryAccessPathTests  extends TestHelper{
 	
 	@Test(timeout = 100000)
 	public void getNullData() {
-		String mSig = mSig(DATA_TYPE,"getNullData","");
+		String mSig = mSig(DATACLASS_SIG,"getNullData","");
 		Set<MethodFlow> res = createSummaries(mSig).getAllFlows();
 		assertTrue(containsFlow(res, Field,new String[] {NULL_FIELD}, SourceSinkType.Return,new String[] {}));
 		assertEquals(1,res.size());
@@ -37,7 +37,7 @@ public class ArbitraryAccessPathTests  extends TestHelper{
 	
 	@Test (timeout = 100000)
 	public void getData() {
-		String mSig = mSig(DATA_TYPE,"getData","");
+		String mSig = mSig(DATACLASS_SIG, "getData","");
 		Set<MethodFlow> res = createSummaries(mSig).getAllFlows();
 		assertTrue(containsFlow(res, Field,new String[] {DATA_FIELD}, SourceSinkType.Return,new String[] {}));
 		assertEquals(1,res.size());
@@ -45,7 +45,7 @@ public class ArbitraryAccessPathTests  extends TestHelper{
 	
 	@Test(timeout = 100000)
 	public void getNullData2() {
-		String mSig = mSig(DATA_TYPE,"getNullData2","");
+		String mSig = mSig(DATACLASS_SIG, "getNullData2","");
 		Set<MethodFlow> res = createSummaries(mSig).getAllFlows();
 		assertTrue(containsFlow(res, Field,new String[] {NULL_FIELD,_D}, SourceSinkType.Return,new String[] {}));
 		assertEquals(1,res.size());
@@ -53,7 +53,7 @@ public class ArbitraryAccessPathTests  extends TestHelper{
 	
 	@Test(timeout = 100000)
 	public void getData2() {
-		String mSig = mSig(DATA_TYPE,"getData2","");
+		String mSig = mSig(DATACLASS_SIG, "getData2","");
 		Set<MethodFlow> res = createSummaries(mSig).getAllFlows();
 		assertTrue(containsFlow(res, Field,new String[] {DATA_FIELD,_D}, SourceSinkType.Return,new String[] {}));
 		assertEquals(1,res.size());
@@ -61,7 +61,7 @@ public class ArbitraryAccessPathTests  extends TestHelper{
 	
 	@Test(timeout = 100000)
 	public void getNullData3() {
-		String mSig = mSig(DATA_TYPE,"getNullData3","");
+		String mSig = mSig(DATACLASS_SIG, "getNullData3","");
 		Set<MethodFlow> res = createSummaries(mSig).getAllFlows();
 		assertTrue(containsFlow(res, Field,new String[] {NULL_FIELD,_D,_D}, SourceSinkType.Return,new String[] {}));
 		assertEquals(1,res.size());
@@ -69,7 +69,7 @@ public class ArbitraryAccessPathTests  extends TestHelper{
 	
 	@Test(timeout = 100000)
 	public void getData3() {
-		String mSig = mSig(DATA_TYPE,"getData3","");
+		String mSig = mSig(DATACLASS_SIG, "getData3","");
 		Set<MethodFlow> res = createSummaries(mSig).getAllFlows();
 		assertTrue(containsFlow(res, Field,new String[] {DATA_FIELD,_D,_D}, SourceSinkType.Return,new String[] {}));
 		assertEquals(1,res.size());
@@ -77,7 +77,7 @@ public class ArbitraryAccessPathTests  extends TestHelper{
 	
 	@Test(timeout = 100000)
 	public void setData() {
-		String mSig = mSig("void","setData",DATA_TYPE);
+		String mSig = mSig("void","setData", DATACLASS_SIG);
 		Set<MethodFlow> res = createSummaries(mSig).getAllFlows();
 		assertTrue(containsFlow(res, Parameter,0, null, Field,new String[] {DATA_FIELD}));
 		assertEquals(1,res.size());
@@ -85,7 +85,7 @@ public class ArbitraryAccessPathTests  extends TestHelper{
 	
 	@Test(timeout = 100000)
 	public void setData2() {
-		String mSig = mSig("void","setData2",DATA_TYPE);
+		String mSig = mSig("void","setData2", DATACLASS_SIG);
 		Set<MethodFlow> res = createSummaries(mSig).getAllFlows();
 		assertTrue(containsFlow(res, Parameter,0,new String[] {_D}, Field,new String[] {DATA_FIELD, _D}));
 		assertEquals(1,res.size());
@@ -93,7 +93,7 @@ public class ArbitraryAccessPathTests  extends TestHelper{
 	
 	@Test(timeout = 100000)
 	public void setData3() {
-		String mSig = mSig("void","setData3",DATA_TYPE);
+		String mSig = mSig("void","setData3", DATACLASS_SIG);
 		Set<MethodFlow> res = createSummaries(mSig).getAllFlows();
 		assertTrue(containsFlow(res, Parameter,0,new String[] {_D,_D}, Field,new String[] {DATA_FIELD,_D,_D}));
 		assertEquals(1,res.size());
@@ -101,7 +101,7 @@ public class ArbitraryAccessPathTests  extends TestHelper{
 	
 	@Test(timeout = 100000)
 	public void setNullData() {
-		String mSig = mSig("void","setNullData",DATA_TYPE);
+		String mSig = mSig("void","setNullData", DATACLASS_SIG);
 		Set<MethodFlow> res = createSummaries(mSig).getAllFlows();
 		assertTrue(containsFlow(res, Parameter,0,null, Field,new String[] {NULL_FIELD}));
 		assertEquals(1,res.size());
@@ -109,7 +109,7 @@ public class ArbitraryAccessPathTests  extends TestHelper{
 
 	@Test(timeout = 100000)
 	public void setNullData2() {
-		String mSig = mSig("void","setNullData2",DATA_TYPE);
+		String mSig = mSig("void","setNullData2", DATACLASS_SIG);
 		Set<MethodFlow> res = createSummaries(mSig).getAllFlows();
 		assertTrue(containsFlow(res, Parameter,0, new String[] {_D}, Field,new String[] {NULL_FIELD, _D}));
 		assertEquals(1,res.size());
@@ -117,7 +117,7 @@ public class ArbitraryAccessPathTests  extends TestHelper{
 
 	@Test(timeout = 100000)
 	public void setNullData3() {
-		String mSig = mSig("void","setNullData3",DATA_TYPE);
+		String mSig = mSig("void","setNullData3", DATACLASS_SIG);
 		Set<MethodFlow> res = createSummaries(mSig).getAllFlows();
 		assertTrue(containsFlow(res, Parameter,0, new String[] {_D,_D}, Field,new String[] {NULL_FIELD, _D,_D}));
 		assertEquals(1,res.size());
@@ -133,14 +133,14 @@ public class ArbitraryAccessPathTests  extends TestHelper{
 
 	@Test(timeout = 100000)
 	public void getDataViaParameter() {
-		String mSig = mSig("void","getDataViaParameter",DATA_TYPE);
+		String mSig = mSig("void","getDataViaParameter", DATACLASS_SIG);
 		Set<MethodFlow> res = createSummaries(mSig).getAllFlows();
 		assertTrue(containsFlow(res, Field,new String[] {DATA_FIELD,_D,_D,_D}, Parameter,0,new String[] {_D,_D,_D}));
 		assertEquals(1,res.size());
 	}
 	@Test(timeout = 100000)
 	public void getNullDataViaParameter() {
-		String mSig = mSig("void","getNullDataViaParameter",DATA_TYPE);
+		String mSig = mSig("void","getNullDataViaParameter", DATACLASS_SIG);
 		Set<MethodFlow> res = createSummaries(mSig).getAllFlows();
 		assertTrue(containsFlow(res, Field,new String[] {NULL_FIELD,_D,_D,_D}, Parameter,0,new String[] {_D,_D,_D}));
 		assertEquals(1,res.size());
@@ -172,7 +172,7 @@ public class ArbitraryAccessPathTests  extends TestHelper{
 	
 	@Test(timeout = 100000)
 	public void parameterToParameter() {
-		String mSig = mSig("void","parameterToParameter",DATA_TYPE,DATA_TYPE);
+		String mSig = mSig("void","parameterToParameter",DATACLASS_SIG, DATACLASS_SIG);
 		Set<MethodFlow> res = createSummaries(mSig).getAllFlows();
 		assertTrue(containsFlow(res, Parameter,0,new String[] {_D,_D,_D}, Parameter,1,new String[] {_D,_D}));
 		assertEquals(1,res.size());
@@ -180,7 +180,7 @@ public class ArbitraryAccessPathTests  extends TestHelper{
 	
 	@Test(timeout = 100000)
 	public void parameterToReturn() {
-		String mSig = mSig(DATA_TYPE,"parameterToReturn",DATA_TYPE);
+		String mSig = mSig(DATACLASS_SIG, "parameterToReturn", DATACLASS_SIG);
 		Set<MethodFlow> res = createSummaries(mSig).getAllFlows();
 		assertTrue(containsFlow(res, Parameter,0,new String[] {_D,_D,_D}, SourceSinkType.Return,new String[] {_D,_D}));
 		assertEquals(1,res.size());

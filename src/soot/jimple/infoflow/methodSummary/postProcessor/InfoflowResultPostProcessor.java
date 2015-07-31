@@ -127,9 +127,11 @@ public class InfoflowResultPostProcessor {
 						new AbstractionAtSink(a, a.getCurrentStmt())));
 				logger.info("Obtained {} source-to-sink connections.",
 						pathBuilder.getResultInfos().size());
-			
+				
 				// Reconstruct the sources
 				for (Stmt stmt : collectedAbstractions.get(a)) {
+					System.out.println(a + "\n\tAT " + stmt);
+					
 					abstractionCount++;
 					
 					// If this abstraction is directly the source abstraction, we do not
@@ -449,7 +451,7 @@ public class InfoflowResultPostProcessor {
 						}
 					}
 					
-					curAP = curAP.copyWithNewValue(rop, null, false, false);
+					curAP = curAP.copyWithNewValue(rop, null, false, true);
 					matched = true;
 				}
 				else if (assignStmt.getLeftOp() instanceof InstanceFieldRef) {
@@ -494,10 +496,10 @@ public class InfoflowResultPostProcessor {
 				}
 				else if (assignStmt.getRightOp() instanceof InstanceFieldRef) {
 					InstanceFieldRef ifref = (InstanceFieldRef) assignStmt.getRightOp();
-					if (ifref.getBase() == curAP.getPlainValue()
-							&& (ifref.getField() == curAP.getFirstField() || curAP.isLocal())) {
-						curAP = curAP.copyWithNewValue(assignStmt.getLeftOp(),
-								curAP.getFirstFieldType(), true, false);
+					AccessPath matchedAP = matchAccessPath(curAP, ifref.getBase(), ifref.getField());
+					if (matchedAP != null) {
+						curAP = matchedAP.copyWithNewValue(assignStmt.getLeftOp(),
+								matchedAP.getFirstFieldType(), true, false);
 						matched = true;
 					}
 				}

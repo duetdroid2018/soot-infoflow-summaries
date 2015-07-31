@@ -53,12 +53,12 @@ public class SummaryPathBuilder extends ContextSensitivePathBuilder {
 		}
 		
 		@Override
-		public List<Stmt> getPath() {
+		public Stmt[] getPath() {
 			List<Stmt> stmts = new ArrayList<>(abstractionPath.size());
 			for (Abstraction abs : abstractionPath)
 				if (abs.getCurrentStmt() != null)
 					stmts.add(abs.getCurrentStmt());
-			return stmts;
+			return stmts.toArray(new Stmt[stmts.size()]);
 		}
 
 		@Override

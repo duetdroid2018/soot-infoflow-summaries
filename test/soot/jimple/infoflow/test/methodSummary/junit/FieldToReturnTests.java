@@ -128,7 +128,7 @@ public class FieldToReturnTests extends TestHelper{
 	
 	@Test(timeout = 100000)
 	public void fieldToReturn12() {
-		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: "+DATA_TYPE+" fieldToReturn12()>";
+		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: "+ DATACLASS_SIG +" fieldToReturn12()>";
 		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 		assertTrue(containsFlow(flow, Field,new String[] {DATA_FIELD,DATACLASS_INT_FIELD}, Return,new String[] {DATACLASS_INT_FIELD}));
 		assertTrue(flow.size() == 1);
@@ -136,7 +136,7 @@ public class FieldToReturnTests extends TestHelper{
 	
 	@Test(timeout = 100000)
 	public void fieldToReturn13() {
-		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: "+DATA_TYPE+" fieldToReturn13()>";
+		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: "+DATACLASS_SIG+" fieldToReturn13()>";
 		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 		assertTrue(containsFlow(flow, Field,new String[] {DATA_FIELD,DATACLASS_OBJECT_FIELD}, Return,new String[] {DATACLASS_OBJECT_FIELD}));
 		assertTrue(flow.size() == 1);
@@ -144,7 +144,7 @@ public class FieldToReturnTests extends TestHelper{
 	
 	@Test(timeout = 100000)
 	public void fieldToReturn14() {
-		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: "+DATA_TYPE+" fieldToReturn14()>";
+		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToReturn: "+DATACLASS_SIG+" fieldToReturn14()>";
 		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 		assertTrue(containsFlow(flow, Field,new String[] {INT_FIELD}, Return,new String[] {DATACLASS_INT_FIELD}));
 		assertTrue(flow.size() == 1);
