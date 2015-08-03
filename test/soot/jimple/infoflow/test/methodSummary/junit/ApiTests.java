@@ -532,7 +532,7 @@ public class ApiTests extends ApiTestHelper {
 				"<soot.jimple.infoflow.test.methodSummary.IGapClass: soot.jimple.infoflow.test.methodSummary.Data retrieveData()>", 
 				Return, -1, null, ""));
 		assertTrue(containsFlow(res, Parameter, 1, null, "",
-				Field, -1, new String[] { DATA_STRING_FIELD },
+				Return, -1, new String[] { DATA_STRING_FIELD },
 				"<soot.jimple.infoflow.test.methodSummary.IGapClass: soot.jimple.infoflow.test.methodSummary.Data retrieveData()>"));
 	}
 	
