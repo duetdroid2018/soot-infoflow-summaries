@@ -42,13 +42,15 @@ public class FlowSink extends AbstractFlowSinkSource {
 	public FlowSink(SourceSinkType type, String baseType, String[] accessPath,
 			String[] accessPathTypes, boolean taintSubFields2) {
 		super(type, -1, baseType, accessPath, accessPathTypes);
-		this.taintSubFields = taintSubFields2;
+		this.taintSubFields = taintSubFields2 || (accessPath != null
+				&& accessPath.length > this.accessPath.length);
 	}
 
 	public FlowSink(SourceSinkType type, String baseType, String[] accessPath,
 			String[] accessPathTypes, boolean taintSubFields2, GapDefinition gap) {
 		super(type, -1, baseType, accessPath, accessPathTypes, gap);
-		this.taintSubFields = taintSubFields2;
+		this.taintSubFields = taintSubFields2 || (accessPath != null
+				&& accessPath.length > this.accessPath.length);
 	}
 
 	public boolean taintSubFields(){

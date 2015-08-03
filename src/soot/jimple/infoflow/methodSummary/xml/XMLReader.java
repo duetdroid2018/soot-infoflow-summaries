@@ -36,9 +36,11 @@ public class XMLReader {
 	}
 
 	/**
-	 * Reads a summary xml file and returns the MethodSummaries which are saved in that file 
+	 * Reads a summary xml file and returns the MethodSummaries which are saved
+	 * in that file 
 	 */
-	public MethodSummaries read(File fileName) throws XMLStreamException, FileNotFoundException, SummaryXMLException{
+	public MethodSummaries read(File fileName) throws XMLStreamException,
+			FileNotFoundException, SummaryXMLException{
 		MethodSummaries summary = new MethodSummaries();
 		
 		InputStream in = new FileInputStream(fileName);
@@ -111,7 +113,7 @@ public class XMLReader {
 							createSource(summary, sourceAttributes),
 							createSink(summary, sinkAttributes),
 							isAlias);
-					summary.addFlowForMethod(currentMethod, flow);
+					summary.addFlow(flow);
 					
 					isAlias = false;
 				}

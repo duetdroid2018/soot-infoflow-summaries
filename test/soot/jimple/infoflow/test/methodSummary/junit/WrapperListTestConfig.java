@@ -33,6 +33,7 @@ public class WrapperListTestConfig implements IInfoflowConfig {
 		options.set_include(includeList);
 		options.set_output_format(Options.output_format_none);
 		Options.v().setPhaseOption("jb", "use-original-names:true");
+		Options.v().setPhaseOption("cg.spark", "on");
 		//			Options.v().setPhaseOption("cg.spark", "string-constants:true");
 	}
 

@@ -112,7 +112,7 @@ public class SummaryTaintWrapperTests {
 		testNoFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void apl3NoFlow()>");
 	}
 	
-	@Test//(timeout = 30000)
+	@Test(timeout = 30000)
 	public void apl3Flow() {
 		testFlowForMethod("<soot.jimple.infoflow.test.methodSummary.ApiClassClient: void apl3Flow()>");
 	}

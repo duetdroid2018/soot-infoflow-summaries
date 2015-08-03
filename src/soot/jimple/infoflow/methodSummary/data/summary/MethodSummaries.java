@@ -2,6 +2,7 @@ package soot.jimple.infoflow.methodSummary.data.summary;
 
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -23,24 +24,58 @@ public class MethodSummaries implements Iterable<MethodFlow> {
 	
 	private final Map<String, Set<MethodFlow>> flows;
 	private final Map<Integer, GapDefinition> gaps;
-	private final Set<String> dependencies;
 	
 	public MethodSummaries() {
 		this(new ConcurrentHashMap<String, Set<MethodFlow>>());
 	}
 	
-	public MethodSummaries(Map<String, Set<MethodFlow>> flows) {
-		this(flows,
-				new ConcurrentHashMap<Integer, GapDefinition>(),
-				new ConcurrentHashSet<String>());
+	MethodSummaries(Set<MethodFlow> flows) {
+		this(flowSetToFlowMap(flows),
+				new ConcurrentHashMap<Integer, GapDefinition>());
 	}
 	
-	public MethodSummaries(Map<String, Set<MethodFlow>> flows,
-			Map<Integer, GapDefinition> gaps,
-			Set<String> dependencies) {
+	MethodSummaries(Map<String, Set<MethodFlow>> flows) {
+		this(flows, new ConcurrentHashMap<Integer, GapDefinition>());
+	}
+	
+	MethodSummaries(Map<String, Set<MethodFlow>> flows,
+			Map<Integer, GapDefinition> gaps) {
 		this.flows = flows;
 		this.gaps = gaps;
-		this.dependencies = dependencies;
+	}
+	
+	/**
+	 * Converts a flat set of method flows into a map from method signature to
+	 * set of flows inside the respective method
+	 * @param flows The flat set of method flows
+	 * @return The signature-to-flow set map
+	 */
+	private static Map<String, Set<MethodFlow>> flowSetToFlowMap(Set<MethodFlow> flows) {
+		Map<String, Set<MethodFlow>> flowSet = new HashMap<>();
+		for (MethodFlow flow : flows) {
+			Set<MethodFlow> flowsForSignature = flowSet.get(flow.methodSig());
+			if (flowsForSignature == null) {
+				flowsForSignature = new HashSet<>();
+				flowSet.put(flow.methodSig(), flowsForSignature);
+			}
+			flowsForSignature.add(flow);
+		}
+		return flowSet;
+	}
+	
+	/**
+	 * Merges the given flows into the this method summary object
+	 * @param newFlows The new flows to be merged
+	 */
+	public void merge(Set<MethodFlow> newFlows) {
+		for (MethodFlow flow : newFlows) {
+			Set<MethodFlow> existingFlows = flows.get(flow.methodSig());
+			if (existingFlows == null) {
+				existingFlows = new HashSet<>();
+				flows.put(flow.methodSig(), existingFlows);
+			}
+			existingFlows.add(flow);
+		}
 	}
 	
 	/**
@@ -84,30 +119,15 @@ public class MethodSummaries implements Iterable<MethodFlow> {
 	
 	/**
 	 * Adds a new flow for a method to this summary object
-	 * @param methodSig The signature of the method for which to add the flow
 	 * @param flow The flow to add
 	 */
-	public boolean addFlowForMethod(String methodSig, MethodFlow flow) {
-		Set<MethodFlow> methodFlows = flows.get(methodSig);
+	public boolean addFlow(MethodFlow flow) {
+		Set<MethodFlow> methodFlows = flows.get(flow.methodSig());
 		if (methodFlows == null) {
 			methodFlows = new ConcurrentHashSet<MethodFlow>();
-			flows.put(methodSig, methodFlows);
+			flows.put(flow.methodSig(), methodFlows);
 		}
 		return methodFlows.add(flow);
-	}
-	 
-	/**
-	 * Adds new flows for a method to this summary object
-	 * @param methodSig The signature of the method for which to add the flows
-	 * @param flow The flows to add
-	 */
-	public void addFlowForMethod(String methodSig, Set<MethodFlow> newFlows) {
-		Set<MethodFlow> methodFlows = flows.get(methodSig);
-		if (methodFlows == null) {
-			methodFlows = new ConcurrentHashSet<MethodFlow>();
-			flows.put(methodSig, methodFlows);
-		}
-		methodFlows.addAll(newFlows);
 	}
 	
 	/**
@@ -198,19 +218,6 @@ public class MethodSummaries implements Iterable<MethodFlow> {
 	}
 	
 	/**
-	 * Adds a dependency to this flow set
-	 * @param className The name of the dependency clsas
-	 * @return True if this dependency class has been added, otherwise
-	 * (dependency already registered or summaries loaded for this class)
-	 * false
-	 */
-	public boolean addDependency(String className) {
-		if (this.flows.containsKey(className))
-			return false;
-		return this.dependencies.add(className);
-	}
-	
-	/**
 	 * Retrieves the gap definition with the given ID if it exists, otherwise
 	 * creates a new gap definition with this ID
 	 * @param gapID The unique ID of the gap
@@ -265,21 +272,9 @@ public class MethodSummaries implements Iterable<MethodFlow> {
 	}
 	
 	/**
-	 * Gets all dependencies of the flows in this object. Dependencies are classes
-	 * which are references in a flow summary (e.g., through a field type), but
-	 * do not have summaries on their own in this object.
-	 * @return The set of depdendency objects for this flow set
-	 */
-	public Set<String> getDependencies() {
-		return this.dependencies;
-	}
-	
-	/**
 	 * Clears all flows from this method summary
 	 */
 	public void clear() {
-		if (this.dependencies != null)
-			this.dependencies.clear();
 		if (this.flows != null)
 			this.flows.clear();
 		if (this.gaps != null)
@@ -398,6 +393,15 @@ public class MethodSummaries implements Iterable<MethodFlow> {
 			if (toRemove.contains(flow))
 				flowIt.remove();
 		}
+	}
+	
+	/**
+	 * Gets whether this method summary object is empty, i.e., does not contain
+	 * any flows
+	 * @return True if this method summary object is empty, otherwise false
+	 */
+	public boolean isEmpty() {
+		return this.flows == null || this.flows.isEmpty();
 	}
 	
 }

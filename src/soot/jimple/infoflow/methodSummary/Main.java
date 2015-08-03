@@ -10,6 +10,7 @@ import java.util.Set;
 
 import javax.xml.stream.XMLStreamException;
 
+import soot.jimple.infoflow.methodSummary.data.summary.ClassSummaries;
 import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
 import soot.jimple.infoflow.methodSummary.generator.IClassSummaryHandler;
 import soot.jimple.infoflow.methodSummary.generator.SummaryGenerator;
@@ -72,7 +73,7 @@ class Main {
 		generator.setExcludes(excludes);
 		generator.setRepeatCount(repeatCount);
 		final boolean doForceOverwrite = forceOverwrite;
-		MethodSummaries summaries = generator.createMethodSummaries(args[0],
+		ClassSummaries summaries = generator.createMethodSummaries(args[0],
 				classesToAnalyze, new IClassSummaryHandler() {
 			
 			@Override

@@ -151,22 +151,36 @@ public class SourceSinkFactory {
 	 * @return The sink object
 	 */
 	public FlowSink createReturnSink(AccessPath accessPath) {
+		return createReturnSink(accessPath, null);
+	}
+	
+	/**
+	 * Creates a sink that models the value returned by the method or a field
+	 * reachable through the return value.
+	 * @param accessPath The access path modeling the returned value
+	 * @param gap The gap to whose return value the data flows
+	 * @return The sink object
+	 */
+	public FlowSink createReturnSink(AccessPath accessPath, GapDefinition gap) {
 		if (accessPath.isLocal())
 			return new FlowSink(SourceSinkType.Return, -1,
 					accessPath.getBaseType().toString(),
-					accessPath.getTaintSubFields());
+					accessPath.getTaintSubFields(),
+					gap);
 		else if (accessPath.getFieldCount() < summaryAPLength)
 			return new FlowSink(SourceSinkType.Return, -1,
 					accessPath.getBaseType().toString(),
 					sootFieldsToString(accessPath.getFields()),
 					sootTypesToString(accessPath.getFieldTypes()),
-					accessPath.getTaintSubFields());
+					accessPath.getTaintSubFields(),
+					gap);
 		else
 			return new FlowSink(SourceSinkType.Return, -1,
 					accessPath.getBaseType().toString(),
 					sootFieldsToString(cutAPLength(accessPath.getFields())),
 					sootTypesToString(cutAPLength(accessPath.getFieldTypes())),
-					true);
+					true,
+					gap);
 	}
 	
 	/**

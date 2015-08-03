@@ -38,13 +38,16 @@ import soot.jimple.Stmt;
 import soot.jimple.infoflow.InfoflowManager;
 import soot.jimple.infoflow.data.Abstraction;
 import soot.jimple.infoflow.data.AccessPath;
+import soot.jimple.infoflow.data.SootMethodAndClass;
 import soot.jimple.infoflow.methodSummary.data.AbstractFlowSinkSource;
 import soot.jimple.infoflow.methodSummary.data.GapDefinition;
 import soot.jimple.infoflow.methodSummary.data.MethodFlow;
 import soot.jimple.infoflow.methodSummary.data.SourceSinkType;
+import soot.jimple.infoflow.methodSummary.data.summary.ClassSummaries;
 import soot.jimple.infoflow.methodSummary.data.summary.LazySummary;
 import soot.jimple.infoflow.solver.IFollowReturnsPastSeedsHandler;
 import soot.jimple.infoflow.taintWrappers.ITaintPropagationWrapper;
+import soot.jimple.infoflow.util.SootMethodRepresentationParser;
 import soot.util.ConcurrentHashMultiMap;
 import soot.util.MultiMap;
 
@@ -71,20 +74,15 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 	private MultiMap<Pair<Abstraction, SootMethod>, AccessPathPropagator> userCodeTaints
 			= new ConcurrentHashMultiMap<>();
 	
-	protected final LoadingCache<SootMethod, Set<MethodFlow>> methodToFlows =
-			IDESolver.DEFAULT_CACHE_BUILDER.build(new CacheLoader<SootMethod, Set<MethodFlow>>() {
+	protected final LoadingCache<Pair<Set<String>, String>, ClassSummaries> methodToFlows =
+			IDESolver.DEFAULT_CACHE_BUILDER.build(new CacheLoader<Pair<Set<String>, String>, ClassSummaries>() {
 				@Override
-				public Set<MethodFlow> load(SootMethod method) throws Exception {
-					// Get the flows in the target method
-					Set<MethodFlow> flowsInCallee = new HashSet<MethodFlow>(flows.getMethodFlows(method));
-
-					// We look into parent classes and interfaces if we did not find
-					// anything for the class itself
-					if (flowsInCallee.isEmpty())
-						for (SootMethod callee : getAllCallees(method))
-							flowsInCallee.addAll(flows.getMethodFlows(callee));
+				public ClassSummaries load(Pair<Set<String>, String> method) throws Exception {
+					final Set<String> classes = method.getO1();
+					final String methodSig = method.getO2();
 					
-					return flowsInCallee;
+					// Get the flows in the target method
+					return flows.getMethodFlows(classes, methodSig);
 				}
 			});
 	
@@ -102,7 +100,7 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 				Abstraction d2) {
 			SootMethod sm = manager.getICFG().getMethodOf(u);
 			Set<AccessPathPropagator> propagators = getUserCodeTaints(d1, sm);
-			if (propagators != null) {				
+			if (propagators != null) {
 				for (AccessPathPropagator propagator : propagators) {
 					// Propagate these taints up. We leave the current gap
 					AccessPathPropagator parent = safePopParent(propagator);
@@ -112,6 +110,11 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 					// Create taints from the abstractions
 					Set<Taint> returnTaints = createTaintFromAccessPathOnReturn(d2.getAccessPath(),
 							(Stmt) u, propagator.getGap());
+					
+					// Get the correct set of flows to apply
+					Set<MethodFlow> flowsInTarget = parentGap == null
+							? getFlowsInOriginalCallee(propagator)
+							: getFlowSummariesForGap(parentGap);
 					
 					// Create the new propagator, one for every taint
 					Set<AccessPathPropagator> workSet = new HashSet<>();
@@ -124,11 +127,6 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 						workSet.add(newPropagator);
 					}
 					
-					// Get the correct set of flows to apply
-					Set<MethodFlow> flowsInTarget = parentGap == null
-							? getFlowsInOriginalCallee(propagator)
-							: getFlowSummariesForGap(parentGap);
-
 					// Apply the aggregated propagators
 					Set<AccessPath> resultAPs = applyFlowsIterative(flowsInTarget, new ArrayList<>(workSet));
 					
@@ -160,9 +158,13 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 			Stmt originalCallSite = getOriginalCallSite(propagator).getStmt();
 			
 			// Get the flows in the original callee
-			Set<MethodFlow> flowsInCallee = getFlowSummariesForMethod(originalCallSite,
+			ClassSummaries flowsInCallee = getFlowSummariesForMethod(originalCallSite,
 					originalCallSite.getInvokeExpr().getMethod());
-			return flowsInCallee;
+			if (flowsInCallee.getClasses().size() != 1)
+				throw new RuntimeException("Original callee must only be one method");
+			
+			String methodSig = originalCallSite.getInvokeExpr().getMethod().getSubSignature();
+			return flowsInCallee.getAllFlowsForMethod(methodSig);
 		}
 		
 		/**
@@ -474,26 +476,38 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 		
 		// Get the cached data flows
 		final SootMethod method = stmt.getInvokeExpr().getMethod();
-		Set<MethodFlow> flowsInCallee = getFlowSummariesForMethod(stmt, method);
+		ClassSummaries flowsInCallees = getFlowSummariesForMethod(
+				stmt, method, taintedAbs);
 		
 		// If we have no data flows, we can abort early
-		if (flowsInCallee.isEmpty()) {
+		if (flowsInCallees.isEmpty()) {
 			wrapperMisses.incrementAndGet();
 			return Collections.emptySet();
 		}
 		wrapperHits.incrementAndGet();
 		
-		// Create a level-0 propagator for the initially tainted access path
-		List<AccessPathPropagator> workList = new ArrayList<AccessPathPropagator>();
-		Set<Taint> taintsFromAP = createTaintFromAccessPathOnCall(
-				taintedAbs.getAccessPath(), stmt, false);
-		if (taintsFromAP == null || taintsFromAP.isEmpty())
-			return Collections.emptySet();
-		for (Taint taint : taintsFromAP)
-			workList.add(new AccessPathPropagator(taint, null, null, stmt, d1, taintedAbs));
-				
-		// Apply the data flows until we reach a fixed point
-		Set<AccessPath> res = applyFlowsIterative(flowsInCallee, workList);
+		Set<AccessPath> res = null;
+		for (String className : flowsInCallees.getClasses()) {
+			// Create a level-0 propagator for the initially tainted access path
+			List<AccessPathPropagator> workList = new ArrayList<AccessPathPropagator>();
+			Set<Taint> taintsFromAP = createTaintFromAccessPathOnCall(
+					taintedAbs.getAccessPath(), stmt, false);
+			if (taintsFromAP == null || taintsFromAP.isEmpty())
+				return Collections.emptySet();
+			for (Taint taint : taintsFromAP)
+				workList.add(new AccessPathPropagator(taint, null, null, stmt, d1, taintedAbs));
+			
+			// Get the flows in this class
+			Set<MethodFlow> flowsInCallee = flowsInCallees.getClassSummaries(className).getAllFlows();
+			
+			// Apply the data flows until we reach a fixed point
+			Set<AccessPath> resCallee = applyFlowsIterative(flowsInCallee, workList);
+			if (resCallee != null && !resCallee.isEmpty()) {
+				if (res == null)
+					res = new HashSet<>();
+				res.addAll(resCallee);
+			}
+		}
 		
 		// We always retain the incoming taint
 		if (res == null || res.isEmpty())
@@ -521,15 +535,11 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 	private Set<AccessPath> applyFlowsIterative(Set<MethodFlow> flowsInCallee,
 			List<AccessPathPropagator> workList) {
 		Set<AccessPath> res = null;
-		Set<AccessPathPropagator> doneSet = new HashSet<AccessPathPropagator>();
+		Set<AccessPathPropagator> doneSet = new HashSet<AccessPathPropagator>(workList);
 		while (!workList.isEmpty()) {
 			final AccessPathPropagator curPropagator = workList.remove(0);
 			final GapDefinition curGap = curPropagator.getGap();
 			
-			// Make sure that we really don't run in circles
-			if (!doneSet.add(curPropagator))
-				continue;
-						
 			// Make sure we don't have invalid data
 			if (curGap != null && curPropagator.getParent() == null)
 				throw new RuntimeException("Gap flow without parent detected");
@@ -540,62 +550,64 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 			
 			// If we don't have summaries for the current gap, we look for
 			// implementations in the application code
-			if (flowsInTarget.isEmpty() && curGap != null) {
+			if ((flowsInTarget == null || flowsInTarget.isEmpty()) && curGap != null) {
 				SootMethod callee = Scene.v().grabMethod(curGap.getSignature());
 				if (callee != null)
 					for (SootMethod implementor : getAllImplementors(callee))
-						if (implementor.getDeclaringClass().isConcrete())
+						if (implementor.getDeclaringClass().isConcrete()
+								&& !implementor.getDeclaringClass().isPhantom())
 							spawnAnalysisIntoClientCode(implementor, curPropagator);
 			}
 			
 			// Apply the flow summaries for other libraries
-			for (MethodFlow flow : flowsInTarget) {
-				if (curPropagator.isInversePropagator()) {
-					// Reverse flows can only be applied if the flow is an aliasing
-					// relationship
-					if (!flow.isAlias())
+			if (flowsInTarget != null)
+				for (MethodFlow flow : flowsInTarget) {
+					if (curPropagator.isInversePropagator()) {
+						// Reverse flows can only be applied if the flow is an aliasing
+						// relationship
+						if (!flow.isAlias())
+							continue;
+						
+						// Reverse flows can only be applied to heap objects
+						if (!canTypeAlias(flow.source().getLastFieldType()))
+							continue;
+						if (!canTypeAlias(flow.sink().getLastFieldType()))
+							continue;
+						
+						// Reverse the flow if necessary
+						flow = flow.reverse();
+					}
+									
+					// Apply the flow summary
+					AccessPathPropagator newPropagator = applyFlow(flow, curPropagator);
+					if (newPropagator == null)
 						continue;
 					
-					// Reverse flows can only be applied to heap objects
-					if (!canTypeAlias(flow.source().getLastFieldType()))
-						continue;
-					if (!canTypeAlias(flow.sink().getLastFieldType()))
-						continue;
+					// Propagate it
+					if (newPropagator.getParent() == null
+							&& newPropagator.getTaint().getGap() == null) {
+						AccessPath ap = createAccessPathFromTaint(newPropagator.getTaint(),
+								newPropagator.getStmt());
+						if (ap == null)
+							continue;
+						else {
+							if (res == null)
+								res = new HashSet<>();
+							res.add(ap);
+						}
+					}
+					if (doneSet.add(newPropagator))
+						workList.add(newPropagator);
 					
-					// Reverse the flow if necessary
-					flow = flow.reverse();
-				}
-								
-				// Apply the flow summary
-				AccessPathPropagator newPropagator = applyFlow(flow, curPropagator);
-				if (newPropagator == null)
-					continue;
-				
-				// Propagate it
-				if (newPropagator.getParent() == null
-						&& newPropagator.getTaint().getGap() == null) {
-					AccessPath ap = createAccessPathFromTaint(newPropagator.getTaint(),
-							newPropagator.getStmt());
-					if (ap == null)
-						continue;
-					else {
-						if (res == null)
-							res = new HashSet<>();
-						res.add(ap);
+					// If we have have tainted a heap field, we need to look for
+					// aliases as well
+					if (newPropagator.getTaint().hasAccessPath()) {
+						AccessPathPropagator backwardsPropagator =
+								newPropagator.deriveInversePropagator();
+						if (doneSet.add(backwardsPropagator))
+							workList.add(backwardsPropagator);
 					}
 				}
-				if (doneSet.add(newPropagator))
-					workList.add(newPropagator);
-				
-				// If we have have tainted a heap field, we need to look for
-				// aliases as well
-				if (newPropagator.getTaint().hasAccessPath()) {
-					AccessPathPropagator backwardsPropagator =
-							newPropagator.deriveInversePropagator();
-					if (doneSet.add(backwardsPropagator))
-						workList.add(backwardsPropagator);
-				}
-			}
 		}
 		return res;
 	}
@@ -694,19 +706,23 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 	 * Gets the flow summaries for the given gap definition, i.e., for the
 	 * method in the gap
 	 * @param gap The gap definition
-	 * @return Theflow summaries for the method in the given gap if they exist,
+	 * @return The flow summaries for the method in the given gap if they exist,
 	 * otherwise null
 	 */
 	private Set<MethodFlow> getFlowSummariesForGap(GapDefinition gap) {
 		// If we have the method in Soot, we can be more clever
 		if (Scene.v().containsMethod(gap.getSignature())) {
 			SootMethod gapMethod = Scene.v().getMethod(gap.getSignature());
-			return getFlowSummariesForMethod(null, gapMethod);
+			ClassSummaries flows = getFlowSummariesForMethod(null, gapMethod);
+			if (flows != null && !flows.isEmpty())
+				return flows.getAllFlows();
 		}
 		
 		// If we don't have the method, we can only directly look for the
 		// signature
-		return flows.getMethodFlows(gap.getSignature());
+		SootMethodAndClass smac = SootMethodRepresentationParser.v()
+				.parseSootMethodString(gap.getSignature());
+		return flows.getMethodFlows(smac.getClassName(), smac.getSubSignature());
 	}
 	
 	/**
@@ -716,34 +732,77 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 	 * potential callees if there are no flow summaries for the given method.
 	 * @param method The method for which to get the flow summaries
 	 * @return The set of flow summaries for the given method if they exist,
-	 * otherwise null
+	 * otherwise null. Note that this is a set of sets, one set per possible
+	 * callee.
 	 */
-	private Set<MethodFlow> getFlowSummariesForMethod(Stmt stmt, final SootMethod method) {
-		Set<MethodFlow> flowsInCallee = methodToFlows.getUnchecked(method);
-		
-		// If we have no direct entry, check the CG
-		if (flowsInCallee.isEmpty() && stmt != null) {
-			flowsInCallee = null;
-			for (SootMethod callee : manager.getICFG().getCalleesOfCallAt(stmt)) {
-				if (flowsInCallee == null)
-					flowsInCallee = new HashSet<MethodFlow>();
-				flowsInCallee.addAll(methodToFlows.getUnchecked(callee));
-			}
-		}
-		
-		// If we did not find any flows for an interface, we take all flows from
-		// all implementors
-		if (flowsInCallee == null || flowsInCallee.isEmpty()) {
-			flowsInCallee = null;
-			for (SootMethod implementor : getAllImplementors(method)) {
-				if (flowsInCallee == null)
-					flowsInCallee = new HashSet<MethodFlow>();
-				flowsInCallee.addAll(flows.getMethodFlows(implementor));
-			}
-		}
-		return flowsInCallee;
+	private ClassSummaries getFlowSummariesForMethod(Stmt stmt,
+			final SootMethod method) {
+		return getFlowSummariesForMethod(stmt, method, null);
 	}
 	
+	/**
+	 * Gets the flow summaries for the given method
+	 * @param stmt (Optional) The invocation statement at which the given method
+	 * is called. If this parameter is not null, it is used to find further
+	 * potential callees if there are no flow summaries for the given method.
+	 * @param method The method for which to get the flow summaries
+	 * @param taintedAbs The tainted incoming abstraction
+	 * @return The set of flow summaries for the given method if they exist,
+	 * otherwise null. Note that this is a set of sets, one set per possible
+	 * callee.
+	 */
+	private ClassSummaries getFlowSummariesForMethod(Stmt stmt,
+			final SootMethod method, Abstraction taintedAbs) {
+		// Check whether we have runtime type information
+		if (taintedAbs != null) {
+			if (stmt.getInvokeExpr() instanceof InstanceInvokeExpr) {
+				InstanceInvokeExpr iinv = (InstanceInvokeExpr) stmt.getInvokeExpr();
+				if (iinv.getBase() == taintedAbs.getAccessPath().getPlainValue()) {
+					/*
+					// Get the runtime callee
+					
+					
+					// Get flows for the callee according to runtime types
+					Set<MethodFlow> flowsInCallee = methodToFlows.getUnchecked(method);		
+					if (flowsInCallee != null && !flowsInCallee.isEmpty())
+						return Collections.singleton(flowsInCallee);
+					*/
+					
+					// TODO
+				}
+			}
+		}
+		
+		// Check the callgraph
+		if (stmt != null) {
+			Set<String> classes = new HashSet<>();
+			for (SootMethod callee : manager.getICFG().getCalleesOfCallAt(stmt))
+				classes.addAll(getAllChildClasses(callee.getDeclaringClass()));
+			if (!classes.isEmpty()) {
+				Pair<Set<String>, String> query = new Pair<>(classes, method.getSubSignature());
+				ClassSummaries summaries = methodToFlows.getUnchecked(query);
+				if (summaries != null && !summaries.isEmpty())
+					return summaries;
+			}
+		}
+		
+		// As a last resort, check all possible callees
+		SootClass targetClass = method.getDeclaringClass();
+		if (stmt != null && stmt.getInvokeExpr() instanceof InstanceInvokeExpr)
+			targetClass = ((RefType) ((InstanceInvokeExpr) stmt.getInvokeExpr()).getBase().getType()).getSootClass();
+		Set<String> classes = getAllChildClasses(targetClass);
+		Pair<Set<String>, String> query = new Pair<>(classes, method.getSubSignature());
+		return methodToFlows.getUnchecked(query);
+		
+		// TODO: Scan up?
+	}
+	
+	/**
+	 * Gets all methods that implement the given abstract method. These are all
+	 * concrete methods with the same signature in all derived classes.
+	 * @param method The method for which to find implementations
+	 * @return A set containing all implementations of the given method
+	 */
 	private Collection<SootMethod> getAllImplementors(SootMethod method) {
 		final String subSig = method.getSubSignature();
 		Set<SootMethod> implementors = new HashSet<SootMethod>();
@@ -757,8 +816,10 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 			if (!doneSet.add(curClass))
 				continue;
 			
-			if (curClass.isInterface())
+			if (curClass.isInterface()) {
 				workList.addAll(hierarchy.getImplementersOf(curClass));
+				workList.addAll(hierarchy.getSubinterfacesOf(curClass));
+			}
 			else
 				workList.addAll(hierarchy.getSubclassesOf(curClass));
 			
@@ -771,35 +832,35 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 	}
 	
 	/**
-	 * Gets an over-approximation of all methods that can be called when the
-	 * given method is called. This includes all methods with matching signatures
-	 * in all parent classes as well as those in the implemented interfaces.
-	 * @param method The method for which to get the targets
-	 * @return The targets that could be called for the given method
+	 * Gets all child classes of the given class. If the given class is an
+	 * interface, all implementors of this interface and its all of child-
+	 * interfaces are returned.
+	 * @param sc The class or interface for which to get the children
+	 * @return The children of the given class or interface
 	 */
-	private Set<SootMethod> getAllCallees(SootMethod method) {
-		Set<SootMethod> callees = new HashSet<SootMethod>();
-		final String subSig = method.getSubSignature();
-		
+	private Set<String> getAllChildClasses(SootClass sc) {
 		List<SootClass> workList = new ArrayList<SootClass>();
-		workList.add(method.getDeclaringClass());
+		workList.add(sc);
+		
 		Set<SootClass> doneSet = new HashSet<SootClass>();
+		Set<String> classes = new HashSet<>();
 		
 		while (!workList.isEmpty()) {
-			SootClass ifc = workList.remove(0);
-			if (!doneSet.add(ifc))
+			SootClass curClass = workList.remove(0);
+			if (!doneSet.add(curClass))
 				continue;
 			
-			SootMethod ifm = ifc.getMethodUnsafe(subSig);
-			if (ifm != null)
-				callees.add(ifm);
-			
-			if (ifc.hasSuperclass())
-				workList.add(ifc.getSuperclass());
-			workList.addAll(ifc.getInterfaces());
+			if (curClass.isInterface()) {
+				workList.addAll(hierarchy.getImplementersOf(curClass));
+				workList.addAll(hierarchy.getSubinterfacesOf(curClass));
+			}
+			else {
+				workList.addAll(hierarchy.getSubclassesOf(curClass));
+				classes.add(curClass.getName());
+			}
 		}
 		
-		return callees;
+		return classes;
 	}
 	
 	/**
@@ -890,6 +951,7 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 		else if (flowSource.isReturn()
 				&& flowSource.getGap() == null
 				&& taint.getGap() == null
+				&& taint.isReturn()
 				&& compareFields(taint, flowSource))
 			addTaint = true;
 		
@@ -1119,7 +1181,7 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 
 		final String[] appendedFields = append(flowSink.getAccessPath(), remainingFields);
 		final String[] appendedFieldTypes = append(flowSink.getAccessPathTypes(), remainingFieldTypes);
-
+		
 		// If we taint something in the base object, its type must match. We
 		// might have a taint for "a" in o.add(a) and need to check whether
 		// "o" matches the expected type in our summary.
@@ -1323,24 +1385,35 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 		
 		// Get the cached data flows
 		final SootMethod method = stmt.getInvokeExpr().getMethod();
-		Set<MethodFlow> flowsInCallee = getFlowSummariesForMethod(stmt, method);
+		ClassSummaries flowsInCallees = getFlowSummariesForMethod(stmt, method);
 		
 		// If we have no data flows, we can abort early
-		if (flowsInCallee.isEmpty())
+		if (flowsInCallees.isEmpty())
 			return Collections.singleton(taintedAbs);
 		
-		// Create a level-0 propagator for the initially tainted access path
-		List<AccessPathPropagator> workList = new ArrayList<AccessPathPropagator>();
-		Set<Taint> taintsFromAP = createTaintFromAccessPathOnCall(
-				taintedAbs.getAccessPath(), stmt, true);
-		if (taintsFromAP == null || taintsFromAP.isEmpty())
-			return Collections.emptySet();
-		for (Taint taint : taintsFromAP)
-			workList.add(new AccessPathPropagator(taint, null, null, stmt, d1,
-					taintedAbs, true));
-				
-		// Apply the data flows until we reach a fixed point
-		Set<AccessPath> res = applyFlowsIterative(flowsInCallee, workList);
+		Set<AccessPath> res = null;
+		for (String className : flowsInCallees.getClasses()) {
+			// Create a level-0 propagator for the initially tainted access path
+			List<AccessPathPropagator> workList = new ArrayList<AccessPathPropagator>();
+			Set<Taint> taintsFromAP = createTaintFromAccessPathOnCall(
+					taintedAbs.getAccessPath(), stmt, true);
+			if (taintsFromAP == null || taintsFromAP.isEmpty())
+				return Collections.emptySet();
+			for (Taint taint : taintsFromAP)
+				workList.add(new AccessPathPropagator(taint, null, null, stmt, d1,
+						taintedAbs, true));
+			
+			// Get the flows in this class
+			Set<MethodFlow> flowsInCallee = flowsInCallees.getClassSummaries(className).getAllFlows();
+			
+			// Apply the data flows until we reach a fixed point
+			Set<AccessPath> resCallee = applyFlowsIterative(flowsInCallee, workList);
+			if (resCallee != null && !resCallee.isEmpty()) {
+				if (res == null)
+					res = new HashSet<>();
+				res.addAll(resCallee);
+			}
+		}
 		
 		// We always retain the incoming taint
 		if (res == null || res.isEmpty())

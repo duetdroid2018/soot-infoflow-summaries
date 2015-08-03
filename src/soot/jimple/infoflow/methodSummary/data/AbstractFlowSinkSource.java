@@ -4,6 +4,7 @@ import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
+import soot.jimple.infoflow.Infoflow;
 import soot.jimple.infoflow.methodSummary.xml.XMLConstants;
 
 /**
@@ -34,9 +35,26 @@ public abstract class AbstractFlowSinkSource {
 		this.type = type;
 		this.parameterIdx = parameterIdx;
 		this.baseType = baseType;
-		this.accessPath = accessPath;
-		this.accessPathTypes = accessPathTypes;
+		this.accessPath = limitAccessPath(accessPath);
+		this.accessPathTypes = limitAccessPath(accessPathTypes);
 		this.gap = gap;
+	}
+	
+	/**
+	 * Truncates the access path at the configured maximum length
+	 * @param in The incoming access path to truncate
+	 * @return The truncated access path
+	 */
+	private static String[] limitAccessPath(String[] in) {
+		if (in == null || in.length == 0)
+			return null;
+		
+		if (in.length > Infoflow.getAccessPathLength()) {
+			String[] out = new String[Infoflow.getAccessPathLength()];
+			System.arraycopy(in, 0, out, 0, Infoflow.getAccessPathLength());
+			return out;
+		}
+		return in;
 	}
 
 	/**

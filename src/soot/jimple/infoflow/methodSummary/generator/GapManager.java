@@ -82,12 +82,12 @@ public class GapManager {
 	}
 	
 	/**
-	 * Gets the gap definitions that references the given local. References can 
-	 * either be as parameters, as base objects, or as return values. Note that 
+	 * Gets the gap definitions that references the given local as parameters
+	 * or base objects 
 	 * @param local The local for which to find the gap references
 	 * @return The gaps that reference the given local
 	 */
-	public Set<GapDefinition> getGapDefinitionsForLocal(Local local) {
+	public Set<GapDefinition> getGapDefinitionsForLocalUse(Local local) {
 		Set<GapDefinition> res = null;
 		stmt : for (Stmt stmt : gaps.keySet()) {
 			for (ValueBox vb : stmt.getUseBoxes())
@@ -97,6 +97,18 @@ public class GapManager {
 					res.add(gaps.get(stmt));
 					continue stmt;
 				}
+		}
+		return res;
+ 	}
+	
+	/**
+	 * Gets the gap definitions that references the given local as return value. 
+	 * @param local The local for which to find the gap references
+	 * @return The gaps that reference the given local
+	 */
+	public Set<GapDefinition> getGapDefinitionsForLocalDef(Local local) {
+		Set<GapDefinition> res = null;
+		stmt : for (Stmt stmt : gaps.keySet()) {
 			if (stmt instanceof DefinitionStmt)
 				if (((DefinitionStmt) stmt).getLeftOp() == local) {
 					if (res == null)

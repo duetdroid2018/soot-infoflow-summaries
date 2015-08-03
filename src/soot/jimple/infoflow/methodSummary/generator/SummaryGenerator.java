@@ -34,6 +34,7 @@ import soot.jimple.infoflow.methodSummary.DefaultSummaryConfig;
 import soot.jimple.infoflow.methodSummary.data.GapDefinition;
 import soot.jimple.infoflow.methodSummary.data.MethodFlow;
 import soot.jimple.infoflow.methodSummary.data.factory.SourceSinkFactory;
+import soot.jimple.infoflow.methodSummary.data.summary.ClassSummaries;
 import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
 import soot.jimple.infoflow.methodSummary.handler.SummaryTaintPropagationHandler;
 import soot.jimple.infoflow.methodSummary.postProcessor.InfoflowResultPostProcessor;
@@ -87,7 +88,7 @@ public class SummaryGenerator {
 	 *            The classes for which to create summaries
 	 * @return The generated method summaries
 	 */
-	public MethodSummaries createMethodSummaries(String classpath,
+	public ClassSummaries createMethodSummaries(String classpath,
 			Collection<String> classNames) {
 		return createMethodSummaries(classpath, classNames, null);
 	}
@@ -104,7 +105,7 @@ public class SummaryGenerator {
 	 *            class have been summarized
 	 * @return The generated method summaries
 	 */
-	public MethodSummaries createMethodSummaries(String classpath,
+	public ClassSummaries createMethodSummaries(String classpath,
 			Collection<String> classNames, IClassSummaryHandler handler) {
 		G.reset();
 		
@@ -164,21 +165,23 @@ public class SummaryGenerator {
 			Collection<String> methods = new ArrayList<>();
 			methodsToAnalyze.put(className, methods);
 			
+			Set<String> doneMethods = new HashSet<>();
 			SootClass sc = Scene.v().getSootClass(className);
 			for (SootMethod sm : sc.getMethods())
-				if (sm.isPublic() || sm.isProtected())
+				if (sm.isPublic() || sm.isProtected()) {
 					methods.add(sm.getSignature());
+					doneMethods.add(sm.getSubSignature());
+				}
 			
-			// We also need to analyze methods of parent classes
+			// We also need to analyze methods of parent classes except for
+			// those methods that have been overwritten in the child class
 			SootClass curClass = sc;
 			while (curClass.hasSuperclass()) {
-				curClass = curClass.getSuperclass();
-				if (!curClass.isAbstract())
-					break;
-				
+				curClass = curClass.getSuperclass();				
 				for (SootMethod sm : curClass.getMethods())
-					if (sm.isPublic() || sm.isProtected())
-						methods.add(sm.getSignature());
+					if (sm.isConcrete() && (sm.isPublic() || sm.isProtected()))
+						if (doneMethods.add(sm.getSubSignature()))
+							methods.add(sm.getSignature());
 			}
 		}
 		
@@ -189,7 +192,7 @@ public class SummaryGenerator {
 		final GapManager gapManager = new GapManager();
 
 		// Do the actual analysis
-		MethodSummaries summaries = new MethodSummaries();
+		ClassSummaries summaries = new ClassSummaries();
 		for (Entry<String, Collection<String>> entry : methodsToAnalyze
 				.entrySet()) {
 			// Check if we really need to analyze this class
@@ -199,22 +202,22 @@ public class SummaryGenerator {
 					continue;
 				}
 			
-			MethodSummaries classSummaries = null;
+			MethodSummaries curSummaries = null;
 			for (int i = 0; i < repeatCount; i++) {
 				long nanosBeforeClass = System.nanoTime();
 				System.out.println("Analyzing class " + entry.getKey());
 				
-				classSummaries = new MethodSummaries();
+				curSummaries = new MethodSummaries();
 				for (String methodSig : entry.getValue()) {
 					MethodSummaries newSums = createMethodSummary(classpath,
 							methodSig, entry.getKey(), gapManager);
 					if (handler != null)
-						handler.onMethodFinished(methodSig, classSummaries);
-					classSummaries.merge(newSums);
+						handler.onMethodFinished(methodSig, curSummaries);
+					curSummaries.merge(newSums);
 				}
 				
 				// Clean up the gaps
-				cleanupGaps(classSummaries);
+				cleanupGaps(curSummaries);
 				
 				System.out.println("Class summaries for " + entry.getKey() + " done in "
 						+ (System.nanoTime() - nanosBeforeClass) / 1E9 + " seconds");
@@ -222,8 +225,8 @@ public class SummaryGenerator {
 			
 			// Notify the handler that we're done
 			if (handler != null)
-				handler.onClassFinished(entry.getKey(), classSummaries);
-			summaries.merge(classSummaries);
+				handler.onClassFinished(entry.getKey(), curSummaries);
+			summaries.merge(entry.getKey(), curSummaries);
 		}
 		
 		// Calculate the dependencies
@@ -307,33 +310,36 @@ public class SummaryGenerator {
 	 * @param summaries The summary set for which to calculate the
 	 * dependencies
 	 */
-	private void calculateDependencies(MethodSummaries summaries) {
-		for (MethodFlow flow : summaries) {
+	private void calculateDependencies(ClassSummaries summaries) {
+		for (MethodFlow flow : summaries.getAllFlows()) {
 			if (flow.source().hasAccessPath())
-				for (String className : flow.source().getAccessPath())
-					checkAndAddDependency(summaries, className);
+				for (String apElement : flow.source().getAccessPath()) {
+					String className = getTypeFromFieldDef(apElement);
+					if (!summaries.hasSummariesForClass(className))
+						summaries.addDependency(className);
+				}
 			if (flow.sink().hasAccessPath())
-				for (String className : flow.sink().getAccessPath())
-					checkAndAddDependency(summaries, className);
+				for (String apElement : flow.sink().getAccessPath()) {
+					String className = getTypeFromFieldDef(apElement);
+					if (!summaries.hasSummariesForClass(className))
+						summaries.addDependency(className);
+				}
 		}
 	}
 	
 	/**
-	 * Checks whether we don't have any summaries for the class of the given
-	 * method. If so, a dependency on that class is added.
-	 * @param summaries The method summaries to which to add the dependency
-	 * @param methodSignature The signature of a method in a possible dependency
-	 * class
+	 * Gets the name of the field type from a field definition
+	 * @param apElement The field definition to parse
+	 * @return The type name in the field definition
 	 */
-	private void checkAndAddDependency(MethodSummaries summaries,
-			String methodSignature) {
-		//Check that we don't have summaries for the given class
-		final String className = Scene.v().signatureToClass(methodSignature);
-		for (MethodFlow flow : summaries)
-			if (Scene.v().signatureToClass(flow.methodSig()).equals(className))
-				return;
+	private String getTypeFromFieldDef(String apElement) {
+		apElement = apElement.substring(apElement.indexOf(":") + 1).trim();
+		apElement = apElement.substring(0, apElement.indexOf(" "));
 		
-		summaries.addDependency(className);
+		// If this is an array, we drop the parantheses
+		while (apElement.endsWith("[]"))
+			apElement = apElement.substring(0, apElement.length() - 2);
+		return apElement;
 	}
 
 	/**

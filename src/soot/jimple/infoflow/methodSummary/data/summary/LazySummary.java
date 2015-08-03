@@ -7,11 +7,8 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-import soot.SootMethod;
-import soot.jimple.infoflow.data.SootMethodAndClass;
 import soot.jimple.infoflow.methodSummary.data.MethodFlow;
 import soot.jimple.infoflow.methodSummary.xml.XMLReader;
-import soot.jimple.infoflow.util.SootMethodRepresentationParser;
 
 
 /**
@@ -21,7 +18,7 @@ import soot.jimple.infoflow.util.SootMethodRepresentationParser;
 public class LazySummary {
 
 	private XMLReader reader;
-	private MethodSummaries flows = new MethodSummaries();
+	private ClassSummaries summaries = new ClassSummaries();
 	private Set<String> supportedClasses = new HashSet<String>();
 	private Set<String> loadableClasses = new HashSet<String>();
 	private Set<File> files;
@@ -87,27 +84,51 @@ public class LazySummary {
 			return true;
 		return false;
 	}
-
-	public Set<MethodFlow> getMethodFlows(SootMethod method) {
-		return getMethodFlows(method.getSignature()); 
+	
+	/**
+	 * Gets all flows for the given method signature in the given set of classes
+	 * @param classes The classes in which to look for flow summaries
+	 * @param methodSignature The signature of the method for which to get the
+	 * flow summaries
+	 * @return The flow summaries for the given method in the given set of
+	 * classes
+	 */
+	public ClassSummaries getMethodFlows(Set<String> classes, String methodSignature) {
+		for (String className : classes)
+			if (loadableClasses.contains(className))
+				loadClass(className);
+		return summaries.filterForMethod(classes, methodSignature);
 	}
-
-	public Set<MethodFlow> getMethodFlows(String methodSignature) {
-		SootMethodAndClass smac = SootMethodRepresentationParser.v()
-				.parseSootMethodString(methodSignature);
-		
-		if (loadableClasses.contains(smac.getClassName()))
-			loadClass(smac.getClassName());
-		return flows.getFlowsForMethod(smac.getSignature());
+	
+	/**
+	 * Gets the data flows inside the given method for the given class.
+	 * @param className The class containing the method. If two classes B and C
+	 * inherit from some class A, methods in A can either be evaluated in the
+	 * context of B or C.
+	 * @param methodSignature The signature of the method for which to get the
+	 * flow summaries.
+	 * @return The flow summaries for the given method in the given class
+	 */
+	public Set<MethodFlow> getMethodFlows(String className, String methodSignature) {
+		if (loadableClasses.contains(className))
+			loadClass(className);
+		MethodSummaries classSummaries = summaries.getClassSummaries(className);
+		return classSummaries == null ? null
+				: classSummaries.getFlowsForMethod(methodSignature);
 	}
-
+	
 	private void loadClass(String clazz) {
+		// Do not load classes more than once
+		if (supportedClasses.contains(clazz))
+			return;
+		
 		for (File f : files) {
 			if (fileToClass(f).equals(clazz)) {
 				try {
-					flows.merge(reader.read(f));
+					summaries.merge(clazz, reader.read(f));
 					loadableClasses.remove(clazz);
 					supportedClasses.add(clazz);
+					break;
 				} catch (Exception e) {
 					e.printStackTrace();
 				}
@@ -126,5 +147,13 @@ public class LazySummary {
 	public Set<String> getLoadableClasses() {
 		return this.loadableClasses;
 	}
-
+	
+	/**
+	 * Gets all method flow summaries that have been loaded so far
+	 * @return All summaries that have been loaded so far
+	 */
+	public ClassSummaries getSummaries() {
+		return summaries;
+	}
+	
 }

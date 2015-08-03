@@ -45,6 +45,7 @@ import soot.jimple.infoflow.methodSummary.postProcessor.SummaryPathBuilder.Summa
 import soot.jimple.infoflow.methodSummary.postProcessor.SummaryPathBuilder.SummarySourceInfo;
 import soot.jimple.infoflow.solver.cfg.IInfoflowCFG;
 import soot.jimple.infoflow.util.BaseSelector;
+import soot.jimple.infoflow.util.SootMethodRepresentationParser;
 import soot.util.MultiMap;
 
 public class InfoflowResultPostProcessor {
@@ -750,6 +751,10 @@ public class InfoflowResultPostProcessor {
 	private void processAbstractionAtReturn(MethodSummaries flows, AccessPath apAtReturn,
 			SootMethod m, FlowSource source, Stmt stmt, AccessPath sourceAP,
 			boolean isAlias) {
+		
+		if (m.toString().contains("storeAliasInGapClass"))
+			System.out.println("x");
+		
 		// Was this the value returned by the method?
 		if (stmt instanceof ReturnStmt) {
 			ReturnStmt retStmt = (ReturnStmt) stmt;
@@ -780,11 +785,19 @@ public class InfoflowResultPostProcessor {
 		
 		// The sink may be a field on a value obtained from a gap
 		if (apAtReturn.isInstanceFieldRef()) {
-			Set<GapDefinition> referencedGaps = gapManager.getGapDefinitionsForLocal(
+			Set<GapDefinition> referencedGaps = gapManager.getGapDefinitionsForLocalUse(
 					apAtReturn.getPlainValue());
 			if (referencedGaps != null && !referencedGaps.isEmpty())
-				for (GapDefinition gap : referencedGaps){
+				for (GapDefinition gap : referencedGaps) {
 					FlowSink sink = sourceSinkFactory.createFieldSink(apAtReturn, gap);
+					addFlow(source, sink, isAlias, flows);
+				}
+			
+			referencedGaps = gapManager.getGapDefinitionsForLocalDef(
+					apAtReturn.getPlainValue());
+			if (referencedGaps != null && !referencedGaps.isEmpty())
+				for (GapDefinition gap : referencedGaps) {
+					FlowSink sink = sourceSinkFactory.createReturnSink(apAtReturn, gap);
 					addFlow(source, sink, isAlias, flows);
 				}
 		}
@@ -838,12 +851,16 @@ public class InfoflowResultPostProcessor {
 	 */
 	private void addFlow(FlowSource source, FlowSink sink, boolean isAlias,
 			MethodSummaries summaries) {
+		// Convert the method signature into a subsignature
+		String methodSubSig = SootMethodRepresentationParser.v()
+				.parseSootMethodString(method).getSubSignature();
+		
 		// Ignore identity flows
 		if (isIdentityFlow(source, sink))
 			return;
 		
-		MethodFlow mFlow = new MethodFlow(method, source, sink, isAlias);
-		if (summaries.addFlowForMethod(method, mFlow))
+		MethodFlow mFlow = new MethodFlow(methodSubSig, source, sink, isAlias);
+		if (summaries.addFlow(mFlow))
 			debugMSG(source, sink);
 	}
 	
