@@ -8,8 +8,9 @@ import soot.jimple.DefinitionStmt;
 import soot.jimple.Stmt;
 import soot.jimple.infoflow.data.Abstraction;
 import soot.jimple.infoflow.data.AccessPath;
+import soot.jimple.infoflow.nativ.AbstractNativeCallHandler;
 import soot.jimple.infoflow.nativ.DefaultNativeCallHandler;
-import soot.jimple.infoflow.nativ.NativeCallHandler;
+import soot.jimple.infoflow.nativ.INativeCallHandler;
 
 /**
  * Handler for dealing with native calls during summary generation
@@ -17,9 +18,9 @@ import soot.jimple.infoflow.nativ.NativeCallHandler;
  * @author Steven Arzt
  *
  */
-public class SummaryNativeCallHandler extends NativeCallHandler {
+public class SummaryNativeCallHandler extends AbstractNativeCallHandler {
 	
-	private NativeCallHandler fallbackHandler = new DefaultNativeCallHandler();
+	private INativeCallHandler fallbackHandler = new DefaultNativeCallHandler();
 	
 	@Override
 	public Set<Abstraction> getTaintedValues(Stmt call, Abstraction source,
