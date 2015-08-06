@@ -1,8 +1,8 @@
 package soot.jimple.infoflow.methodSummary.taintWrappers;
 
-import soot.jimple.infoflow.methodSummary.data.FlowSink;
-import soot.jimple.infoflow.methodSummary.data.GapDefinition;
-import soot.jimple.infoflow.methodSummary.data.SourceSinkType;
+import soot.jimple.infoflow.methodSummary.data.sourceSink.FlowSink;
+import soot.jimple.infoflow.methodSummary.data.summary.GapDefinition;
+import soot.jimple.infoflow.methodSummary.data.summary.SourceSinkType;
 
 /**
  * Class representing a tainted item during propagation

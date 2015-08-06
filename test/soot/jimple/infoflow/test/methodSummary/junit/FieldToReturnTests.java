@@ -1,8 +1,8 @@
 package soot.jimple.infoflow.test.methodSummary.junit;
 
 import static org.junit.Assert.assertTrue;
-import static soot.jimple.infoflow.methodSummary.data.SourceSinkType.Field;
-import static soot.jimple.infoflow.methodSummary.data.SourceSinkType.Return;
+import static soot.jimple.infoflow.methodSummary.data.summary.SourceSinkType.Field;
+import static soot.jimple.infoflow.methodSummary.data.summary.SourceSinkType.Return;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -10,7 +10,8 @@ import java.util.Set;
 
 import org.junit.Test;
 
-import soot.jimple.infoflow.methodSummary.data.MethodFlow;
+import soot.jimple.infoflow.InfoflowConfiguration;
+import soot.jimple.infoflow.methodSummary.data.summary.MethodFlow;
 import soot.jimple.infoflow.methodSummary.generator.SummaryGenerator;
 
 public class FieldToReturnTests extends TestHelper{
@@ -156,8 +157,7 @@ public class FieldToReturnTests extends TestHelper{
 		List<String> sub = new LinkedList<String>();
 		sub.add("java.util.LinkedList");
 		sg.setSubstitutedWith(sub);
-		sg.setAccessPathLength(3);
-		sg.setIgnoreFlowsInSystemPackages(false);
+		InfoflowConfiguration.setAccessPathLength(3);
 		return sg;
 	}
 }

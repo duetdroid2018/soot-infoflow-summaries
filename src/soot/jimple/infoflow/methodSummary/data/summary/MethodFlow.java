@@ -1,4 +1,7 @@
-package soot.jimple.infoflow.methodSummary.data;
+package soot.jimple.infoflow.methodSummary.data.summary;
+
+import soot.jimple.infoflow.methodSummary.data.sourceSink.FlowSink;
+import soot.jimple.infoflow.methodSummary.data.sourceSink.FlowSource;
 
 
 

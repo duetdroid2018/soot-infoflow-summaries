@@ -5,8 +5,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
-import soot.jimple.infoflow.methodSummary.data.MethodFlow;
-
 /**
  * Data class encapsulating all method summaries for a certain class
  * 

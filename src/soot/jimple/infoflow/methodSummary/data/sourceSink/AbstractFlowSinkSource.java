@@ -1,10 +1,12 @@
-package soot.jimple.infoflow.methodSummary.data;
+package soot.jimple.infoflow.methodSummary.data.sourceSink;
 
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 
-import soot.jimple.infoflow.Infoflow;
+import soot.jimple.infoflow.InfoflowConfiguration;
+import soot.jimple.infoflow.methodSummary.data.summary.GapDefinition;
+import soot.jimple.infoflow.methodSummary.data.summary.SourceSinkType;
 import soot.jimple.infoflow.methodSummary.xml.XMLConstants;
 
 /**
@@ -49,9 +51,9 @@ public abstract class AbstractFlowSinkSource {
 		if (in == null || in.length == 0)
 			return null;
 		
-		if (in.length > Infoflow.getAccessPathLength()) {
-			String[] out = new String[Infoflow.getAccessPathLength()];
-			System.arraycopy(in, 0, out, 0, Infoflow.getAccessPathLength());
+		if (in.length > InfoflowConfiguration.getAccessPathLength()) {
+			String[] out = new String[InfoflowConfiguration.getAccessPathLength()];
+			System.arraycopy(in, 0, out, 0, InfoflowConfiguration.getAccessPathLength());
 			return out;
 		}
 		return in;

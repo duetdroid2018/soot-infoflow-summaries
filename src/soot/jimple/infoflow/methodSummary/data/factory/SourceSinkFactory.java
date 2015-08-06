@@ -4,10 +4,10 @@ import soot.ArrayType;
 import soot.SootField;
 import soot.Type;
 import soot.jimple.infoflow.data.AccessPath;
-import soot.jimple.infoflow.methodSummary.data.FlowSink;
-import soot.jimple.infoflow.methodSummary.data.FlowSource;
-import soot.jimple.infoflow.methodSummary.data.GapDefinition;
-import soot.jimple.infoflow.methodSummary.data.SourceSinkType;
+import soot.jimple.infoflow.methodSummary.data.sourceSink.FlowSink;
+import soot.jimple.infoflow.methodSummary.data.sourceSink.FlowSource;
+import soot.jimple.infoflow.methodSummary.data.summary.GapDefinition;
+import soot.jimple.infoflow.methodSummary.data.summary.SourceSinkType;
 
 /**
  * Factory class for source and sink data objects

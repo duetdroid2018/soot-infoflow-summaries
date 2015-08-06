@@ -9,9 +9,10 @@ import java.util.List;
 
 import org.junit.Test;
 
+import soot.jimple.infoflow.InfoflowConfiguration;
 import soot.jimple.infoflow.config.IInfoflowConfig;
-import soot.jimple.infoflow.methodSummary.data.SourceSinkType;
 import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
+import soot.jimple.infoflow.methodSummary.data.summary.SourceSinkType;
 import soot.jimple.infoflow.methodSummary.generator.SummaryGenerator;
 import soot.options.Options;
 
@@ -155,9 +156,8 @@ public class CallbackTests extends TestHelper {
 		List<String> sub = new LinkedList<String>();
 		sub.add("java.util.ArrayList");
 		sg.setSubstitutedWith(sub);
-		sg.setAccessPathLength(5);
-		sg.setIgnoreFlowsInSystemPackages(false);
-		sg.setConfig(new IInfoflowConfig() {
+		InfoflowConfiguration.setAccessPathLength(5);
+		sg.setSootConfig(new IInfoflowConfig() {
 			
 			@Override
 			public void setSootOptions(Options options) {

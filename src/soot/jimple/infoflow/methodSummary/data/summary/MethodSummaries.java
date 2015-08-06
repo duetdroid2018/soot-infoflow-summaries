@@ -11,9 +11,6 @@ import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
 import soot.jimple.infoflow.collect.ConcurrentHashSet;
-import soot.jimple.infoflow.methodSummary.data.GapDefinition;
-import soot.jimple.infoflow.methodSummary.data.MethodFlow;
-import soot.jimple.infoflow.methodSummary.data.SourceSinkType;
 
 /**
  * Data class encapsulating a set of method summaries

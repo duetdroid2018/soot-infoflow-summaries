@@ -1,4 +1,4 @@
-package soot.jimple.infoflow.methodSummary.data;
+package soot.jimple.infoflow.methodSummary.data.summary;
 
 
 /**

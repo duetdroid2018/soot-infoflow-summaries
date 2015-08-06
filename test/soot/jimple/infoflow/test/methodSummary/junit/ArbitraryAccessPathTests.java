@@ -2,8 +2,8 @@ package soot.jimple.infoflow.test.methodSummary.junit;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
-import static soot.jimple.infoflow.methodSummary.data.SourceSinkType.Field;
-import static soot.jimple.infoflow.methodSummary.data.SourceSinkType.Parameter;
+import static soot.jimple.infoflow.methodSummary.data.summary.SourceSinkType.Field;
+import static soot.jimple.infoflow.methodSummary.data.summary.SourceSinkType.Parameter;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -11,8 +11,9 @@ import java.util.Set;
 
 import org.junit.Test;
 
-import soot.jimple.infoflow.methodSummary.data.MethodFlow;
-import soot.jimple.infoflow.methodSummary.data.SourceSinkType;
+import soot.jimple.infoflow.InfoflowConfiguration;
+import soot.jimple.infoflow.methodSummary.data.summary.MethodFlow;
+import soot.jimple.infoflow.methodSummary.data.summary.SourceSinkType;
 import soot.jimple.infoflow.methodSummary.generator.SummaryGenerator;
 
 public class ArbitraryAccessPathTests  extends TestHelper{
@@ -201,11 +202,9 @@ public class ArbitraryAccessPathTests  extends TestHelper{
 		SummaryGenerator sg = new SummaryGenerator();
 		List<String> sub = new LinkedList<String>();
 		sub.add("java.util.ArrayList");
-		sg.setUseRecursiveAccessPaths(false);
 		sg.setSubstitutedWith(sub);
-		sg.setAccessPathLength(6);
-		sg.setSummaryAPLength(5);
-		sg.setIgnoreFlowsInSystemPackages(false);
+		InfoflowConfiguration.setUseRecursiveAccessPaths(false);
+		InfoflowConfiguration.setAccessPathLength(6);
 		return sg;
 	}
 }

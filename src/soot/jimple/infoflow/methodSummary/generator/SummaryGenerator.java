@@ -19,8 +19,9 @@ import soot.Scene;
 import soot.SootClass;
 import soot.SootMethod;
 import soot.jimple.Stmt;
-import soot.jimple.infoflow.IInfoflow.CallgraphAlgorithm;
 import soot.jimple.infoflow.Infoflow;
+import soot.jimple.infoflow.InfoflowConfiguration;
+import soot.jimple.infoflow.InfoflowConfiguration.CodeEliminationMode;
 import soot.jimple.infoflow.InfoflowManager;
 import soot.jimple.infoflow.cfg.DefaultBiDiICFGFactory;
 import soot.jimple.infoflow.config.IInfoflowConfig;
@@ -31,10 +32,10 @@ import soot.jimple.infoflow.entryPointCreators.BaseEntryPointCreator;
 import soot.jimple.infoflow.entryPointCreators.SequentialEntryPointCreator;
 import soot.jimple.infoflow.handlers.ResultsAvailableHandler;
 import soot.jimple.infoflow.methodSummary.DefaultSummaryConfig;
-import soot.jimple.infoflow.methodSummary.data.GapDefinition;
-import soot.jimple.infoflow.methodSummary.data.MethodFlow;
 import soot.jimple.infoflow.methodSummary.data.factory.SourceSinkFactory;
 import soot.jimple.infoflow.methodSummary.data.summary.ClassSummaries;
+import soot.jimple.infoflow.methodSummary.data.summary.GapDefinition;
+import soot.jimple.infoflow.methodSummary.data.summary.MethodFlow;
 import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
 import soot.jimple.infoflow.methodSummary.handler.SummaryTaintPropagationHandler;
 import soot.jimple.infoflow.methodSummary.postProcessor.InfoflowResultPostProcessor;
@@ -53,30 +54,21 @@ import soot.options.Options;
 public class SummaryGenerator {
 
 	public static final String DUMMY_MAIN_SIG = "<dummyMainClass: void dummyMainMethod()>";
-
-	// the access path length that is used in infoflow
-	protected int accessPathLength = 5;
-
-	// the access path length that is used in the summaries.
-	protected int summaryAPLength = accessPathLength - 1;
-
-	protected boolean ignoreFlowsInSystemPackages = false;
-	protected boolean enableImplicitFlows = false;
-	protected boolean enableExceptionTracking = false;
-	protected boolean enableStaticFieldTracking = false;
-	protected boolean flowSensitiveAliasing = true;
-	protected boolean useRecursiveAccessPaths = true;
-
-	protected CallgraphAlgorithm cfgAlgo = CallgraphAlgorithm.SPARK;
+	
 	protected boolean debug = false;
 	protected ITaintPropagationWrapper taintWrapper;
-	protected IInfoflowConfig config;
+	protected IInfoflowConfig sootConfig;
+	protected SummaryGeneratorConfiguration config = new SummaryGeneratorConfiguration();
+	
 	protected List<String> substitutedWith = new LinkedList<String>();
-	private boolean loadFullJAR = false;
-	private Set<String> excludes = null;
-	private int repeatCount = 1;
 	
 	public SummaryGenerator() {
+		// Set the default data flow configuration
+		config.setEnableExceptionTracking(false);
+		config.setEnableStaticFieldTracking(false);
+		config.setCodeEliminationMode(CodeEliminationMode.PropagateConstants);
+		config.setIgnoreFlowsInSystemPackages(false);
+		config.setStopAfterFirstFlow(false);
 	}
 
 	/**
@@ -119,7 +111,7 @@ public class SummaryGenerator {
 		
 		Options.v().set_src_prec(Options.src_prec_class);
 		Options.v().set_output_format(Options.output_format_none);
-		if (hasWildcard || loadFullJAR)
+		if (hasWildcard || config.getLoadFullJAR())
 			Options.v().set_process_dir(Arrays.asList(classpath.split(File.pathSeparator)));
 		else
 			Options.v().set_soot_classpath(classpath);
@@ -203,7 +195,7 @@ public class SummaryGenerator {
 				}
 			
 			MethodSummaries curSummaries = null;
-			for (int i = 0; i < repeatCount; i++) {
+			for (int i = 0; i < config.getRepeatCount(); i++) {
 				long nanosBeforeClass = System.nanoTime();
 				System.out.println("Analyzing class " + entry.getKey());
 				
@@ -242,8 +234,8 @@ public class SummaryGenerator {
 	 * @param className The class to check
 	 */
 	private void checkAndAdd(Set<String> classes, String className) {
-		if (this.excludes != null)
-			for (String excl : this.excludes) {
+		if (config.getExcludes() != null)
+			for (String excl : config.getExcludes()) {
 				if (excl.equals(className))
 					return;
 				if (excl.endsWith(".*")) {
@@ -391,7 +383,7 @@ public class SummaryGenerator {
 		long nanosBeforeMethod = System.nanoTime();
 		
 		final SourceSinkFactory sourceSinkFactory = new SourceSinkFactory(
-				summaryAPLength);
+				InfoflowConfiguration.getAccessPathLength());
 		final SummarySourceSinkManager manager = new SummarySourceSinkManager(
 				methodSig, parentClass, sourceSinkFactory);
 		final MethodSummaries summaries = new MethodSummaries();
@@ -460,13 +452,8 @@ public class SummaryGenerator {
 					}
 
 				});
-		Infoflow.setAccessPathLength(accessPathLength);
-		Infoflow.setMergeNeighbors(true);
-		
-		iFlow.setEnableImplicitFlows(enableImplicitFlows);
-		iFlow.setEnableExceptionTracking(enableExceptionTracking);
-		iFlow.setEnableStaticFieldTracking(enableStaticFieldTracking);
-		iFlow.setFlowSensitiveAliasing(flowSensitiveAliasing);
+		InfoflowConfiguration.setMergeNeighbors(true);
+		iFlow.setConfig(config);		
 		iFlow.setNativeCallHandler(new SummaryNativeCallHandler());
 		
 		final SummaryGenerationTaintWrapper summaryWrapper =
@@ -537,17 +524,13 @@ public class SummaryGenerator {
 			};
 			iFlow.setTaintWrapper(wrapper);
 		}
-
-		iFlow.setCallgraphAlgorithm(cfgAlgo);
-		iFlow.setIgnoreFlowsInSystemPackages(ignoreFlowsInSystemPackages);
-		Infoflow.setUseRecursiveAccessPaths(useRecursiveAccessPaths);
-
-		if (config == null) {
+		
+		// Set the Soot configuration
+		if (sootConfig == null)
 			iFlow.setSootConfig(new DefaultSummaryConfig());
-		} else {
-			iFlow.setSootConfig(config);
-		}
-		iFlow.setStopAfterFirstFlow(false);
+		else
+			iFlow.setSootConfig(sootConfig);
+		
 		return iFlow;
 	}
 
@@ -555,8 +538,8 @@ public class SummaryGenerator {
 		this.taintWrapper = taintWrapper;
 	}
 
-	public void setConfig(IInfoflowConfig config) {
-		this.config = config;
+	public void setSootConfig(IInfoflowConfig config) {
+		this.sootConfig = config;
 	}
 
 	public List<String> getSubstitutedWith() {
@@ -566,90 +549,13 @@ public class SummaryGenerator {
 	public void setSubstitutedWith(List<String> substitutedWith) {
 		this.substitutedWith = substitutedWith;
 	}
-
-	public int getAccessPathLength() {
-		return accessPathLength;
-	}
-
-	public void setAccessPathLength(int accessPathLength) {
-		this.accessPathLength = accessPathLength;
-	}
-
-	public boolean isEnableImplicitFlows() {
-		return enableImplicitFlows;
-	}
-
-	public void setEnableImplicitFlows(boolean enableImplicitFlows) {
-		this.enableImplicitFlows = enableImplicitFlows;
-	}
-
-	public boolean isEnableExceptionTracking() {
-		return enableExceptionTracking;
-	}
-
-	public void setEnableExceptionTracking(boolean enableExceptionTracking) {
-		this.enableExceptionTracking = enableExceptionTracking;
-	}
-
-	public boolean isEnableStaticFieldTracking() {
-		return enableStaticFieldTracking;
-	}
-
-	public void setEnableStaticFieldTracking(boolean enableStaticFieldTracking) {
-		this.enableStaticFieldTracking = enableStaticFieldTracking;
-	}
-
-	public boolean isFlowSensitiveAliasing() {
-		return flowSensitiveAliasing;
-	}
-
-	public void setFlowSensitiveAliasing(boolean flowSensitiveAliasing) {
-		this.flowSensitiveAliasing = flowSensitiveAliasing;
-	}
-
-	public void setSummaryAPLength(int summaryAPLength) {
-		this.summaryAPLength = summaryAPLength;
-	}
-
-	public void setIgnoreFlowsInSystemPackages(
-			boolean ignoreFlowsInSystemPackages) {
-		this.ignoreFlowsInSystemPackages = ignoreFlowsInSystemPackages;
-	}
-	
-	public void setUseRecursiveAccessPaths(boolean useRecursiveAccessPaths) {
-		this.useRecursiveAccessPaths = useRecursiveAccessPaths;
-	}
 	
 	/**
-	 * Sets whether the target JAR file shall be loaded fully before the
-	 * analysis starts. More precisely, this instructs StubDroid to not only
-	 * explicitly load the target classes, but put the whole target JAR into
-	 * Soot's process directory. This is, for instance, useful when analyzing
-	 * all classes derived from a certain superclass. 
-	 * @param loadFullJAR True if the target JAR file shall be fully loaded
-	 * before performing the analysis, otherwise false.
+	 * Gets the configuration for this summary generator
+	 * @return The current configuration for this summary generator
 	 */
-	public void setLoadFullJAR(boolean loadFullJAR) {
-		this.loadFullJAR = loadFullJAR;
-	}
-	
-	/**
-	 * Sets the set of classes to be excluded from the analysis. Use pkg.* to
-	 * exclude all classes in package "pkg"
-	 * @param excludes The set of classes and packages to be excluded
-	 */
-	public void setExcludes(Set<String> excludes) {
-		this.excludes = excludes;
-	}
-	
-	/**
-	 * Sets the number of time the analysis of every class shall be repeated.
-	 * This is useful for measurements and evaluations.
-	 * @param repeatCount The number of time the analysis of every class shall
-	 * be repeated
-	 */
-	public void setRepeatCount(int repeatCount) {
-		this.repeatCount = repeatCount;
+	public SummaryGeneratorConfiguration getConfig() {
+		return config;
 	}
 
 }

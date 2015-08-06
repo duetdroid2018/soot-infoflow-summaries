@@ -1,4 +1,4 @@
-package soot.jimple.infoflow.methodSummary.data;
+package soot.jimple.infoflow.methodSummary.data.summary;
 
 /**
  * Enumeration containing the types of sources and sinks for which summaries can

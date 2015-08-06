@@ -9,8 +9,9 @@ import java.util.Set;
 
 import org.junit.Test;
 
-import soot.jimple.infoflow.methodSummary.data.MethodFlow;
-import soot.jimple.infoflow.methodSummary.data.SourceSinkType;
+import soot.jimple.infoflow.InfoflowConfiguration;
+import soot.jimple.infoflow.methodSummary.data.summary.MethodFlow;
+import soot.jimple.infoflow.methodSummary.data.summary.SourceSinkType;
 import soot.jimple.infoflow.methodSummary.generator.SummaryGenerator;
 
 public class DataClassTests extends TestHelper {
@@ -43,9 +44,8 @@ public class DataClassTests extends TestHelper {
 		List<String> sub = new LinkedList<String>();
 		sub.add("java.util.LinkedList");
 		sg.setSubstitutedWith(sub);
-		sg.setAccessPathLength(3);
-		sg.setIgnoreFlowsInSystemPackages(false);
-		sg.setUseRecursiveAccessPaths(false);
+		InfoflowConfiguration.setAccessPathLength(3);
+		InfoflowConfiguration.setUseRecursiveAccessPaths(false);
 		return sg;
 	}
 

@@ -69,9 +69,9 @@ class Main {
 		
 		// Run it
 		SummaryGenerator generator = new SummaryGeneratorFactory().initSummaryGenerator();
-		generator.setLoadFullJAR(loadFullJAR);
-		generator.setExcludes(excludes);
-		generator.setRepeatCount(repeatCount);
+		generator.getConfig().setLoadFullJAR(loadFullJAR);
+		generator.getConfig().setExcludes(excludes);
+		generator.getConfig().setRepeatCount(repeatCount);
 		final boolean doForceOverwrite = forceOverwrite;
 		ClassSummaries summaries = generator.createMethodSummaries(args[0],
 				classesToAnalyze, new IClassSummaryHandler() {

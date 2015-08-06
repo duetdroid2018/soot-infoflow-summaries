@@ -1,6 +1,9 @@
-package soot.jimple.infoflow.methodSummary.data;
+package soot.jimple.infoflow.methodSummary.data.sourceSink;
 
 import java.util.Arrays;
+
+import soot.jimple.infoflow.methodSummary.data.summary.GapDefinition;
+import soot.jimple.infoflow.methodSummary.data.summary.SourceSinkType;
 
 /**
  * Representation of a flow source

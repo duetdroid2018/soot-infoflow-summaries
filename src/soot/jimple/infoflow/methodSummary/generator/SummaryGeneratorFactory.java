@@ -2,6 +2,7 @@ package soot.jimple.infoflow.methodSummary.generator;
 
 import java.io.IOException;
 
+import soot.jimple.infoflow.InfoflowConfiguration;
 import soot.jimple.infoflow.taintWrappers.EasyTaintWrapper;
 
 public class SummaryGeneratorFactory {
@@ -9,9 +10,7 @@ public class SummaryGeneratorFactory {
 	/**
 	 * summary generator settings
 	 */
-	private final int accessPathLength =4;
-	private final int summaryAPLength = 3;
-	private final boolean ignoreFlowsInSystemPackages = false;
+	private final int accessPathLength = 4;
 	private final boolean enableImplicitFlows = false;
 	private final boolean enableExceptionTracking = true;
 	private final boolean flowSensitiveAliasing = true;
@@ -25,14 +24,12 @@ public class SummaryGeneratorFactory {
 	 */
 	public SummaryGenerator initSummaryGenerator() {
 		SummaryGenerator s = new SummaryGenerator();
-		s.setAccessPathLength(accessPathLength);
-		s.setSummaryAPLength(summaryAPLength);
-		s.setIgnoreFlowsInSystemPackages(ignoreFlowsInSystemPackages);
-		s.setEnableExceptionTracking(enableExceptionTracking);
-		s.setEnableImplicitFlows(enableImplicitFlows);
-		s.setFlowSensitiveAliasing(flowSensitiveAliasing);
-		s.setUseRecursiveAccessPaths(useRecursiveAccessPaths);
-		s.setLoadFullJAR(loadFullJAR);
+		InfoflowConfiguration.setAccessPathLength(accessPathLength);
+		InfoflowConfiguration.setUseRecursiveAccessPaths(useRecursiveAccessPaths);
+		s.getConfig().setEnableExceptionTracking(enableExceptionTracking);
+		s.getConfig().setEnableImplicitFlows(enableImplicitFlows);
+		s.getConfig().setFlowSensitiveAliasing(flowSensitiveAliasing);
+		s.getConfig().setLoadFullJAR(loadFullJAR);
 		
 		if(useTaintWrapper)
 			try {

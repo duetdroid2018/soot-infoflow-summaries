@@ -6,8 +6,9 @@ import java.util.Set;
 import org.junit.Assert;
 import org.junit.Test;
 
-import soot.jimple.infoflow.methodSummary.data.MethodFlow;
+import soot.jimple.infoflow.InfoflowConfiguration;
 import soot.jimple.infoflow.methodSummary.data.summary.ClassSummaries;
+import soot.jimple.infoflow.methodSummary.data.summary.MethodFlow;
 import soot.jimple.infoflow.methodSummary.generator.SummaryGenerator;
 import soot.jimple.infoflow.methodSummary.generator.SummaryGeneratorFactory;
 
@@ -104,14 +105,19 @@ public class JDKTests extends TestHelper {
 		Assert.assertNotNull(flow);
 	}
 	
+	@Test//(timeout = 100000)
+	public void gapTest7() {
+		String mSig = "<java.util.concurrent.ConcurrentSkipListMap: java.lang.Object remove(java.lang.Object)>";
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
+		Assert.assertNotNull(flow);
+	}
+	
 	@Override
 	protected SummaryGenerator getSummary() {
 		SummaryGenerator sg = new SummaryGenerator();
-		sg.setAccessPathLength(4);
-		sg.setSummaryAPLength(3);
-		sg.setLoadFullJAR(false);
-		sg.setIgnoreFlowsInSystemPackages(false);
-		sg.setEnableExceptionTracking(true);
+		InfoflowConfiguration.setAccessPathLength(4);
+		sg.getConfig().setLoadFullJAR(false);
+		sg.getConfig().setEnableExceptionTracking(true);
 		return sg;
 	}
 }

@@ -1,8 +1,10 @@
-package soot.jimple.infoflow.methodSummary.data;
+package soot.jimple.infoflow.methodSummary.data.sourceSink;
 
 import java.util.Arrays;
 import java.util.Map;
 
+import soot.jimple.infoflow.methodSummary.data.summary.GapDefinition;
+import soot.jimple.infoflow.methodSummary.data.summary.SourceSinkType;
 import soot.jimple.infoflow.methodSummary.xml.XMLConstants;
 
 /**
