@@ -24,6 +24,7 @@ import soot.Type;
 import soot.Unit;
 import soot.Value;
 import soot.jimple.AssignStmt;
+import soot.jimple.Constant;
 import soot.jimple.DefinitionStmt;
 import soot.jimple.InstanceFieldRef;
 import soot.jimple.InstanceInvokeExpr;
@@ -643,6 +644,9 @@ public class InfoflowResultPostProcessor {
 		for (int i = 0; i < stmt.getInvokeExpr().getArgCount(); i++) {
 			Local paramLocal = callee.getActiveBody().getParameterLocal(i);
 			if (paramLocal == curAP.getPlainValue()) {
+				// We cannot map back to a constant expression at the call site
+				if (stmt.getInvokeExpr().getArg(i) instanceof Constant)
+					return null;
 				curAP = curAP.copyWithNewValue(stmt.getInvokeExpr().getArg(i));
 				matched = true;
 			}
