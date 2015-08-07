@@ -32,6 +32,7 @@ class Main {
 		boolean loadFullJAR = false;
 		Set<String> excludes = new HashSet<>();
 		int repeatCount = 1;
+		boolean aliasFlowIns = false;
 		
 		// Collect the classes to be analyzed from our command line
 		final int offset = 2;
@@ -51,6 +52,8 @@ class Main {
 					repeatCount = Integer.parseInt(args[i + 1]);
 					i++;
 				}
+				else if (args[i].equalsIgnoreCase("--aliasFlowIns"))
+					aliasFlowIns = true;
 				else {
 					System.err.println("Invalid command line argument: " + args[i]);
 					return;
@@ -72,6 +75,7 @@ class Main {
 		generator.getConfig().setLoadFullJAR(loadFullJAR);
 		generator.getConfig().setExcludes(excludes);
 		generator.getConfig().setRepeatCount(repeatCount);
+		generator.getConfig().setFlowSensitiveAliasing(!aliasFlowIns);
 		final boolean doForceOverwrite = forceOverwrite;
 		ClassSummaries summaries = generator.createMethodSummaries(args[0],
 				classesToAnalyze, new IClassSummaryHandler() {

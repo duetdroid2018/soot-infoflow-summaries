@@ -751,10 +751,6 @@ public class InfoflowResultPostProcessor {
 	private void processAbstractionAtReturn(MethodSummaries flows, AccessPath apAtReturn,
 			SootMethod m, FlowSource source, Stmt stmt, AccessPath sourceAP,
 			boolean isAlias) {
-		
-		if (m.toString().contains("storeAliasInGapClass"))
-			System.out.println("x");
-		
 		// Was this the value returned by the method?
 		if (stmt instanceof ReturnStmt) {
 			ReturnStmt retStmt = (ReturnStmt) stmt;
