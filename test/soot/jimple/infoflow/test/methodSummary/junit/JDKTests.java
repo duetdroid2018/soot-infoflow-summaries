@@ -105,9 +105,16 @@ public class JDKTests extends TestHelper {
 		Assert.assertNotNull(flow);
 	}
 	
-	@Test//(timeout = 100000)
+	@Test(timeout = 100000)
 	public void gapTest7() {
 		String mSig = "<java.util.concurrent.ConcurrentSkipListMap: java.lang.Object remove(java.lang.Object)>";
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
+		Assert.assertNotNull(flow);
+	}
+	
+	@Test(timeout = 100000)
+	public void gapTest8() {
+		String mSig = "<java.util.concurrent.ConcurrentSkipListMap: java.util.concurrent.ConcurrentNavigableMap descendingMap()>";
 		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 		Assert.assertNotNull(flow);
 	}
