@@ -126,6 +126,13 @@ public class JDKTests extends TestHelper {
 		Assert.assertNotNull(flow);
 	}
 	
+	@Test(timeout = 100000)
+	public void gapTest9() {
+		String mSig = "<java.util.TreeMap: void putAll(java.util.Map)>";
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
+		Assert.assertNotNull(flow);
+	}
+	
 	@Override
 	protected SummaryGenerator getSummary() {
 		SummaryGenerator sg = new SummaryGenerator();
