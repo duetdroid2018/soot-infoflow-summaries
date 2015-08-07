@@ -130,6 +130,7 @@ public class JDKTests extends TestHelper {
 	protected SummaryGenerator getSummary() {
 		SummaryGenerator sg = new SummaryGenerator();
 		InfoflowConfiguration.setAccessPathLength(4);
+		InfoflowConfiguration.setUseRecursiveAccessPaths(true);
 		sg.getConfig().setLoadFullJAR(false);
 		sg.getConfig().setEnableExceptionTracking(true);
 		sg.getConfig().setFlowSensitiveAliasing(false);

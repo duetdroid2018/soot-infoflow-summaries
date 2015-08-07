@@ -110,6 +110,7 @@ public class ParaToReturnTests extends TestHelper {
 		sub.add("java.util.LinkedList");
 		sg.setSubstitutedWith(sub);
 		InfoflowConfiguration.setAccessPathLength(3);
+		InfoflowConfiguration.setUseRecursiveAccessPaths(true);
 		return sg;
 	}
 }

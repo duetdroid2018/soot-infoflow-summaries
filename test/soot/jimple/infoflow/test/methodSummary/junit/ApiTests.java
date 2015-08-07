@@ -578,6 +578,7 @@ public class ApiTests extends ApiTestHelper {
 		sub.add("java.util.ArrayList");
 		sg.setSubstitutedWith(sub);
 		InfoflowConfiguration.setAccessPathLength(5);
+		InfoflowConfiguration.setUseRecursiveAccessPaths(true);
 		return sg;
 	}
 

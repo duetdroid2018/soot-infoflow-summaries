@@ -215,6 +215,7 @@ public class FieldToParaTests extends TestHelper {
 		sub.add("java.util.ArrayList");
 		sg.setSubstitutedWith(sub);
 		InfoflowConfiguration.setAccessPathLength(5);
+		InfoflowConfiguration.setUseRecursiveAccessPaths(true);
 		return sg;
 	}
 }
