@@ -132,7 +132,9 @@ public class JDKTests extends TestHelper {
 	@Test(timeout = 100000)
 	public void gapTest9() {
 		String mSig = "<java.util.TreeMap: void putAll(java.util.Map)>";
-		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
+		SummaryGenerator gen = getSummary();
+		gen.getConfig().setFlowSensitiveAliasing(false);
+		Set<MethodFlow> flow = gen.createMethodSummary(getClasspath(), mSig).getAllFlows();
 		Assert.assertNotNull(flow);
 	}
 	
@@ -140,7 +142,9 @@ public class JDKTests extends TestHelper {
 	@Test(timeout = 100000)
 	public void treeMapPerformanceTest2() {
 		String mSig = "<java.util.TreeMap: java.lang.Object clone()>";
-		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
+		SummaryGenerator gen = getSummary();
+		gen.getConfig().setFlowSensitiveAliasing(false);
+		Set<MethodFlow> flow = gen.createMethodSummary(getClasspath(), mSig).getAllFlows();
 		Assert.assertNotNull(flow);
 	}
 	
