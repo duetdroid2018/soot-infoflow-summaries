@@ -182,15 +182,22 @@ public abstract class TestHelper {
 	protected abstract SummaryGenerator getSummary();
 	
 	/**
+	 * Gets the classpath to use for creating summaries
+	 * @return The classpath to use for creating summaries
+	 */
+	protected String getClasspath() {
+		return appPath + System.getProperty("path.separator")
+				+ libPath;
+	}
+	
+	/**
 	 * Creates a full summary for the given method
 	 * @param methodSignature The signature of the method for which to compute
 	 * the flow summaries
 	 * @return The summary object computed for the given method
 	 */
 	protected MethodSummaries createSummaries(String methodSignature) {
-		final String classpath = appPath + System.getProperty("path.separator")
-				+ libPath;
-		return getSummary().createMethodSummary(classpath, methodSignature);
+		return getSummary().createMethodSummary(getClasspath(), methodSignature);
 	}
 
 }

@@ -123,7 +123,9 @@ public class JDKTests extends TestHelper {
 	@Test(timeout = 100000)
 	public void treeMapPerformanceTest() {
 		String mSig = "<java.util.TreeMap: void <init>(java.util.Map)>";
-		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
+		SummaryGenerator gen = getSummary();
+		gen.getConfig().setFlowSensitiveAliasing(false);
+		Set<MethodFlow> flow = gen.createMethodSummary(getClasspath(), mSig).getAllFlows();
 		Assert.assertNotNull(flow);
 	}
 	
@@ -149,7 +151,6 @@ public class JDKTests extends TestHelper {
 		InfoflowConfiguration.setUseRecursiveAccessPaths(true);
 		sg.getConfig().setLoadFullJAR(false);
 		sg.getConfig().setEnableExceptionTracking(true);
-		sg.getConfig().setFlowSensitiveAliasing(false);
 		return sg;
 	}
 }
