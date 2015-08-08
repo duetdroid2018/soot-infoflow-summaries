@@ -4,6 +4,7 @@ import java.util.Collections;
 import java.util.Set;
 
 import org.junit.Assert;
+import org.junit.Ignore;
 import org.junit.Test;
 
 import soot.jimple.infoflow.InfoflowConfiguration;
@@ -129,6 +130,14 @@ public class JDKTests extends TestHelper {
 	@Test(timeout = 100000)
 	public void gapTest9() {
 		String mSig = "<java.util.TreeMap: void putAll(java.util.Map)>";
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
+		Assert.assertNotNull(flow);
+	}
+	
+	@Ignore("State explosion")
+	@Test(timeout = 100000)
+	public void treeMapPerformanceTest2() {
+		String mSig = "<java.util.TreeMap: java.lang.Object clone()>";
 		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 		Assert.assertNotNull(flow);
 	}

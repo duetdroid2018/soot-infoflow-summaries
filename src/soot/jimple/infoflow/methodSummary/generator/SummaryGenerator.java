@@ -212,7 +212,8 @@ public class SummaryGenerator {
 				cleanupGaps(curSummaries);
 				
 				System.out.println("Class summaries for " + entry.getKey() + " done in "
-						+ (System.nanoTime() - nanosBeforeClass) / 1E9 + " seconds");
+						+ (System.nanoTime() - nanosBeforeClass) / 1E9 + " seconds for "
+						+ curSummaries.getFlowCount() + " summaries");
 			}
 			
 			// Notify the handler that we're done
