@@ -148,6 +148,13 @@ public class JDKTests extends TestHelper {
 		Assert.assertNotNull(flow);
 	}
 	
+	@Test(timeout = 100000)
+	public void gapTest10() {
+		String mSig = "<java.lang.String: byte[] getBytes(java.lang.String)>";
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
+		Assert.assertNotNull(flow);
+	}
+	
 	@Override
 	protected SummaryGenerator getSummary() {
 		SummaryGenerator sg = new SummaryGenerator();

@@ -17,6 +17,8 @@ public class DefaultSummaryConfig implements IInfoflowConfig{
 			includeList.add("java.util.*");
 			includeList.add("android.app.*");
 			includeList.add("java.nio.charset.*");
+			includeList.add("sun.util.*");
+			includeList.add("sun.nio.cs.*");
 //			includeList.add("java.io.");
 //			includeList.add("java.security.");
 //			includeList.add("sun.misc.");

@@ -12,7 +12,7 @@ import static soot.jimple.infoflow.methodSummary.xml.XMLConstants.VALUE_TRUE;
 
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
@@ -31,137 +31,152 @@ import soot.jimple.infoflow.methodSummary.data.summary.SourceSinkType;
 
 public class XMLReader {
 	
-	enum State{
+	private enum State{
 		summary, methods, method, flow, gaps, gap
 	}
 
 	/**
 	 * Reads a summary xml file and returns the MethodSummaries which are saved
-	 * in that file 
+	 * in that file
+	 * @param fileName The file from which to read the method summaries 
+	 * @return The summary data object read from the given file
+	 * @return XMLStreamException Thrown in case of a syntax error in the input
+	 * file
+	 * @throws IOException Thrown if the file could not be read
 	 */
 	public MethodSummaries read(File fileName) throws XMLStreamException,
-			FileNotFoundException, SummaryXMLException{
+			SummaryXMLException, IOException{
 		MethodSummaries summary = new MethodSummaries();
 		
-		InputStream in = new FileInputStream(fileName);
-		XMLStreamReader reader = XMLInputFactory.newInstance().createXMLStreamReader(in);
-		
-		Map<String, String> sourceAttributes = new HashMap<String,String>();
-		Map<String, String> sinkAttributes = new HashMap<String,String>();
-		
-		String currentMethod = "";
-		int currentID = -1;
-		boolean isAlias = false;
-		
-		State state = State.summary;
-		while(reader.hasNext()){
-			// Read the next tag
-			reader.next();
-			if(!reader.hasName())
-				continue;
+		InputStream in = null;
+		XMLStreamReader reader = null;
+		try {
+			in = new FileInputStream(fileName);
+			reader = XMLInputFactory.newInstance().createXMLStreamReader(in);
 			
-			if (reader.getLocalName().equals(XMLConstants.TREE_METHODS) && reader.isStartElement()) {
-				if (state == State.summary)
-					state = State.methods;
-				else
-					throw new SummaryXMLException();
-			}
-			else if (reader.getLocalName().equals(TREE_METHOD) && reader.isStartElement() ){
-				if(state == State.methods){
-					currentMethod = getAttributeByName(reader, XMLConstants.ATTRIBUTE_METHOD_SIG);
-					state = State.method;
-				}			
-				else
-					throw new SummaryXMLException();
-			}else if (reader.getLocalName().equals(TREE_METHOD) && reader.isEndElement() ){
-				if(state == State.method)
-					state = State.methods;
-				else
-					throw new SummaryXMLException();
-			}
-			else if (reader.getLocalName().equals(TREE_FLOW) && reader.isStartElement()) {
-				if(state == State.method){
-					sourceAttributes.clear();
-					sinkAttributes.clear();
-					state = State.flow;
-					String sAlias = getAttributeByName(reader, XMLConstants.ATTRIBUTE_IS_ALIAS);
-					isAlias = sAlias != null && sAlias.equals(XMLConstants.VALUE_TRUE);
+			Map<String, String> sourceAttributes = new HashMap<String,String>();
+			Map<String, String> sinkAttributes = new HashMap<String,String>();
+			
+			String currentMethod = "";
+			int currentID = -1;
+			boolean isAlias = false;
+			
+			State state = State.summary;
+			while(reader.hasNext()){
+				// Read the next tag
+				reader.next();
+				if(!reader.hasName())
+					continue;
+				
+				if (reader.getLocalName().equals(XMLConstants.TREE_METHODS) && reader.isStartElement()) {
+					if (state == State.summary)
+						state = State.methods;
+					else
+						throw new SummaryXMLException();
 				}
-				else
-					throw new SummaryXMLException();
-			}
-			else if (reader.getLocalName().equals(TREE_SOURCE) && reader.isStartElement()){
-				if(state == State.flow){
-				for (int i = 0; i < reader.getAttributeCount(); i++)
-					sourceAttributes.put(reader.getAttributeLocalName(i), reader.getAttributeValue(i));
+				else if (reader.getLocalName().equals(TREE_METHOD) && reader.isStartElement() ){
+					if(state == State.methods){
+						currentMethod = getAttributeByName(reader, XMLConstants.ATTRIBUTE_METHOD_SIG);
+						state = State.method;
+					}			
+					else
+						throw new SummaryXMLException();
+				}else if (reader.getLocalName().equals(TREE_METHOD) && reader.isEndElement() ){
+					if(state == State.method)
+						state = State.methods;
+					else
+						throw new SummaryXMLException();
 				}
-				else
-					throw new SummaryXMLException();
-			}
-			else if(reader.getLocalName().equals(TREE_SINK) && reader.isStartElement()){
-				if(state == State.flow){
-				for (int i = 0; i < reader.getAttributeCount(); i++)
-					sinkAttributes.put(reader.getAttributeLocalName(i), reader.getAttributeValue(i));
+				else if (reader.getLocalName().equals(TREE_FLOW) && reader.isStartElement()) {
+					if(state == State.method){
+						sourceAttributes.clear();
+						sinkAttributes.clear();
+						state = State.flow;
+						String sAlias = getAttributeByName(reader, XMLConstants.ATTRIBUTE_IS_ALIAS);
+						isAlias = sAlias != null && sAlias.equals(XMLConstants.VALUE_TRUE);
+					}
+					else
+						throw new SummaryXMLException();
 				}
-				else
-					throw new SummaryXMLException();
-			}
-			else if(reader.getLocalName().equals(TREE_FLOW) && reader.isEndElement()){
-				if(state == State.flow){
-					state = State.method;					
-					MethodFlow flow = new MethodFlow(currentMethod,
-							createSource(summary, sourceAttributes),
-							createSink(summary, sinkAttributes),
-							isAlias);
-					summary.addFlow(flow);
-					
-					isAlias = false;
+				else if (reader.getLocalName().equals(TREE_SOURCE) && reader.isStartElement()){
+					if(state == State.flow){
+					for (int i = 0; i < reader.getAttributeCount(); i++)
+						sourceAttributes.put(reader.getAttributeLocalName(i), reader.getAttributeValue(i));
+					}
+					else
+						throw new SummaryXMLException();
 				}
-				else
-					throw new SummaryXMLException();
-			}
-			else if (reader.getLocalName().equals(XMLConstants.TREE_METHODS) && reader.isEndElement()) {
-				if (state == State.methods)
-					state = State.summary;
-				else
-					throw new SummaryXMLException();
-			}
-			else if(reader.getLocalName().equals(XMLConstants.TREE_GAPS) && reader.isStartElement()){
-				if(state == State.summary)
-					state = State.gaps;
-				else
-					throw new SummaryXMLException();
-			}
-			else if(reader.getLocalName().equals(XMLConstants.TREE_GAPS) && reader.isEndElement()){
-				if(state == State.gaps)
-					state = State.summary;
-				else
-					throw new SummaryXMLException();
-			}
-			else if(reader.getLocalName().equals(XMLConstants.TREE_GAP) && reader.isStartElement()){
-				if(state == State.gaps) {
-					currentMethod = getAttributeByName(reader, XMLConstants.ATTRIBUTE_METHOD_SIG);
-					currentID = Integer.valueOf(getAttributeByName(reader, XMLConstants.ATTRIBUTE_ID));
-					summary.getOrCreateGap(currentID, currentMethod);
-					state = State.gap;
+				else if(reader.getLocalName().equals(TREE_SINK) && reader.isStartElement()){
+					if(state == State.flow){
+					for (int i = 0; i < reader.getAttributeCount(); i++)
+						sinkAttributes.put(reader.getAttributeLocalName(i), reader.getAttributeValue(i));
+					}
+					else
+						throw new SummaryXMLException();
 				}
-				else
-					throw new SummaryXMLException();
-			}
-			else if (reader.getLocalName().equals(XMLConstants.TREE_GAP) && reader.isEndElement()){
-				if(state == State.gap) {
-					state = State.gaps;
+				else if(reader.getLocalName().equals(TREE_FLOW) && reader.isEndElement()){
+					if(state == State.flow){
+						state = State.method;					
+						MethodFlow flow = new MethodFlow(currentMethod,
+								createSource(summary, sourceAttributes),
+								createSink(summary, sinkAttributes),
+								isAlias);
+						summary.addFlow(flow);
+						
+						isAlias = false;
+					}
+					else
+						throw new SummaryXMLException();
 				}
-				else
-					throw new SummaryXMLException();
+				else if (reader.getLocalName().equals(XMLConstants.TREE_METHODS) && reader.isEndElement()) {
+					if (state == State.methods)
+						state = State.summary;
+					else
+						throw new SummaryXMLException();
+				}
+				else if(reader.getLocalName().equals(XMLConstants.TREE_GAPS) && reader.isStartElement()){
+					if(state == State.summary)
+						state = State.gaps;
+					else
+						throw new SummaryXMLException();
+				}
+				else if(reader.getLocalName().equals(XMLConstants.TREE_GAPS) && reader.isEndElement()){
+					if(state == State.gaps)
+						state = State.summary;
+					else
+						throw new SummaryXMLException();
+				}
+				else if(reader.getLocalName().equals(XMLConstants.TREE_GAP) && reader.isStartElement()){
+					if(state == State.gaps) {
+						currentMethod = getAttributeByName(reader, XMLConstants.ATTRIBUTE_METHOD_SIG);
+						currentID = Integer.valueOf(getAttributeByName(reader, XMLConstants.ATTRIBUTE_ID));
+						summary.getOrCreateGap(currentID, currentMethod);
+						state = State.gap;
+					}
+					else
+						throw new SummaryXMLException();
+				}
+				else if (reader.getLocalName().equals(XMLConstants.TREE_GAP) && reader.isEndElement()){
+					if(state == State.gap) {
+						state = State.gaps;
+					}
+					else
+						throw new SummaryXMLException();
+				}
 			}
+			
+			// Validate the summary to make sure that we didn't read in any bogus
+			// stuff
+			summary.validate();
+			
+			return summary;
 		}
-		
-		// Validate the summary to make sure that we didn't read in any bogus
-		// stuff
-		summary.validate();
-		
-		return summary;
+		finally {
+			if (reader != null)
+				reader.close();
+			if (in != null)
+				in.close();
+		}
 	}
 
 

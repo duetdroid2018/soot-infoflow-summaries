@@ -633,11 +633,20 @@ public class InfoflowResultPostProcessor {
 		if (callee.isStaticInitializer())
 			return null;
 		
+		// Special treatment for doPrivileged()
+		if (stmt.getInvokeExpr().getMethod().getName().equals("doPrivileged")) {
+			if (!callee.isStatic())
+				if (curAP.getPlainValue() == callee.getActiveBody().getThisLocal())
+					return curAP.copyWithNewValue(stmt.getInvokeExpr().getArg(0));
+			
+			return null;
+		}
+		
 		// Make sure that we don't end up with a senseless callee
 		if (!callee.getSubSignature().equals(stmt.getInvokeExpr().getMethod().getSubSignature())
 				&& !isThreadCall(stmt.getInvokeExpr().getMethod(), callee))
 			throw new RuntimeException(String.format("Invalid callee on stack. Caller "
-					+ "was {}, callee was {}", stmt.getInvokeExpr().getMethod().getSubSignature(),
+					+ "was %s, callee was %s", stmt.getInvokeExpr().getMethod().getSubSignature(),
 					callee));
 		
 		// Map the parameters back into the caller
