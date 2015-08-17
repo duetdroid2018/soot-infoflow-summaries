@@ -201,10 +201,6 @@ public class SummaryGenerator {
 				
 				curSummaries = new MethodSummaries();
 				for (String methodSig : entry.getValue()) {
-					
-					if (!methodSig.contains("add(int,java.lang.Object)"))
-						continue;	// TODO remove
-					
 					MethodSummaries newSums = createMethodSummary(classpath,
 							methodSig, entry.getKey(), gapManager);
 					if (handler != null)
