@@ -359,10 +359,13 @@ class SummarySourceContextAndPath extends SourceContextAndPath {
 		if (callee.isStaticInitializer())
 			return null;
 		
+		// Cache the "this" local
+		Local thisLocal = callee.isStatic() ? null : callee.getActiveBody().getThisLocal();
+		
 		// Special treatment for doPrivileged()
 		if (stmt.getInvokeExpr().getMethod().getName().equals("doPrivileged")) {
 			if (!callee.isStatic())
-				if (curAP.getPlainValue() == callee.getActiveBody().getThisLocal())
+				if (curAP.getPlainValue() == thisLocal)
 					return curAP.copyWithNewValue(stmt.getInvokeExpr().getArg(0));
 			
 			return null;
@@ -388,7 +391,6 @@ class SummarySourceContextAndPath extends SourceContextAndPath {
 		
 		// Map the "this" local back into the caller
 		if (!callee.isStatic() && stmt.getInvokeExpr() instanceof InstanceInvokeExpr) {
-			Local thisLocal = callee.getActiveBody().getThisLocal();
 			if (thisLocal == curAP.getPlainValue()) {
 				curAP = curAP.copyWithNewValue(((InstanceInvokeExpr)
 						stmt.getInvokeExpr()).getBase());
