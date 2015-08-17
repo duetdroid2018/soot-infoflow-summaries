@@ -156,6 +156,18 @@ public class ParaToFieldTests extends TestHelper {
 		assertTrue(flow.size() >= 9);
 	}
 	
+	@Test(timeout = 300000)
+	public void contextSensitivity() {
+		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToField: void contextSensitivity(soot.jimple.infoflow.test.methodSummary.Data)>";
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
+		
+		assertTrue(containsFlow(flow, Parameter, 0, new String[] {DATACLASS_INT_FIELD},
+				Field, new String[] {INT_FIELD}));
+		assertTrue(containsFlow(flow, Parameter, 0, new String[] {DATACLASS_INT_FIELD2},
+				Field, new String[] {IARRAY_FIELD}));
+		assertEquals(2, flow.size());
+	}
+	
 	@Override
 	protected SummaryGenerator getSummary() {
 		SummaryGenerator sg = new SummaryGenerator();

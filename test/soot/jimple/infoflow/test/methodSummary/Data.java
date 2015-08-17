@@ -5,6 +5,7 @@ public class Data {
 	Object objectField2 = new Integer(5);
 	Data next = null;
 	int value;
+	int value2;
 	public Data2 b;
 	public String stringField;
 	public String stringField2;

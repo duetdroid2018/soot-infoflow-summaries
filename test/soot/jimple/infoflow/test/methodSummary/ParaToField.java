@@ -84,4 +84,16 @@ public class ParaToField {
 	public void intParaToData(int i) {
 		dataField.value = i;
 	}
+	
+	void contextSensitivity(Data d) {
+		this.intField = id(d.value);
+		this.intArray[0] = id(d.value2);
+	}
+	
+	private int id(int value) {
+		int x = value;
+		int y = x + 1;
+		return y - 1;
+	}
+	
 }
