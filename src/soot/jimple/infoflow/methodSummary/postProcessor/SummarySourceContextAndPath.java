@@ -80,10 +80,6 @@ class SummarySourceContextAndPath extends SourceContextAndPath {
 			scap.callStack.add(0, abs.getCorrespondingCallSite());
 		}
 		
-		if (path == null)
-			path = new ArrayList<>();
-		path.add(0, abs);
-		
 		// Compute the next access path
 		final Stmt stmt = abs.getCurrentStmt();
 		final Stmt callSite = abs.getCorrespondingCallSite();
