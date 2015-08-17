@@ -39,6 +39,13 @@ public class JDKTests extends TestHelper {
 	}
 	
 	@Test(timeout = 100000)
+	public void arrayListAdd() {
+		String mSig = "<java.util.ArrayList: void add(int,java.lang.Object)>";
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
+		Assert.assertNotNull(flow);
+	}
+	
+	@Test(timeout = 100000)
 	public void arrayListTest() {
 		SummaryGenerator generator = new SummaryGeneratorFactory().initSummaryGenerator();
 		ClassSummaries summaries = generator.createMethodSummaries(libPath,

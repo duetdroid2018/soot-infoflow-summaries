@@ -39,6 +39,7 @@ import soot.jimple.infoflow.InfoflowManager;
 import soot.jimple.infoflow.data.Abstraction;
 import soot.jimple.infoflow.data.AccessPath;
 import soot.jimple.infoflow.data.SootMethodAndClass;
+import soot.jimple.infoflow.data.AccessPath.ArrayTaintType;
 import soot.jimple.infoflow.methodSummary.data.sourceSink.AbstractFlowSinkSource;
 import soot.jimple.infoflow.methodSummary.data.summary.ClassSummaries;
 import soot.jimple.infoflow.methodSummary.data.summary.GapDefinition;
@@ -378,7 +379,8 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 			
 			DefinitionStmt defStmt = (DefinitionStmt) stmt;
 			return new AccessPath(defStmt.getLeftOp(),
-					fields, baseType, types, t.taintSubFields());
+					fields, baseType, types, t.taintSubFields(),
+					ArrayTaintType.ContentsAndLength);
 		}
 		
 		// If the taint is a parameter value, we need to identify the
@@ -390,7 +392,7 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 				return null;
 			
 			return new AccessPath(paramVal, fields, baseType, types,
-					t.taintSubFields());
+					t.taintSubFields(), ArrayTaintType.ContentsAndLength);
 		}
 		
 		// If the taint is on the base value, we need to taint the base local
@@ -399,7 +401,8 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 				&& stmt.getInvokeExpr() instanceof InstanceInvokeExpr) {
 			InstanceInvokeExpr iiexpr = (InstanceInvokeExpr) stmt.getInvokeExpr();
 			return new AccessPath(iiexpr.getBase(),
-					fields, baseType, types, t.taintSubFields());
+					fields, baseType, types, t.taintSubFields(),
+					ArrayTaintType.ContentsAndLength);
 		}
 		
 		throw new RuntimeException("Could not convert taint to access path: "
@@ -426,12 +429,14 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 		
 		if (t.isParameter()) {
 			Local l = sm.getActiveBody().getParameterLocal(t.getParameterIndex());
-			return new AccessPath(l, fields, baseType, types, true);
+			return new AccessPath(l, fields, baseType, types, true,
+					ArrayTaintType.ContentsAndLength);
 		}
 		
 		if (t.isField()) {
 			Local l = sm.getActiveBody().getThisLocal();
-			return new AccessPath(l, fields, baseType, types, true);
+			return new AccessPath(l, fields, baseType, types, true,
+					ArrayTaintType.ContentsAndLength);
 		}
 		
 		throw new RuntimeException("Failed to convert taint " + t);

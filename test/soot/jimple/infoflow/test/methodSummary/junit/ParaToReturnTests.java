@@ -62,9 +62,9 @@ public class ParaToReturnTests extends TestHelper {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.ParaToReturn: java.lang.Object return31(java.util.List)>";
 		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 
-		assertTrue(containsFlow(flow, Parameter, 0, new String[] {LINKEDLIST_FIRST, LINKEDLIST_ITEM}, Return, new String[] {})
-				|| containsFlow(flow, Parameter, 0, new String[] {LINKEDLIST_LAST, LINKEDLIST_ITEM}, Return, new String[] {}));
-		assertEquals(1,flow.size());
+		assertTrue(containsFlow(flow, Parameter, 0, new String[] {LINKEDLIST_FIRST, LINKEDLIST_ITEM}, Return, new String[] {}));
+		assertTrue(containsFlow(flow, Parameter, 0, new String[] {LINKEDLIST_LAST, LINKEDLIST_ITEM}, Return, new String[] {}));
+		assertEquals(2, flow.size());
 	}
 	
 	@Test(timeout = 100000)

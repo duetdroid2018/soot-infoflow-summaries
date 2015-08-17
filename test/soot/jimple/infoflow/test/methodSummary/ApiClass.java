@@ -22,7 +22,6 @@ public class ApiClass implements IApiClass {
 	
 	public Object get() {
 		return first.item;
-//		return first == null ? null : first.data;
 	}
 	
 	public void set(Node data) {

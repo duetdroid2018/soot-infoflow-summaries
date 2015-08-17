@@ -3,12 +3,13 @@ package soot.jimple.infoflow.methodSummary.postProcessor;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.IdentityHashMap;
-import java.util.List;
 import java.util.Set;
 
+import soot.SootMethod;
 import soot.jimple.Stmt;
 import soot.jimple.infoflow.collect.ConcurrentHashSet;
 import soot.jimple.infoflow.data.Abstraction;
+import soot.jimple.infoflow.data.AbstractionAtSink;
 import soot.jimple.infoflow.data.AccessPath;
 import soot.jimple.infoflow.data.SourceContextAndPath;
 import soot.jimple.infoflow.data.pathBuilders.ContextSensitivePathBuilder;
@@ -23,7 +24,7 @@ import soot.jimple.infoflow.source.SourceInfo;
  * 
  * @author Steven Arzt
  */
-public class SummaryPathBuilder extends ContextSensitivePathBuilder {
+class SummaryPathBuilder extends ContextSensitivePathBuilder {
 	
 	private Set<SummaryResultInfo> resultInfos = new ConcurrentHashSet<SummaryResultInfo>();
 	private Set<Abstraction> visitedAbstractions = Collections.newSetFromMap(new IdentityHashMap<Abstraction,Boolean>());
@@ -36,36 +37,24 @@ public class SummaryPathBuilder extends ContextSensitivePathBuilder {
 	 */
 	public class SummarySourceInfo extends ResultSourceInfo {
 		
-		private final List<Abstraction> abstractionPath;
+		private final AccessPath sourceAP;
+		private final boolean isAlias;
 		
 		public SummarySourceInfo(AccessPath source, Stmt context, Object userData,
-				List<Abstraction> abstractionPath) {
+				AccessPath sourceAP, boolean isAlias) {
 			super(source, context, userData, null, null);
-			this.abstractionPath = abstractionPath;
+			this.sourceAP = sourceAP;
+			this.isAlias = isAlias;
 		}
 		
-		/**
-		 * Gets the sequence of abstractions along the propagation path
-		 * @return The sequence of abstractions along the propagation path
-		 */
-		public List<Abstraction> getAbstractionPath() {
-			return this.abstractionPath;
-		}
-		
-		@Override
-		public Stmt[] getPath() {
-			List<Stmt> stmts = new ArrayList<>(abstractionPath.size());
-			for (Abstraction abs : abstractionPath)
-				if (abs.getCurrentStmt() != null)
-					stmts.add(abs.getCurrentStmt());
-			return stmts.toArray(new Stmt[stmts.size()]);
-		}
-
 		@Override
 		public int hashCode() {
 			final int prime = 31;
 			int result = super.hashCode();
-			result = prime * result + ((abstractionPath == null) ? 0 : abstractionPath.hashCode());
+			result = prime * result + getOuterType().hashCode();
+			result = prime * result + (isAlias ? 1231 : 1237);
+			result = prime * result
+					+ ((sourceAP == null) ? 0 : sourceAP.hashCode());
 			return result;
 		}
 		
@@ -78,12 +67,28 @@ public class SummaryPathBuilder extends ContextSensitivePathBuilder {
 			if (getClass() != obj.getClass())
 				return false;
 			SummarySourceInfo other = (SummarySourceInfo) obj;
-			if (abstractionPath == null) {
-				if (other.abstractionPath != null)
+			if (!getOuterType().equals(other.getOuterType()))
+				return false;
+			if (isAlias != other.isAlias)
+				return false;
+			if (sourceAP == null) {
+				if (other.sourceAP != null)
 					return false;
-			} else if (!abstractionPath.equals(other.abstractionPath))
+			} else if (!sourceAP.equals(other.sourceAP))
 				return false;
 			return true;
+		}
+		
+		public AccessPath getSourceAP() {
+			return this.sourceAP;
+		}
+		
+		public boolean getIsAlias() {
+			return this.isAlias;
+		}
+
+		private SummaryPathBuilder getOuterType() {
+			return SummaryPathBuilder.this;
 		}
 		
 	}
@@ -183,11 +188,13 @@ public class SummaryPathBuilder extends ContextSensitivePathBuilder {
 			return false;
 		
 		// Save the abstraction path
+		SummarySourceContextAndPath sscap = (SummarySourceContextAndPath) scap;
 		SummarySourceInfo ssi = new SummarySourceInfo(
 				abs.getSourceContext().getAccessPath(),
 				abs.getSourceContext().getStmt(),
 				abs.getSourceContext().getUserData(),
-				scap.getAbstractionPath());
+				sscap.getCurrentAccessPath(),
+				sscap.getIsAlias());
 		ResultSinkInfo rsi = new ResultSinkInfo(
 				scap.getAccessPath(),
 				scap.getStmt());
@@ -219,6 +226,20 @@ public class SummaryPathBuilder extends ContextSensitivePathBuilder {
 	@Override
 	public InfoflowResults getResults() {
 		throw new RuntimeException("Not implemented, use getResultInfos() instead");
+	}
+	
+	@Override
+	protected void buildPathForAbstraction(final AbstractionAtSink abs) {
+		SourceContextAndPath scap = new SummarySourceContextAndPath(this.icfg,
+				abs.getAbstraction().getAccessPath(), abs.getSinkStmt(), true,
+				abs.getAbstraction().getAccessPath(), new ArrayList<SootMethod>());
+		scap = scap.extendPath(abs.getAbstraction());
+		
+		if (scap != null) {
+			if (abs.getAbstraction().addPathElement(scap))			
+				if (!checkForSource(abs.getAbstraction(), scap))
+					spawnSourceFindingTask(abs.getAbstraction());
+		}
 	}
 
 }

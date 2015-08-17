@@ -284,17 +284,6 @@ public class ApiTests extends ApiTestHelper {
 		assertTrue(containsFlow(res, Parameter, 0, null, Parameter,2, new String[] {DATACLASS_INT_FIELD}));
 		assertTrue(containsFlow(res, Parameter, 1, null, Parameter,2, new String[] {DATACLASS_OBJECT_FIELD}));
 	}
-
-	@Test(timeout = 100000)
-	public void mixedFlow1OneFalseFlow() {
-		String mSig = "<" + className + ": " + DATA_TYPE + " mixedFlow1(int," + DATA_TYPE + ")>";
-		Set<MethodFlow> res = createSummaries(mSig).getAllFlows();
-		
-		assertTrue(containsFlow(res, Parameter, 1, null, Return, null));
-		assertTrue(containsFlow(res, Parameter, 0, null, Parameter, 1, new String[] {DATACLASS_INT_FIELD}));
-		assertTrue(containsFlow(res, Parameter, 1, new String[] {DATACLASS_INT_FIELD}, Field, new String[] {PRIMITIVE_VAR}));
-		assertTrue(containsFlow(res, Parameter, 0, null, Return, new String[] {DATACLASS_INT_FIELD}));
-	}
 	
 	@Test(timeout = 100000)
 	public void mixedFlow1() {
@@ -305,9 +294,20 @@ public class ApiTests extends ApiTestHelper {
 		assertTrue(containsFlow(res, Parameter, 0, null, Return, new String[] {DATACLASS_INT_FIELD}));
 		assertTrue(containsFlow(res, Parameter, 0, null, Parameter,1, new String[] {DATACLASS_INT_FIELD}));
 		assertTrue(containsFlow(res, Parameter, 1, new String[] {DATACLASS_INT_FIELD}, Field, new String[] {PRIMITIVE_VAR}));
-		assertEquals(5, res.size());
+		assertEquals(4, res.size());
 	}
 
+	@Test(timeout = 100000)
+	public void mixedFlow1small() {
+		String mSig = "<" + className + ": " + DATA_TYPE + " mixedFlow1small(int," + DATA_TYPE + ")>";
+		Set<MethodFlow> res = createSummaries(mSig).getAllFlows();
+		
+		assertTrue(containsFlow(res, Parameter, 1, null, Return, null));
+		assertTrue(containsFlow(res, Parameter, 0, null, Parameter,1, new String[] {DATACLASS_INT_FIELD}));
+		assertTrue(containsFlow(res, Parameter, 0, null, Return, new String[] {DATACLASS_INT_FIELD}));
+		assertEquals(3, res.size());
+	}
+	
 	@Test(timeout = 100000)
 	public void paraToparaFlow1() {
 		String mSig = "<" + className + ": void paraToparaFlow1(int," + DATA_TYPE + ")>";
