@@ -181,7 +181,7 @@ class SummarySourceContextAndPath extends SourceContextAndPath {
 				if (assignStmt.getRightOp() instanceof NewArrayExpr)
 					scap.curAP = new AccessPath(rop, false);
 				else
-					scap.curAP = scap.curAP.copyWithNewValue(rop, null, false, true);
+					scap.curAP = scap.curAP.copyWithNewValue(rop, null, false);
 				matched = true;
 			}
 			else if (assignStmt.getLeftOp() instanceof InstanceFieldRef) {
@@ -189,7 +189,7 @@ class SummarySourceContextAndPath extends SourceContextAndPath {
 				AccessPath matchedAP = matchAccessPath(scap.curAP, ifref.getBase(), ifref.getField());
 				if (matchedAP != null) {
 					scap.curAP = matchedAP.copyWithNewValue(assignStmt.getRightOp(),
-							matchedAP.getFirstFieldType(), true, false);
+							matchedAP.getFirstFieldType(), true);
 					matched = true;
 				}
 			}
@@ -217,7 +217,7 @@ class SummarySourceContextAndPath extends SourceContextAndPath {
 						}
 				}
 				
-				scap.curAP = scap.curAP.copyWithNewValue(lop, null, false, false);
+				scap.curAP = scap.curAP.copyWithNewValue(lop, null, false);
 				matched = true;
 			}
 			else if (assignStmt.getRightOp() instanceof InstanceFieldRef) {
@@ -225,7 +225,7 @@ class SummarySourceContextAndPath extends SourceContextAndPath {
 				AccessPath matchedAP = matchAccessPath(scap.curAP, ifref.getBase(), ifref.getField());
 				if (matchedAP != null) {
 					scap.curAP = matchedAP.copyWithNewValue(assignStmt.getLeftOp(),
-							matchedAP.getFirstFieldType(), true, false);
+							matchedAP.getFirstFieldType(), true);
 					matched = true;
 				}
 			}
