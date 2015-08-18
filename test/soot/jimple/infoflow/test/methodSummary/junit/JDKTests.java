@@ -162,6 +162,13 @@ public class JDKTests extends TestHelper {
 		Assert.assertNotNull(flow);
 	}
 	
+	@Test(timeout = 100000)
+	public void arrayBlockingQueueIterator() {
+		String mSig = "<java.util.concurrent.ArrayBlockingQueue: java.util.Iterator iterator()>";
+		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
+		Assert.assertNotNull(flow);
+	}
+	
 	@Override
 	protected SummaryGenerator getSummary() {
 		SummaryGenerator sg = new SummaryGenerator();
