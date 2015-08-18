@@ -196,6 +196,8 @@ public class SummaryGenerator {
 			
 			MethodSummaries curSummaries = null;
 			for (int i = 0; i < config.getRepeatCount(); i++) {
+				// Clean up the memory so that we don't get any remnants from the last run
+				System.gc();
 				long nanosBeforeClass = System.nanoTime();
 				System.out.println("Analyzing class " + entry.getKey());
 				
