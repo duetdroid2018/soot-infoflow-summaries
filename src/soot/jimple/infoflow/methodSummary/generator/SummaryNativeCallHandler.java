@@ -6,6 +6,7 @@ import java.util.Set;
 import soot.Value;
 import soot.jimple.DefinitionStmt;
 import soot.jimple.Stmt;
+import soot.jimple.infoflow.InfoflowManager;
 import soot.jimple.infoflow.data.Abstraction;
 import soot.jimple.infoflow.data.AccessPath;
 import soot.jimple.infoflow.nativ.AbstractNativeCallHandler;
@@ -21,6 +22,12 @@ import soot.jimple.infoflow.nativ.INativeCallHandler;
 public class SummaryNativeCallHandler extends AbstractNativeCallHandler {
 	
 	private INativeCallHandler fallbackHandler = new DefaultNativeCallHandler();
+	
+	@Override
+	public void initialize(InfoflowManager manager) {
+		super.initialize(manager);
+		fallbackHandler.initialize(manager);
+	}
 	
 	@Override
 	public Set<Abstraction> getTaintedValues(Stmt call, Abstraction source,
