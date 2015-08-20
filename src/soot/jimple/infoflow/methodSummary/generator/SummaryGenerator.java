@@ -396,7 +396,7 @@ public class SummaryGenerator {
 		final SummaryTaintPropagationHandler listener = new SummaryTaintPropagationHandler(
 				methodSig, parentClass, Collections.singleton(DUMMY_MAIN_SIG),
 				gapManager);
-		infoflow.addTaintPropagationHandler(listener);
+		infoflow.setTaintPropagationHandler(listener);
 
 		infoflow.addResultsAvailableHandler(new ResultsAvailableHandler() {
 			@Override
