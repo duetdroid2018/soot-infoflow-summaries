@@ -54,7 +54,7 @@ import soot.options.Options;
  */
 public class SummaryGenerator {
 
-	public static final String DUMMY_MAIN_SIG = "<dummyMainClass: void dummyMainMethod()>";
+	public static final String DUMMY_MAIN_SIG = "<dummyMainClass: void dummyMainMethod(java.lang.String[])>";
 	
 	protected boolean debug = false;
 	protected ITaintPropagationWrapper taintWrapper;
