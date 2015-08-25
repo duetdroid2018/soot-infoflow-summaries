@@ -372,10 +372,12 @@ class SummarySourceContextAndPath extends SourceContextAndPath {
 		}
 		
 		// Make sure that we don't end up with a senseless callee
-		assert callee.getSubSignature().equals(stmt.getInvokeExpr().getMethod().getSubSignature())
-					|| isThreadCall(stmt.getInvokeExpr().getMethod(), callee)
-				: String.format("Invalid callee on stack. Caller was %s, callee was %s",
-						stmt.getInvokeExpr().getMethod().getSubSignature(), callee);
+		if (!callee.getSubSignature().equals(stmt.getInvokeExpr().getMethod().getSubSignature())
+					&& !isThreadCall(stmt.getInvokeExpr().getMethod(), callee)) {
+			System.out.println(String.format("WARNING: Invalid callee on stack. Caller was %s, callee was %s",
+					stmt.getInvokeExpr().getMethod().getSubSignature(), callee));
+			return null;
+		}
 		
 		// Map the parameters back into the caller
 		for (int i = 0; i < stmt.getInvokeExpr().getArgCount(); i++) {
