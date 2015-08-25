@@ -32,7 +32,9 @@ class Main {
 		boolean loadFullJAR = false;
 		Set<String> excludes = new HashSet<>();
 		int repeatCount = 1;
-		boolean aliasFlowIns = false;
+		
+		// Initialize the summary generator
+		SummaryGenerator generator = new SummaryGeneratorFactory().initSummaryGenerator();
 		
 		// Collect the classes to be analyzed from our command line
 		final int offset = 2;
@@ -53,7 +55,9 @@ class Main {
 					i++;
 				}
 				else if (args[i].equalsIgnoreCase("--aliasFlowIns"))
-					aliasFlowIns = true;
+					generator.getConfig().setFlowSensitiveAliasing(false);
+				else if (args[i].equalsIgnoreCase("--novalidate"))
+					generator.getConfig().setValidateResults(false);
 				else {
 					System.err.println("Invalid command line argument: " + args[i]);
 					return;
@@ -71,11 +75,9 @@ class Main {
 		}
 		
 		// Run it
-		SummaryGenerator generator = new SummaryGeneratorFactory().initSummaryGenerator();
 		generator.getConfig().setLoadFullJAR(loadFullJAR);
 		generator.getConfig().setExcludes(excludes);
 		generator.getConfig().setRepeatCount(repeatCount);
-		generator.getConfig().setFlowSensitiveAliasing(!aliasFlowIns);
 		final boolean doForceOverwrite = forceOverwrite;
 		ClassSummaries summaries = generator.createMethodSummaries(args[0],
 				classesToAnalyze, new IClassSummaryHandler() {

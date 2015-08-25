@@ -14,6 +14,7 @@ public class SummaryGeneratorConfiguration extends InfoflowConfiguration {
 	
 	private boolean loadFullJAR = false;
 	private Set<String> excludes = null;
+	private boolean validateResults = true;
 	
 	private int repeatCount = 1;
 
@@ -78,5 +79,23 @@ public class SummaryGeneratorConfiguration extends InfoflowConfiguration {
 	public int getRepeatCount() {
 		return this.repeatCount;
 	}
-
+	
+	/**
+	 * Sets whether the computed data flows shall be validated
+	 * @param validateResults True if the computed data flows shall be validated,
+	 * otherwise false
+	 */
+	public void setValidateResults(boolean validateResults) {
+		this.validateResults = validateResults;
+	}
+	
+	/**
+	 * Gets whether the computed data flows shall be validated
+	 * @return True if the computed data flows shall be validated, otherwise
+	 * false
+	 */
+	public boolean getValidateResults() {
+		return this.validateResults;
+	}
+	
 }

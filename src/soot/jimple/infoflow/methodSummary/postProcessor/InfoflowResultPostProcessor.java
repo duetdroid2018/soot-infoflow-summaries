@@ -28,6 +28,7 @@ import soot.jimple.infoflow.methodSummary.data.summary.GapDefinition;
 import soot.jimple.infoflow.methodSummary.data.summary.MethodFlow;
 import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
 import soot.jimple.infoflow.methodSummary.generator.GapManager;
+import soot.jimple.infoflow.methodSummary.generator.SummaryGeneratorConfiguration;
 import soot.jimple.infoflow.methodSummary.postProcessor.SummaryPathBuilder.SummaryResultInfo;
 import soot.jimple.infoflow.methodSummary.postProcessor.SummaryPathBuilder.SummarySourceInfo;
 import soot.jimple.infoflow.solver.cfg.IInfoflowCFG;
@@ -43,15 +44,17 @@ public class InfoflowResultPostProcessor {
 	private final String method;
 	private final SourceSinkFactory sourceSinkFactory;
 	private final GapManager gapManager;
-		
+	private final SummaryGeneratorConfiguration config;
+	
 	public InfoflowResultPostProcessor(MultiMap<Abstraction, Stmt> collectedAbstractions,
 			IInfoflowCFG cfg, String m, SourceSinkFactory sourceSinkFactory,
-			GapManager gapManager) {
+			GapManager gapManager, SummaryGeneratorConfiguration config) {
 		this.collectedAbstractions = collectedAbstractions;
 		this.cfg = cfg;
 		this.method = m;
 		this.sourceSinkFactory = sourceSinkFactory;
 		this.gapManager = gapManager;
+		this.config = config;
 	}
 	
 	/**
@@ -160,7 +163,8 @@ public class InfoflowResultPostProcessor {
 		compactFlowSet(flows);
 		
 		// Check the generated summaries for validity
-		flows.validate();
+		if (config.getValidateResults())
+			flows.validate();
 		
 		logger.info("Result processing finished, analyzed {} paths from {} stored "
 				+ "abstractions", analyzedPaths, abstractionCount);
@@ -455,5 +459,5 @@ public class InfoflowResultPostProcessor {
 			System.out.println("------------------------------------");
 		}
 	}
-
+	
 }

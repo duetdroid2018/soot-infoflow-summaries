@@ -403,7 +403,8 @@ public class SummaryGenerator {
 			public void onResultsAvailable(IInfoflowCFG cfg,
 					InfoflowResults results) {
 				InfoflowResultPostProcessor processor = new InfoflowResultPostProcessor(
-						listener.getResult(), cfg, methodSig, sourceSinkFactory, gapManager);
+						listener.getResult(), cfg, methodSig, sourceSinkFactory,
+						gapManager, config);
 				processor.postProcess(summaries);
 			}
 		});
