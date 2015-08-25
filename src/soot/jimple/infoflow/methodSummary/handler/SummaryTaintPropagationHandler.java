@@ -1,6 +1,7 @@
 package soot.jimple.infoflow.methodSummary.handler;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
 
@@ -26,7 +27,7 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 	
 	private final String methodSig;
 	private final String parentClass;
-	private final Set<String> excludedMethods;
+	private final Set<SootMethod> excludedMethods = new HashSet<>();
 	private final GapManager gapManager;
 	private SootMethod method = null;
 	
@@ -34,15 +35,8 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 	
 	public SummaryTaintPropagationHandler(String m, String parentClass,
 			GapManager gapManager) {
-		this(m, parentClass, Collections.<String>emptySet(), gapManager);
-	}
-	
-	public SummaryTaintPropagationHandler(String m, String parentClass,
-			Set<String> excludedMethods,
-			GapManager gapManager) {
 		this.methodSig = m;
 		this.parentClass = parentClass;
-		this.excludedMethods = excludedMethods;
 		this.gapManager = gapManager;
 	}
 	
@@ -197,7 +191,7 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 			FlowFunctionType type) {
 		// Do not propagate through excluded methods
 		SootMethod sm = cfg.getMethodOf(u);
-		if (excludedMethods.contains(sm.getSignature()))
+		if (excludedMethods.contains(sm))
 			return Collections.emptySet();
 		
 		return outgoing;
@@ -211,5 +205,14 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 	public GapManager getGapManager() {
 		return this.gapManager;
 	}
-		
+	
+	/**
+	 * Adds the given method to the set of excluded methods over which taints
+	 * are never propagated
+	 * @param excluded The method to exclude
+	 */
+	public void addExcludedMethod(SootMethod excluded) {
+		this.excludedMethods.add(excluded);
+	}
+	
 }

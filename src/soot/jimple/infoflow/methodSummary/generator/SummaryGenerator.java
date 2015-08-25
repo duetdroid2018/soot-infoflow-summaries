@@ -30,6 +30,7 @@ import soot.jimple.infoflow.data.pathBuilders.DefaultPathBuilderFactory;
 import soot.jimple.infoflow.data.pathBuilders.DefaultPathBuilderFactory.PathBuilder;
 import soot.jimple.infoflow.entryPointCreators.BaseEntryPointCreator;
 import soot.jimple.infoflow.entryPointCreators.SequentialEntryPointCreator;
+import soot.jimple.infoflow.handlers.PreAnalysisHandler;
 import soot.jimple.infoflow.handlers.ResultsAvailableHandler;
 import soot.jimple.infoflow.methodSummary.DefaultSummaryConfig;
 import soot.jimple.infoflow.methodSummary.data.factory.SourceSinkFactory;
@@ -394,9 +395,20 @@ public class SummaryGenerator {
 		final Infoflow infoflow = initInfoflow(summaries, gapManager);
 		
 		final SummaryTaintPropagationHandler listener = new SummaryTaintPropagationHandler(
-				methodSig, parentClass, Collections.singleton(DUMMY_MAIN_SIG),
-				gapManager);
+				methodSig, parentClass, gapManager);
 		infoflow.setTaintPropagationHandler(listener);
+		infoflow.setPreProcessors(Collections.singleton(new PreAnalysisHandler() {
+			
+			@Override
+			public void onBeforeCallgraphConstruction() {
+			}
+			
+			@Override
+			public void onAfterCallgraphConstruction() {
+				listener.addExcludedMethod(Scene.v().getMethod(DUMMY_MAIN_SIG));
+			}
+			
+		}));
 
 		infoflow.addResultsAvailableHandler(new ResultsAvailableHandler() {
 			@Override
