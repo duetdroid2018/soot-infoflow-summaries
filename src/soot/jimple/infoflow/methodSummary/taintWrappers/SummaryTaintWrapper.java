@@ -14,6 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import soot.ArrayType;
 import soot.BooleanType;
+import soot.CharType;
 import soot.DoubleType;
 import soot.FastHierarchy;
 import soot.FloatType;
@@ -24,6 +25,7 @@ import soot.LongType;
 import soot.PrimType;
 import soot.RefType;
 import soot.Scene;
+import soot.ShortType;
 import soot.SootClass;
 import soot.SootField;
 import soot.SootMethod;
@@ -38,8 +40,8 @@ import soot.jimple.Stmt;
 import soot.jimple.infoflow.InfoflowManager;
 import soot.jimple.infoflow.data.Abstraction;
 import soot.jimple.infoflow.data.AccessPath;
-import soot.jimple.infoflow.data.SootMethodAndClass;
 import soot.jimple.infoflow.data.AccessPath.ArrayTaintType;
+import soot.jimple.infoflow.data.SootMethodAndClass;
 import soot.jimple.infoflow.methodSummary.data.sourceSink.AbstractFlowSinkSource;
 import soot.jimple.infoflow.methodSummary.data.summary.ClassSummaries;
 import soot.jimple.infoflow.methodSummary.data.summary.GapDefinition;
@@ -49,6 +51,7 @@ import soot.jimple.infoflow.methodSummary.data.summary.SourceSinkType;
 import soot.jimple.infoflow.solver.IFollowReturnsPastSeedsHandler;
 import soot.jimple.infoflow.taintWrappers.ITaintPropagationWrapper;
 import soot.jimple.infoflow.util.SootMethodRepresentationParser;
+import soot.jimple.infoflow.util.SystemClassHandler;
 import soot.util.ConcurrentHashMultiMap;
 import soot.util.MultiMap;
 
@@ -66,6 +69,7 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 	private InfoflowManager manager;
 	private AtomicInteger wrapperHits = new AtomicInteger();
 	private AtomicInteger wrapperMisses = new AtomicInteger();
+	private boolean reportMissingSummaries = true;
 	
 	private LazySummary flows;
 	
@@ -478,15 +482,18 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 		// We only care about method invocations
 		if (!stmt.containsInvokeExpr())
 			return Collections.singleton(taintedAbs);
-		
+				
 		// Get the cached data flows
-		final SootMethod method = stmt.getInvokeExpr().getMethod();
+		final SootMethod method = stmt.getInvokeExpr().getMethod();		
 		ClassSummaries flowsInCallees = getFlowSummariesForMethod(
 				stmt, method, taintedAbs);
 		
 		// If we have no data flows, we can abort early
 		if (flowsInCallees.isEmpty()) {
 			wrapperMisses.incrementAndGet();
+			if (reportMissingSummaries 
+					&& SystemClassHandler.isClassInSystemPackage(method.getDeclaringClass().getName()))
+				System.out.println("Missing summary for " + method.getSignature());
 			return Collections.emptySet();
 		}
 		wrapperHits.incrementAndGet();
@@ -1121,6 +1128,10 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 			t = DoubleType.v();
 		else if (type.equals("boolean"))
 			t = BooleanType.v();
+		else if (type.equals("char"))
+			t = CharType.v();
+		else if (type.equals("short"))
+			t = ShortType.v();
 		else
 			t = RefType.v(type);
 		
@@ -1430,6 +1441,16 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 		for (AccessPath ap : res)
 			resAbs.add(taintedAbs.deriveNewAbstraction(ap, stmt));
 		return resAbs;
+	}
+	
+	/**
+	 * Sets whether missing summaries for classes shall be reported on the
+	 * command-line
+	 * @param report True if missing summaries shall be reported on the command
+	 * line, otherwise false
+	 */
+	public void setReportMissingDummaries(boolean report) {
+		this.reportMissingSummaries = report;
 	}
 
 }
