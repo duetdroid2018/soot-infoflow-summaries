@@ -69,7 +69,8 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 	private InfoflowManager manager;
 	private AtomicInteger wrapperHits = new AtomicInteger();
 	private AtomicInteger wrapperMisses = new AtomicInteger();
-	private boolean reportMissingSummaries = true;
+	private boolean reportMissingSummaries = false;
+	private ITaintPropagationWrapper fallbackWrapper = null;
 	
 	private LazySummary flows;
 	
@@ -494,7 +495,11 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 			if (reportMissingSummaries 
 					&& SystemClassHandler.isClassInSystemPackage(method.getDeclaringClass().getName()))
 				System.out.println("Missing summary for " + method.getSignature());
-			return Collections.emptySet();
+			
+			if (fallbackWrapper == null)
+				return null;
+			else
+				return fallbackWrapper.getAliasesForMethod(stmt, d1, taintedAbs);
 		}
 		wrapperHits.incrementAndGet();
 		
@@ -1404,8 +1409,12 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 		ClassSummaries flowsInCallees = getFlowSummariesForMethod(stmt, method);
 		
 		// If we have no data flows, we can abort early
-		if (flowsInCallees.isEmpty())
-			return Collections.singleton(taintedAbs);
+		if (flowsInCallees.isEmpty()) {
+			if (fallbackWrapper == null)
+				return null;
+			else
+				return fallbackWrapper.getAliasesForMethod(stmt, d1, taintedAbs);
+		}
 		
 		Set<AccessPath> res = null;
 		for (String className : flowsInCallees.getClasses()) {
@@ -1451,6 +1460,16 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 	 */
 	public void setReportMissingDummaries(boolean report) {
 		this.reportMissingSummaries = report;
+	}
+	
+	/**
+	 * Sets the fallback taint wrapper to be used if there is no StubDroid summary
+	 * for a certain class
+	 * @param fallbackWrapper The fallback taint wrapper to be used if there is no
+	 * StubDroid summary for a certain class
+	 */
+	public void setFallbackTaintWrapper(ITaintPropagationWrapper fallbackWrapper) {
+		this.fallbackWrapper = fallbackWrapper;
 	}
 
 }
