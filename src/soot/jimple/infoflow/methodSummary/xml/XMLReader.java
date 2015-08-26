@@ -28,8 +28,9 @@ import soot.jimple.infoflow.methodSummary.data.summary.MethodFlow;
 import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
 import soot.jimple.infoflow.methodSummary.data.summary.SourceSinkType;
 
-
 public class XMLReader {
+	
+	private boolean validateSummariesOnRead = false;
 	
 	private enum State{
 		summary, methods, method, flow, gaps, gap
@@ -167,7 +168,8 @@ public class XMLReader {
 			
 			// Validate the summary to make sure that we didn't read in any bogus
 			// stuff
-			summary.validate();
+			if (validateSummariesOnRead)
+				summary.validate();
 			
 			return summary;
 		}
@@ -353,6 +355,14 @@ public class XMLReader {
 		return summary.createTemporaryGap(Integer.parseInt(id));
 	}
 	
+	/**
+	 * Sets whether summaries shall be validated after they are read from disk
+	 * @param validateSummariesOnRead True if summaries shall be validated after
+	 * they are read from disk, otherwise false
+	 */
+	public void setValidateSummariesOnRead(boolean validateSummariesOnRead) {
+		this.validateSummariesOnRead = validateSummariesOnRead;
+	}
+	
 }
-
 
