@@ -70,6 +70,7 @@ public class SummaryGenerator {
 		config.setCodeEliminationMode(CodeEliminationMode.PropagateConstants);
 		config.setIgnoreFlowsInSystemPackages(false);
 		config.setStopAfterFirstFlow(false);
+		config.setEnableArraySizeTainting(false);
 		SummaryGeneratorConfiguration.setMergeNeighbors(true);
 	}
 
