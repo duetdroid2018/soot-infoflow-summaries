@@ -116,6 +116,8 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 					// Create taints from the abstractions
 					Set<Taint> returnTaints = createTaintFromAccessPathOnReturn(d2.getAccessPath(),
 							(Stmt) u, propagator.getGap());
+					if (returnTaints == null)
+						continue;
 					
 					// Get the correct set of flows to apply
 					Set<MethodFlow> flowsInTarget = parentGap == null
@@ -498,8 +500,10 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 			
 			if (fallbackWrapper == null)
 				return null;
-			else
-				return fallbackWrapper.getTaintsForMethod(stmt, d1, taintedAbs);
+			else {
+				Set<Abstraction> fallbackTaints = fallbackWrapper.getTaintsForMethod(stmt, d1, taintedAbs);
+				return fallbackTaints;
+			}
 		}
 		wrapperHits.incrementAndGet();
 		
@@ -996,6 +1000,11 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 	 * by the flow summary, otherwise false
 	 */
 	private boolean isCastCompatible(Type baseType, Type checkType) {
+		if (baseType == Scene.v().getObjectType())
+			return checkType instanceof RefType;
+		if (checkType == Scene.v().getObjectType())
+			return baseType instanceof RefType;
+		
 		return baseType == checkType
 				|| fastHierarchy.canStoreType(baseType, checkType)
 				|| fastHierarchy.canStoreType(checkType, baseType);
@@ -1353,7 +1362,8 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 	@Override
 	public boolean isExclusive(Stmt stmt, Abstraction taintedPath) {
 		// If we support the method, we are exclusive for it
-		return supportsCallee(stmt);
+		return supportsCallee(stmt) || (fallbackWrapper != null
+				&& fallbackWrapper.isExclusive(stmt, taintedPath)) ;
 	}
 	
 	@Override
