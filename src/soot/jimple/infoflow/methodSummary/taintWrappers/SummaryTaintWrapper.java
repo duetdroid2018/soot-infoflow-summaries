@@ -169,8 +169,8 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 			// Get the flows in the original callee
 			ClassSummaries flowsInCallee = getFlowSummariesForMethod(originalCallSite,
 					originalCallSite.getInvokeExpr().getMethod());
-			if (flowsInCallee.getClasses().size() != 1)
-				throw new RuntimeException("Original callee must only be one method");
+//			if (flowsInCallee.getClasses().size() != 1)
+//				throw new RuntimeException("Original callee must only be one method");
 			
 			String methodSig = originalCallSite.getInvokeExpr().getMethod().getSubSignature();
 			return flowsInCallee.getAllFlowsForMethod(methodSig);
