@@ -440,7 +440,7 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 					ArrayTaintType.ContentsAndLength);
 		}
 		
-		if (t.isField()) {
+		if (t.isField() || t.isGapBaseObject()) {
 			Local l = sm.getActiveBody().getThisLocal();
 			return new AccessPath(l, fields, baseType, types, true,
 					ArrayTaintType.ContentsAndLength);
