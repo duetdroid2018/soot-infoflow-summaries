@@ -12,6 +12,7 @@ import soot.SootMethod;
 import soot.Type;
 import soot.Unit;
 import soot.Value;
+import soot.ValueBox;
 import soot.jimple.AssignStmt;
 import soot.jimple.Constant;
 import soot.jimple.InstanceFieldRef;
@@ -101,13 +102,23 @@ class SummarySourceContextAndPath extends SourceContextAndPath {
 						? abs.getPredecessor().getAccessPath().getPlainValue()
 						: abs.getAccessPath().getPlainValue();
 				
+				// The statement must reference the local in question
+				boolean found = false;
+				for (ValueBox vb : stmt.getUseAndDefBoxes())
+					if (vb.getValue() == scap.curAP.getPlainValue()) {
+						found = true;
+						break;
+					}
+				
 				// If the incoming value is a primitive, we reset the field
 				// list
-				if (newBase.getType() instanceof PrimType)
-					scap.curAP = new AccessPath(newBase, true);
-				else
-					scap.curAP = scap.curAP.copyWithNewValue(newBase);
-				matched = true;
+				if (found) {
+					if (newBase.getType() instanceof PrimType)
+						scap.curAP = new AccessPath(newBase, true);
+					else
+						scap.curAP = scap.curAP.copyWithNewValue(newBase);
+					matched = true;
+				}
 			}
 		}
 		
