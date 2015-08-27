@@ -3,6 +3,7 @@ package soot.jimple.infoflow.methodSummary.postProcessor;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.ConcurrentModificationException;
 import java.util.List;
 
 import soot.Local;
@@ -104,11 +105,19 @@ class SummarySourceContextAndPath extends SourceContextAndPath {
 				
 				// The statement must reference the local in question
 				boolean found = false;
+				try {
 				for (ValueBox vb : stmt.getUseAndDefBoxes())
 					if (vb.getValue() == scap.curAP.getPlainValue()) {
 						found = true;
 						break;
 					}
+				}
+				catch (ConcurrentModificationException ex) {
+					System.err.println("Found a glitch in Soot: " + ex.getMessage()
+							+ " for statement " + stmt);
+					ex.printStackTrace();
+					throw ex;
+				}
 				
 				// If the incoming value is a primitive, we reset the field
 				// list
