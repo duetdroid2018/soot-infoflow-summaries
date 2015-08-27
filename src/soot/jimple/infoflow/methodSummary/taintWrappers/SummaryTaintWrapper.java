@@ -499,7 +499,7 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 			if (fallbackWrapper == null)
 				return null;
 			else
-				return fallbackWrapper.getAliasesForMethod(stmt, d1, taintedAbs);
+				return fallbackWrapper.getTaintsForMethod(stmt, d1, taintedAbs);
 		}
 		wrapperHits.incrementAndGet();
 		
