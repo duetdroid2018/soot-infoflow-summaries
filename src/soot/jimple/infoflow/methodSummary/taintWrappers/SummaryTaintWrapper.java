@@ -14,6 +14,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 import soot.ArrayType;
 import soot.BooleanType;
+import soot.ByteType;
 import soot.CharType;
 import soot.DoubleType;
 import soot.FastHierarchy;
@@ -1146,6 +1147,8 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 			t = CharType.v();
 		else if (type.equals("short"))
 			t = ShortType.v();
+		else if (type.equals("byte"))
+			t = ByteType.v();
 		else
 			t = RefType.v(type);
 		
