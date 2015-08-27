@@ -577,7 +577,8 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 				if (callee != null)
 					for (SootMethod implementor : getAllImplementors(callee))
 						if (implementor.getDeclaringClass().isConcrete()
-								&& !implementor.getDeclaringClass().isPhantom())
+								&& !implementor.getDeclaringClass().isPhantom()
+								&& implementor.isConcrete())
 							spawnAnalysisIntoClientCode(implementor, curPropagator);
 			}
 			
