@@ -1225,9 +1225,16 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 		if (!isCastCompatible(taintType, sinkType)) {
 			// If the target is an array, the value might also flow into an element
 			Type sinkBaseType = sinkType;
-			boolean found = false;
+			boolean found = false;			
 			while (sinkBaseType instanceof ArrayType) {
 				sinkBaseType = ((ArrayType) sinkBaseType).getElementType(); 
+				if (isCastCompatible(taintType, sinkBaseType)) {
+					found = true;
+					break;
+				}
+			}
+			while (taintType instanceof ArrayType) {
+				taintType = ((ArrayType) taintType).getElementType(); 
 				if (isCastCompatible(taintType, sinkBaseType)) {
 					found = true;
 					break;
