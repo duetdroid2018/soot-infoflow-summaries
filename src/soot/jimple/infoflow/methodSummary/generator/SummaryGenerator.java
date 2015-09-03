@@ -21,7 +21,6 @@ import soot.SootMethod;
 import soot.jimple.Stmt;
 import soot.jimple.infoflow.Infoflow;
 import soot.jimple.infoflow.InfoflowConfiguration;
-import soot.jimple.infoflow.InfoflowConfiguration.CodeEliminationMode;
 import soot.jimple.infoflow.InfoflowManager;
 import soot.jimple.infoflow.cfg.DefaultBiDiICFGFactory;
 import soot.jimple.infoflow.config.IInfoflowConfig;
@@ -64,14 +63,7 @@ public class SummaryGenerator {
 	protected List<String> substitutedWith = new LinkedList<String>();
 	
 	public SummaryGenerator() {
-		// Set the default data flow configuration
-		config.setEnableExceptionTracking(false);
-		config.setEnableStaticFieldTracking(false);
-		config.setCodeEliminationMode(CodeEliminationMode.PropagateConstants);
-		config.setIgnoreFlowsInSystemPackages(false);
-		config.setStopAfterFirstFlow(false);
-		config.setEnableArraySizeTainting(false);
-		SummaryGeneratorConfiguration.setMergeNeighbors(true);
+		//
 	}
 
 	/**
@@ -574,6 +566,14 @@ public class SummaryGenerator {
 	 */
 	public SummaryGeneratorConfiguration getConfig() {
 		return config;
+	}
+	
+	/**
+	 * Sets the configuration object to be used when generating summaries
+	 * @param config The configuration object to be used when generating summaries
+	 */
+	public void setConfig(SummaryGeneratorConfiguration config) {
+		this.config = config;
 	}
 
 }

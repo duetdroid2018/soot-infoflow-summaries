@@ -1,5 +1,6 @@
 package soot.jimple.infoflow.methodSummary.generator;
 
+import java.util.HashSet;
 import java.util.Set;
 
 import soot.jimple.infoflow.InfoflowConfiguration;
@@ -17,7 +18,38 @@ public class SummaryGeneratorConfiguration extends InfoflowConfiguration {
 	private boolean validateResults = true;
 	
 	private int repeatCount = 1;
+	
+	static {
+		SummaryGeneratorConfiguration.setMergeNeighbors(true);
+	}
+	
+	/**
+	 * Creates a new instance of the SummaryGeneratorConfiguration class and
+	 * initializes it with the default configuration options
+	 */
+	public SummaryGeneratorConfiguration() {
+		// Set the default data flow configuration
+		setEnableExceptionTracking(false);
+		setEnableStaticFieldTracking(false);
+		setCodeEliminationMode(CodeEliminationMode.PropagateConstants);
+		setIgnoreFlowsInSystemPackages(false);
+		setStopAfterFirstFlow(false);
+		setEnableArraySizeTainting(false);
+	}
 
+	@Override
+	public void merge(InfoflowConfiguration config) {
+		super.merge(config);
+		if (config instanceof SummaryGeneratorConfiguration) {
+			SummaryGeneratorConfiguration summaryConfig = (SummaryGeneratorConfiguration) config;
+			this.loadFullJAR = summaryConfig.loadFullJAR;
+			this.excludes = summaryConfig.excludes == null || summaryConfig.excludes.isEmpty()
+					? null : new HashSet<>(summaryConfig.excludes);
+			this.validateResults = summaryConfig.validateResults;
+			this.repeatCount = summaryConfig.repeatCount;
+		}
+	}
+	
 	/**
 	 * Sets whether the target JAR file shall be loaded fully before the
 	 * analysis starts. More precisely, this instructs StubDroid to not only
