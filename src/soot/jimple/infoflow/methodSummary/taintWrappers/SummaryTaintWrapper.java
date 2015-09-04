@@ -43,10 +43,10 @@ import soot.jimple.infoflow.data.Abstraction;
 import soot.jimple.infoflow.data.AccessPath;
 import soot.jimple.infoflow.data.AccessPath.ArrayTaintType;
 import soot.jimple.infoflow.data.SootMethodAndClass;
+import soot.jimple.infoflow.methodSummary.data.provider.IMethodSummaryProvider;
 import soot.jimple.infoflow.methodSummary.data.sourceSink.AbstractFlowSinkSource;
 import soot.jimple.infoflow.methodSummary.data.summary.ClassSummaries;
 import soot.jimple.infoflow.methodSummary.data.summary.GapDefinition;
-import soot.jimple.infoflow.methodSummary.data.summary.LazySummary;
 import soot.jimple.infoflow.methodSummary.data.summary.MethodFlow;
 import soot.jimple.infoflow.methodSummary.data.summary.SourceSinkType;
 import soot.jimple.infoflow.solver.IFollowReturnsPastSeedsHandler;
@@ -73,7 +73,7 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 	private boolean reportMissingSummaries = false;
 	private ITaintPropagationWrapper fallbackWrapper = null;
 	
-	private LazySummary flows;
+	private IMethodSummaryProvider flows;
 	
 	private Hierarchy hierarchy;
 	private FastHierarchy fastHierarchy;
@@ -199,7 +199,7 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 	 * Creates a new instance of the {@link SummaryTaintWrapper} class
 	 * @param flows The flows loaded from disk
 	 */
-	public SummaryTaintWrapper(LazySummary flows) {
+	public SummaryTaintWrapper(IMethodSummaryProvider flows) {
 		this.flows = flows;
 	}
 	

@@ -40,6 +40,7 @@ import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
 import soot.jimple.infoflow.methodSummary.handler.SummaryTaintPropagationHandler;
 import soot.jimple.infoflow.methodSummary.postProcessor.InfoflowResultPostProcessor;
 import soot.jimple.infoflow.methodSummary.source.SummarySourceSinkManager;
+import soot.jimple.infoflow.nativ.INativeCallHandler;
 import soot.jimple.infoflow.results.InfoflowResults;
 import soot.jimple.infoflow.solver.cfg.IInfoflowCFG;
 import soot.jimple.infoflow.taintWrappers.ITaintPropagationWrapper;
@@ -57,6 +58,7 @@ public class SummaryGenerator {
 	
 	protected boolean debug = false;
 	protected ITaintPropagationWrapper taintWrapper;
+	protected INativeCallHandler nativeCallHandler;
 	protected IInfoflowConfig sootConfig;
 	protected SummaryGeneratorConfiguration config = new SummaryGeneratorConfiguration();
 	
@@ -445,6 +447,23 @@ public class SummaryGenerator {
 	}
 	
 	/**
+	 * Creates a new instance of the Infoflow class which will then be used for
+	 * computing summaries.
+	 * @return The newly constructed Infoflow instance
+	 */
+	protected Infoflow getInfoflowInstance() {
+		return new Infoflow("", false, new DefaultBiDiICFGFactory(),
+				new DefaultPathBuilderFactory(PathBuilder.None, false) {
+
+			@Override
+			public boolean supportsPathReconstruction() {
+				return true;
+			}
+
+		});
+	}
+	
+	/**
 	 * Initializes the data flow tracker
 	 * @param summaries The summary data object to receive the flows
 	 * @param gapManager The gap manager to be used when handling callbacks
@@ -453,18 +472,14 @@ public class SummaryGenerator {
 	protected Infoflow initInfoflow(MethodSummaries summaries, GapManager gapManager) {
 		// Disable the default path reconstruction. However, still make sure to
 		// retain the contents of the callees.
-		Infoflow iFlow = new Infoflow("", false, new DefaultBiDiICFGFactory(),
-				new DefaultPathBuilderFactory(PathBuilder.None, false) {
-
-					@Override
-					public boolean supportsPathReconstruction() {
-						return true;
-					}
-
-				});
+		Infoflow iFlow = getInfoflowInstance();
 		InfoflowConfiguration.setMergeNeighbors(true);
-		iFlow.setConfig(config);		
-		iFlow.setNativeCallHandler(new SummaryNativeCallHandler());
+		iFlow.setConfig(config);	
+		
+		if (nativeCallHandler == null)
+			iFlow.setNativeCallHandler(new SummaryNativeCallHandler());
+		else
+			iFlow.setNativeCallHandler(new SummaryNativeCallHandler(nativeCallHandler));
 		
 		final SummaryGenerationTaintWrapper summaryWrapper =
 				new SummaryGenerationTaintWrapper(summaries, gapManager);
@@ -546,6 +561,10 @@ public class SummaryGenerator {
 
 	public void setTaintWrapper(ITaintPropagationWrapper taintWrapper) {
 		this.taintWrapper = taintWrapper;
+	}
+	
+	public void setNativeCallHandler(INativeCallHandler nativeCallHandler) {
+		this.nativeCallHandler = nativeCallHandler;
 	}
 
 	public void setSootConfig(IInfoflowConfig config) {

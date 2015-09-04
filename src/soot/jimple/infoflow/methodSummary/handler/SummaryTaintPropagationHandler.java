@@ -33,10 +33,28 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 	
 	private ConcurrentHashMultiMap<Abstraction, Stmt> result = new ConcurrentHashMultiMap<>();
 	
+	/**
+	 * Creates a new instance of the SummaryTaintPropagationHandler class
+	 * @param m The signature of the method for which summaries are being computed
+	 * @param parentClass The parent class to which the method belongs
+	 * @param gapManager The gap manager for creating and referencing gaps
+	 */
 	public SummaryTaintPropagationHandler(String m, String parentClass,
 			GapManager gapManager) {
 		this.methodSig = m;
 		this.parentClass = parentClass;
+		this.gapManager = gapManager;
+	}
+	
+	/**
+	 * Creates a new instance of the SummaryTaintPropagationHandler class
+	 * @param m The method for which summaries are being computed
+	 * @param gapManager The gap manager for creating and referencing gaps
+	 */
+	public SummaryTaintPropagationHandler(SootMethod m, GapManager gapManager) {
+		this.method = m;
+		this.methodSig = null;
+		this.parentClass = null;
 		this.gapManager = gapManager;
 	}
 	
@@ -46,7 +64,7 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 		if (currentMethod == method)
 			return true;
 		
-		return currentMethod.getDeclaringClass().getName().equals(parentClass)
+		return (parentClass == null || currentMethod.getDeclaringClass().getName().equals(parentClass))
 					&& currentMethod.getSubSignature().equals(method.getSubSignature());
 	}
 	

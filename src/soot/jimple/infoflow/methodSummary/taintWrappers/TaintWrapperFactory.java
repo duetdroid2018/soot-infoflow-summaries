@@ -8,7 +8,7 @@ import java.util.List;
 
 import javax.xml.stream.XMLStreamException;
 
-import soot.jimple.infoflow.methodSummary.data.summary.LazySummary;
+import soot.jimple.infoflow.methodSummary.data.provider.LazySummaryProvider;
 import soot.jimple.infoflow.taintWrappers.ITaintPropagationWrapper;
 
 public class TaintWrapperFactory {
@@ -18,7 +18,7 @@ public class TaintWrapperFactory {
 		List<File> fs = new LinkedList<File>();
 		for(String s : files)
 			fs.add(new File(s));
-		return new SummaryTaintWrapper(new LazySummary(fs));
+		return new SummaryTaintWrapper(new LazySummaryProvider(fs));
 	}
 
 	public static ITaintPropagationWrapper createTaintWrapper(String f) throws FileNotFoundException, XMLStreamException {
@@ -26,7 +26,7 @@ public class TaintWrapperFactory {
 	}
 	
 	public static ITaintPropagationWrapper createTaintWrapper(File f){
-		return new SummaryTaintWrapper(new LazySummary(f));
+		return new SummaryTaintWrapper(new LazySummaryProvider(f));
 	}
 
 }

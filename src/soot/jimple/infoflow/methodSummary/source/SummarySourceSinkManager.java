@@ -79,6 +79,20 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 		this.sourceSinkFactory = sourceSinkFactory;
 	}
 	
+	/**
+	 * Creates a new instance of the {@link SummarySourceSinkManager} class
+	 * @param method The method for which summaries shall be created
+	 * @param sourceSinkFactory The {@link SourceSinkFactory} to create
+	 * source and sink data objects
+	 */
+	public SummarySourceSinkManager(SootMethod method,
+			SourceSinkFactory sourceSinkFactory) {
+		this.method = method;
+		this.methodSig = null;
+		this.parentClass = null;
+		this.sourceSinkFactory = sourceSinkFactory;
+	}
+	
 	@Override
 	public SourceInfo getSourceInfo(Stmt sCallSite, InterproceduralCFG<Unit, SootMethod> cfg) {
 		// If this is not the method we are looking for, we skip it
@@ -123,7 +137,7 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 		if (currentMethod == method)
 			return true;
 		
-		return currentMethod.getDeclaringClass().getName().equals(parentClass)
+		return (parentClass == null || currentMethod.getDeclaringClass().getName().equals(parentClass))
 					&& currentMethod.getSubSignature().equals(method.getSubSignature());
 	}
 

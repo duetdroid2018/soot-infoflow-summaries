@@ -1,4 +1,4 @@
-package soot.jimple.infoflow.methodSummary.data.summary;
+package soot.jimple.infoflow.methodSummary.data.provider;
 
 import java.io.File;
 import java.util.Arrays;
@@ -7,6 +7,9 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import soot.jimple.infoflow.methodSummary.data.summary.ClassSummaries;
+import soot.jimple.infoflow.methodSummary.data.summary.MethodFlow;
+import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
 import soot.jimple.infoflow.methodSummary.xml.XMLReader;
 
 
@@ -14,7 +17,7 @@ import soot.jimple.infoflow.methodSummary.xml.XMLReader;
  * This class loads method summary xml files on demand.
  *
  */
-public class LazySummary {
+public class LazySummaryProvider implements IMethodSummaryProvider {
 
 	private XMLReader reader;
 	private ClassSummaries summaries = new ClassSummaries();
@@ -26,7 +29,7 @@ public class LazySummary {
 	 * Loads a file or all files in a dir (not recursively)
 	 * @param source
 	 */
-	public LazySummary(File source) {
+	public LazySummaryProvider(File source) {
 		if (!source.exists())
 			throw new RuntimeException("Source directory " + source + " does not exist");
 		
@@ -44,7 +47,7 @@ public class LazySummary {
 		init();
 	}
 
-	public LazySummary(List<File> files) {
+	public LazySummaryProvider(List<File> files) {
 		this.files = new HashSet<File>();
 		for(File f : files) {
 			// Check if the file exists
@@ -75,7 +78,8 @@ public class LazySummary {
 			}
 		}
 	}
-
+	
+	@Override
 	public boolean supportsClass(String clazz) {
 		if (supportedClasses.contains(clazz))
 			return true;
@@ -84,14 +88,7 @@ public class LazySummary {
 		return false;
 	}
 	
-	/**
-	 * Gets all flows for the given method signature in the given set of classes
-	 * @param classes The classes in which to look for flow summaries
-	 * @param methodSignature The signature of the method for which to get the
-	 * flow summaries
-	 * @return The flow summaries for the given method in the given set of
-	 * classes
-	 */
+	@Override
 	public ClassSummaries getMethodFlows(Set<String> classes, String methodSignature) {
 		for (String className : classes)
 			if (loadableClasses.contains(className))
@@ -99,15 +96,7 @@ public class LazySummary {
 		return summaries.filterForMethod(classes, methodSignature);
 	}
 	
-	/**
-	 * Gets the data flows inside the given method for the given class.
-	 * @param className The class containing the method. If two classes B and C
-	 * inherit from some class A, methods in A can either be evaluated in the
-	 * context of B or C.
-	 * @param methodSignature The signature of the method for which to get the
-	 * flow summaries.
-	 * @return The flow summaries for the given method in the given class
-	 */
+	@Override
 	public Set<MethodFlow> getMethodFlows(String className, String methodSignature) {
 		if (loadableClasses.contains(className))
 			loadClass(className);
@@ -139,10 +128,12 @@ public class LazySummary {
 		return f.getName().replace(".xml", "");
 	}
 	
+	@Override
 	public Set<String> getSupportedClasses() {
 		return this.supportedClasses;
 	}
 	
+	@Override
 	public Set<String> getLoadableClasses() {
 		return this.loadableClasses;
 	}

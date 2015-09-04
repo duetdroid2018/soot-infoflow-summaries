@@ -21,7 +21,27 @@ import soot.jimple.infoflow.nativ.INativeCallHandler;
  */
 public class SummaryNativeCallHandler extends AbstractNativeCallHandler {
 	
-	private INativeCallHandler fallbackHandler = new DefaultNativeCallHandler();
+	private final INativeCallHandler fallbackHandler;
+	
+	/**
+	 * Creates a new instance of the SummaryNativeCallHandler class
+	 * @param fallbackHandler The fallback native code handler to use. If the
+	 * fallback handler supports a callee, its taints are used. Otherwise,
+	 * the summary handler applies an over-approximation
+	 */
+	public SummaryNativeCallHandler() {
+		this(new DefaultNativeCallHandler());
+	}
+	
+	/**
+	 * Creates a new instance of the SummaryNativeCallHandler class
+	 * @param fallbackHandler The fallback native code handler to use. If the
+	 * fallback handler supports a callee, its taints are used. Otherwise,
+	 * the summary handler applies an over-approximation
+	 */
+	public SummaryNativeCallHandler(INativeCallHandler fallbackHandler) {
+		this.fallbackHandler = fallbackHandler;
+	}
 	
 	@Override
 	public void initialize(InfoflowManager manager) {
