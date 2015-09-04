@@ -294,7 +294,9 @@ public class InfoflowResultPostProcessor {
 			FlowSource source, Stmt stmt, AccessPath sourceAP,
 			boolean isAlias) {
 		// Create a gap
-		GapDefinition gd = gapManager.getOrCreateGapForCall(flows, stmt);
+		GapDefinition gd = gapManager.getGapForCall(stmt);
+		if (gd == null)
+			return;
 		
 		// Check whether we have the base object
 		if (apAtCall.isLocal())

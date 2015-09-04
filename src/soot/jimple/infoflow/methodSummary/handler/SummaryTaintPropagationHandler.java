@@ -30,6 +30,7 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 	private final Set<SootMethod> excludedMethods = new HashSet<>();
 	private final GapManager gapManager;
 	private SootMethod method = null;
+	private boolean followReturnsPastSeeds = false;
 	
 	private ConcurrentHashMultiMap<Abstraction, Stmt> result = new ConcurrentHashMultiMap<>();
 	
@@ -64,8 +65,9 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 		if (currentMethod == method)
 			return true;
 		
-		return (parentClass == null || currentMethod.getDeclaringClass().getName().equals(parentClass))
-					&& currentMethod.getSubSignature().equals(method.getSubSignature());
+		return parentClass != null 
+				&& currentMethod.getDeclaringClass().getName().equals(parentClass)
+				&& currentMethod.getSubSignature().equals(method.getSubSignature());
 	}
 	
 	@Override
@@ -98,7 +100,7 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 	 * @param abs The taint abstraction that leaves the method
 	 * @param cfg The control flow graph
 	 */
-	private void handleReturnFlow(Stmt stmt,
+	protected void handleReturnFlow(Stmt stmt,
 			Abstraction abs,
 			IInfoflowCFG cfg) {		
 		// Check whether we must register the abstraction for post-processing
@@ -175,7 +177,7 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 				&& abs.getAccessPath().getPlainValue() == method.getActiveBody().getThisLocal());
 	}
 	
-	private void handleCallToReturnFlow(Stmt stmt, Abstraction abs,
+	protected void handleCallToReturnFlow(Stmt stmt, Abstraction abs,
 			IInfoflowCFG cfg) {
 		// Check whether we must construct a gap
 		if (gapManager.needsGapConstruction(stmt, abs, cfg))
@@ -187,7 +189,7 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 	 * @param abs The abstraction to be collected
 	 * @param stmt The statement at which the abstraction was collected
 	 */
-	private void addResult(Abstraction abs, Stmt stmt) {
+	protected void addResult(Abstraction abs, Stmt stmt) {
 		// Add the abstraction to the map. If we already have an equal
 		// abstraction, we must add the current one as a neighbor.
 		if (!this.result.put(abs, stmt)) {
@@ -211,6 +213,10 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 		SootMethod sm = cfg.getMethodOf(u);
 		if (excludedMethods.contains(sm))
 			return Collections.emptySet();
+		if (type == FlowFunctionType.ReturnFlowFunction
+				&& !followReturnsPastSeeds
+				&& sm == method)
+			return Collections.emptySet();
 		
 		return outgoing;
 	}
@@ -231,6 +237,17 @@ public class SummaryTaintPropagationHandler implements TaintPropagationHandler {
 	 */
 	public void addExcludedMethod(SootMethod excluded) {
 		this.excludedMethods.add(excluded);
+	}
+	
+	/**
+	 * Sets whether propagations out of the method to be summaries shall be
+	 * allowed. If not the analysis will not march up the callgraph any further
+	 * from that method.
+	 * @param follow True if propagations upwards from the target method shall
+	 * be allowed, otherwise false
+	 */
+	public void setFollowReturnsPastSeeds(boolean follow) {
+		this.followReturnsPastSeeds = follow;
 	}
 	
 }

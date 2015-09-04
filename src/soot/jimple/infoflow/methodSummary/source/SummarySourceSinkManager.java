@@ -137,8 +137,9 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 		if (currentMethod == method)
 			return true;
 		
-		return (parentClass == null || currentMethod.getDeclaringClass().getName().equals(parentClass))
-					&& currentMethod.getSubSignature().equals(method.getSubSignature());
+		return parentClass != null
+				&& currentMethod.getDeclaringClass().getName().equals(parentClass)
+				&& currentMethod.getSubSignature().equals(method.getSubSignature());
 	}
 
 	@Override
