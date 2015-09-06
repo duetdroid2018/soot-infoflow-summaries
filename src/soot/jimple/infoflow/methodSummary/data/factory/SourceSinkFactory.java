@@ -282,5 +282,43 @@ public class SourceSinkFactory {
 					sootTypesToString(cutAPLength(accessPath.getFieldTypes())),
 					true);
 	}
-
+	
+	/**
+	 * Creates a custom. The semantics must be defined by the code that uses the sink
+	 * @param paraIdx The index of the parameter
+	 * @param accessPath The access path modeling the field inside the parameter
+	 * value
+	 * @param gap The gap in whose parameter the flow ends
+	 * @param userData Additional user data to be associated with the sink
+	 * @return The sink object
+	 */
+	public FlowSink createCustomSink(int paraIdx, AccessPath accessPath,
+			GapDefinition gap, Object userData) {
+		if (accessPath.isLocal()) {
+			if (gap == null
+					&& !accessPath.getTaintSubFields()
+					&& !(accessPath.getBaseType() instanceof ArrayType))
+				throw new RuntimeException("Parameter locals cannot directly be sinks");
+			else
+				return new FlowSink(SourceSinkType.Custom, paraIdx,
+						accessPath.getBaseType().toString(),
+						accessPath.getTaintSubFields(),
+						gap, userData);
+		}
+		else if (accessPath.getFieldCount() < summaryAPLength)
+			return new FlowSink(SourceSinkType.Custom, paraIdx,
+					accessPath.getBaseType().toString(),
+					sootFieldsToString(accessPath.getFields()),
+					sootTypesToString(accessPath.getFieldTypes()),
+					accessPath.getTaintSubFields(),
+					gap, userData);
+		else
+			return new FlowSink(SourceSinkType.Custom, paraIdx,
+					accessPath.getBaseType().toString(),
+					sootFieldsToString(cutAPLength(accessPath.getFields())),
+					sootTypesToString(cutAPLength(accessPath.getFieldTypes())),
+					true,
+					gap, userData);
+	}
+	
 }

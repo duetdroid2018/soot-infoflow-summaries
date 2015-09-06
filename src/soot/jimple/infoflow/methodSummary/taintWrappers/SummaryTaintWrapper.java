@@ -372,7 +372,7 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 	 * @param stmt The statement at which the access path shall be valid
 	 * @return The access path derived from the given taint
 	 */
-	private AccessPath createAccessPathFromTaint(Taint t, Stmt stmt) {
+	protected AccessPath createAccessPathFromTaint(Taint t, Stmt stmt) {
 		// Convert the taints to Soot objects
 		SootField[] fields = safeGetFields(t.getAccessPath());
 		Type[] types = safeGetTypes(t.getAccessPathTypes());
@@ -896,7 +896,7 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 	 * applicable, null is returned.
 	 */
 	private AccessPathPropagator applyFlow(MethodFlow flow,
-			AccessPathPropagator propagator) {		
+			AccessPathPropagator propagator) {
 		final AbstractFlowSinkSource flowSource = flow.source();
 		AbstractFlowSinkSource flowSink = flow.sink();
 		final Taint taint = propagator.getTaint();
@@ -983,8 +983,14 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 			return null;
 		
 		// Construct a new propagator
-		Taint newTaint = addSinkTaint(flowSource, flowSink, taint,
-				propagator.getGap(), taintSubFields);
+		Taint newTaint = null; 
+		if (flow.isCustom()) {
+			newTaint = addCustomSinkTaint(flowSource, flowSink, taint,
+					propagator.getGap(), taintSubFields);
+		}
+		else
+			newTaint = addSinkTaint(flowSource, flowSink, taint,
+					propagator.getGap(), taintSubFields);
 		if (newTaint == null)
 			return null;
 		
@@ -1193,6 +1199,25 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 		for (int i = 0; i < fieldTypes.length; i++)
 			types[i] = getTypeFromString(fieldTypes[i]);
 		return types;
+	}
+	
+	/**
+	 * Given the taint at the source and the flow, computes the taint at the
+	 * sink. This method allows custom extensions to the taint wrapper. The
+	 * default implementation always returns null.
+	 * @param flowSource The source definition of the flow
+	 * @param flowSink The sink definition of the flow
+	 * @param taint The taint at the source statement
+	 * @param gap The gap at which the new flow will hold
+	 * @param taintSubFields True if all sub-fields of the sink shall be tainted
+	 * as well, otherwise false
+	 * @return The taint at the sink that is obtained when applying the given
+	 * flow to the given source taint
+	 */
+	protected Taint addCustomSinkTaint(AbstractFlowSinkSource flowSource,
+			AbstractFlowSinkSource flowSink, Taint taint, GapDefinition gap,
+			boolean taintSubFields) {
+		return null;
 	}
 	
 	/**

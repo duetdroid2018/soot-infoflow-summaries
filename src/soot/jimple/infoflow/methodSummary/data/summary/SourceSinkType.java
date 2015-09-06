@@ -25,5 +25,11 @@ public enum SourceSinkType {
 	/**
 	 * The base object of a call to a gap method
 	 */
-	GapBaseObject
+	GapBaseObject,
+	
+	/**
+	 * A custom type of source or sink. Such elements will be ignored by the
+	 * default implementation
+	 */
+	Custom
 }

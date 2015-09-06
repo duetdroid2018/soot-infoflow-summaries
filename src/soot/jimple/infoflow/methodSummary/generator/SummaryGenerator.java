@@ -464,6 +464,18 @@ public class SummaryGenerator {
 	}
 	
 	/**
+	 * Initializes the taint wrapper to be used for constructing gaps during
+	 * summary generation
+	 * @param summaries The summary data object to receive the flows
+	 * @param gapManager The gap manager to be used when handling callbacks
+	 * @return The taint wrapper to be used during summary generation
+	 */
+	protected SummaryGenerationTaintWrapper createTaintWrapper(
+			MethodSummaries summaries, GapManager gapManager) {
+		return new SummaryGenerationTaintWrapper(summaries, gapManager);
+	}
+	
+	/**
 	 * Initializes the data flow tracker
 	 * @param summaries The summary data object to receive the flows
 	 * @param gapManager The gap manager to be used when handling callbacks
@@ -482,7 +494,7 @@ public class SummaryGenerator {
 			iFlow.setNativeCallHandler(new SummaryNativeCallHandler(nativeCallHandler));
 		
 		final SummaryGenerationTaintWrapper summaryWrapper =
-				new SummaryGenerationTaintWrapper(summaries, gapManager);
+				createTaintWrapper(summaries, gapManager);
 		if (taintWrapper == null)
 			iFlow.setTaintWrapper(summaryWrapper);
 		else {

@@ -69,6 +69,11 @@ public class FlowSource extends AbstractFlowSinkSource {
 		if (isReturn() && gap != null)
 			return "Return value of gap " + gap.getSignature();
 		
+		if (isCustom())
+			return "CUSTOM " + gapString
+					+ "Parameter " + getParameterIndex() + (accessPath == null ? "" : " "
+					+  Arrays.toString(accessPath));
+		
 		return "<unknown>";
 	}
 	

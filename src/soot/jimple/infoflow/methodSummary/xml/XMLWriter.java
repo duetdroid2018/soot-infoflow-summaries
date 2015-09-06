@@ -81,13 +81,14 @@ public class XMLWriter  {
 			writer.writeAttribute(XMLConstants.ATTRIBUTE_METHOD_SIG, m.getKey());
 			
 			writer.writeStartElement(TREE_FLOWS);
-			for (MethodFlow data : m.getValue()) {
-				writer.writeStartElement(TREE_FLOW);				
-				writer.writeAttribute(XMLConstants.ATTRIBUTE_IS_ALIAS, data.isAlias() + "");
-				writeFlowSource(writer,data);
-				writeFlowSink(writer,data);
-				writer.writeEndElement(); // end flow 
-			}
+			for (MethodFlow data : m.getValue())
+				if (!data.isCustom()) {
+					writer.writeStartElement(TREE_FLOW);				
+					writer.writeAttribute(XMLConstants.ATTRIBUTE_IS_ALIAS, data.isAlias() + "");
+					writeFlowSource(writer,data);
+					writeFlowSink(writer,data);
+					writer.writeEndElement(); // end flow 
+				}
 			writer.writeEndElement(); // close flows
 			writer.writeEndElement(); // close method
 		}

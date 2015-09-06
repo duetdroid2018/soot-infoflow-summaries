@@ -33,10 +33,10 @@ import soot.jimple.toolkits.callgraph.Edge;
  */
 public class SummaryGenerationTaintWrapper implements ITaintPropagationWrapper {
 	
-	private IInfoflowCFG icfg;
+	protected IInfoflowCFG icfg;
 	
-	private final MethodSummaries summaries;
-	private final GapManager gapManager;
+	protected final MethodSummaries summaries;
+	protected final GapManager gapManager;
 	
 	public SummaryGenerationTaintWrapper(MethodSummaries summaries,
 			GapManager gapManager) {

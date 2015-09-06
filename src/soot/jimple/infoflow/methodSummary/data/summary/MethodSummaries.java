@@ -307,23 +307,24 @@ public class MethodSummaries implements Iterable<MethodFlow> {
 			Set<GapDefinition> gapsWithFlows = new HashSet<GapDefinition>();
 			Set<GapDefinition> gapsWithBases = new HashSet<GapDefinition>();
 			
-			for (MethodFlow flow : getFlows().get(methodName)) {
-				// For the source, record all flows to gaps and all flows to bases
-				if (flow.source().getGap() != null) {
-					if (flow.source().getType() == SourceSinkType.GapBaseObject)
-						gapsWithBases.add(flow.source().getGap());
-					else
-						gapsWithFlows.add(flow.source().getGap());
+			for (MethodFlow flow : getFlows().get(methodName))
+				if (!flow.isCustom()) {
+					// For the source, record all flows to gaps and all flows to bases
+					if (flow.source().getGap() != null) {
+						if (flow.source().getType() == SourceSinkType.GapBaseObject)
+							gapsWithBases.add(flow.source().getGap());
+						else
+							gapsWithFlows.add(flow.source().getGap());
+					}
+	
+					// For the sink, record all flows to gaps and all flows to bases
+					if (flow.sink().getGap() != null) {
+						if (flow.sink().getType() == SourceSinkType.GapBaseObject)
+							gapsWithBases.add(flow.sink().getGap());
+						else
+							gapsWithFlows.add(flow.sink().getGap());
+					}
 				}
-
-				// For the sink, record all flows to gaps and all flows to bases
-				if (flow.sink().getGap() != null) {
-					if (flow.sink().getType() == SourceSinkType.GapBaseObject)
-						gapsWithBases.add(flow.sink().getGap());
-					else
-						gapsWithFlows.add(flow.sink().getGap());
-				}
-			}
 			
 			// Check whether we have some flow for which we don't have a base
 			for (GapDefinition gd : gapsWithFlows)

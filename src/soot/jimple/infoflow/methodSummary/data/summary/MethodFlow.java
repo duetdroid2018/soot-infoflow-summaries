@@ -87,6 +87,14 @@ public class MethodFlow {
 		return this.isAlias;
 	}
 	
+	/**
+	 * Gets whether this flow has a custom source or sink
+	 * @return True if this flow has a custom source or sink, otherwise false
+	 */
+	public boolean isCustom() {
+		return from.isCustom() || to.isCustom();
+	}
+	
 	@Override
 	public boolean equals(Object obj) {
 		if (this == obj)

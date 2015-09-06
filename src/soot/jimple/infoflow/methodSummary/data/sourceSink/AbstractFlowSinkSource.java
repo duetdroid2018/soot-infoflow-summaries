@@ -20,6 +20,7 @@ public abstract class AbstractFlowSinkSource {
 	protected final String[] accessPath;
 	protected final String[] accessPathTypes;
 	protected final GapDefinition gap;
+	protected final Object userData;
 
 	public AbstractFlowSinkSource(SourceSinkType type, int parameterIdx,
 			String baseType) {
@@ -34,12 +35,19 @@ public abstract class AbstractFlowSinkSource {
 	public AbstractFlowSinkSource(SourceSinkType type, int parameterIdx,
 			String baseType, String[] accessPath, String[] accessPathTypes,
 			GapDefinition gap) {
+		this(type, parameterIdx, baseType, accessPath, accessPathTypes, gap, null);
+	}
+	
+	public AbstractFlowSinkSource(SourceSinkType type, int parameterIdx,
+			String baseType, String[] accessPath, String[] accessPathTypes,
+			GapDefinition gap, Object userData) {
 		this.type = type;
 		this.parameterIdx = parameterIdx;
 		this.baseType = baseType;
 		this.accessPath = limitAccessPath(accessPath);
 		this.accessPathTypes = limitAccessPath(accessPathTypes);
 		this.gap = gap;
+		this.userData = userData;
 	}
 	
 	/**
@@ -86,7 +94,7 @@ public abstract class AbstractFlowSinkSource {
 		return true;
 	}
 	
-	public SourceSinkType type(){
+	public SourceSinkType type() {
 		return type;
 	}
 
@@ -94,9 +102,12 @@ public abstract class AbstractFlowSinkSource {
 		return type().equals(SourceSinkType.Parameter);
 	}
 	
-	public boolean isThis()
-	{
+	public boolean isThis() {
 		return type().equals(SourceSinkType.Field) && !hasAccessPath();
+	}
+	
+	public boolean isCustom() {
+		return type().equals(SourceSinkType.Custom);
 	}
 	
 	public int getParameterIndex() {
@@ -175,6 +186,7 @@ public abstract class AbstractFlowSinkSource {
 		result = prime * result + (baseType == null ? 0 : baseType.hashCode());
 		result = prime * result + ((type == null) ? 0 : type.hashCode());
 		result = prime * result + ((gap == null) ? 0 : gap.hashCode());
+		result = prime * result + ((userData == null) ? 0 : userData.hashCode());
 		return result;
 	}
 
@@ -208,6 +220,12 @@ public abstract class AbstractFlowSinkSource {
 		}
 		else if (!gap.equals(other.gap))
 			return false;
+		if (userData == null) {
+			if (other.userData != null)
+				return false;
+		}
+		else if (!userData.equals(other.userData))
+			return false;
 		return true;
 	}
 	
@@ -240,6 +258,14 @@ public abstract class AbstractFlowSinkSource {
 			res.put(XMLConstants.ATTRIBUTE_GAP, getGap().getID() + "");
 		
 		return res;
+	}
+	
+	/**
+	 * Gets the custom user data associated with this sink
+	 * @return The custom user data associated with this sink
+	 */
+	public Object getUserData() {
+		return this.userData;
 	}
 	
 }

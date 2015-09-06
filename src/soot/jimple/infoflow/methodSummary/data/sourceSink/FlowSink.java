@@ -30,6 +30,14 @@ public class FlowSink extends AbstractFlowSinkSource {
 	}
 
 	public FlowSink(SourceSinkType type, int paramterIdx,
+			String baseType, String[] fields, String[] fieldTypes,
+			boolean taintSubFields, GapDefinition gap,
+			Object userData) {
+		super(type, paramterIdx, baseType, fields, fieldTypes, gap, userData);
+		this.taintSubFields = taintSubFields;
+	}
+	
+	public FlowSink(SourceSinkType type, int paramterIdx,
 			String baseType, boolean taintSubFields) {
 		super(type, paramterIdx, baseType, null, null);
 		this.taintSubFields = taintSubFields;
@@ -40,7 +48,14 @@ public class FlowSink extends AbstractFlowSinkSource {
 		super(type, paramterIdx, baseType, null, null, gap);
 		this.taintSubFields = taintSubFields;
 	}
-
+	
+	public FlowSink(SourceSinkType type, int paramterIdx,
+			String baseType, boolean taintSubFields, GapDefinition gap,
+			Object userData) {
+		super(type, paramterIdx, baseType, null, null, gap, userData);
+		this.taintSubFields = taintSubFields;
+	}
+	
 	public FlowSink(SourceSinkType type, String baseType, String[] accessPath,
 			String[] accessPathTypes, boolean taintSubFields2) {
 		super(type, -1, baseType, accessPath, accessPathTypes);
@@ -54,7 +69,7 @@ public class FlowSink extends AbstractFlowSinkSource {
 		this.taintSubFields = taintSubFields2 || (accessPath != null
 				&& accessPath.length > this.accessPath.length);
 	}
-
+	
 	public boolean taintSubFields(){
 		return taintSubFields;
 	}
@@ -103,6 +118,11 @@ public class FlowSink extends AbstractFlowSinkSource {
 			return gapString
 					+ "Return" + (accessPath == null ? "" : " "
 					+ Arrays.toString(accessPath)) + " " + taintSubFields();
+		
+		if (isCustom())
+			return "CUSTOM " + gapString
+					+ "Parameter " + getParameterIndex() + (accessPath == null ? "" : " "
+					+  Arrays.toString(accessPath));
 		
 		return "invalid sink";
 	}	

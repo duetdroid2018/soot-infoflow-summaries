@@ -10,7 +10,7 @@ import soot.jimple.infoflow.methodSummary.data.summary.SourceSinkType;
  * @author Steven Arzt
  *
  */
-class Taint extends FlowSink implements Cloneable {
+public class Taint extends FlowSink implements Cloneable {
 
 	public Taint(SourceSinkType type, int paramterIdx, String baseType,
 			boolean taintSubFields) {

@@ -39,10 +39,10 @@ public class InfoflowResultPostProcessor {
 	private final boolean DEBUG = true;
 	private final Logger logger = LoggerFactory.getLogger(InfoflowResultPostProcessor.class);
 
-	private final IInfoflowCFG cfg;
+	protected final IInfoflowCFG cfg;
 	private final MultiMap<Abstraction, Stmt> collectedAbstractions;
 	private final String method;
-	private final SourceSinkFactory sourceSinkFactory;
+	protected final SourceSinkFactory sourceSinkFactory;
 	private final GapManager gapManager;
 	private final SummaryGeneratorConfiguration config;
 	
@@ -290,7 +290,7 @@ public class InfoflowResultPostProcessor {
 	 * @param sourceAP The access path of the flow source
 	 * @param isAlias True if source and sink alias, otherwise false
 	 */
-	private void processAbstractionAtCall(MethodSummaries flows, AccessPath apAtCall,
+	protected void processAbstractionAtCall(MethodSummaries flows, AccessPath apAtCall,
 			FlowSource source, Stmt stmt, AccessPath sourceAP,
 			boolean isAlias) {
 		// Create a gap
@@ -298,15 +298,30 @@ public class InfoflowResultPostProcessor {
 		if (gd == null)
 			return;
 		
+		// Create the flow sink
+		FlowSink sink = createFlowSinkAtCall(apAtCall, gd, stmt);
+		if (sink != null)
+			addFlow(source, sink, isAlias, flows);
+	}
+	
+	/**
+	 * Creates a flow sink at the given call site
+	 * @param apAtCall The access path that arives at the given call site
+	 * @param gd The gap created at the given call site
+	 * @param stmt The statement containing the call site
+	 * @return The flow sink created for the given access path at the given
+	 * statement if it matches, otherwise false
+	 */
+	protected FlowSink createFlowSinkAtCall(AccessPath apAtCall, GapDefinition gd,
+			Stmt stmt) {
 		// Check whether we have the base object
 		if (apAtCall.isLocal())
 			if (stmt.getInvokeExpr() instanceof InstanceInvokeExpr) {
 				InstanceInvokeExpr iinv = (InstanceInvokeExpr) stmt.getInvokeExpr();
 				Local baseLocal = (Local) iinv.getBase();
 				if (baseLocal == apAtCall.getPlainValue()) {
-					FlowSink sink = sourceSinkFactory.createGapBaseObjectSink(gd,
+					return sourceSinkFactory.createGapBaseObjectSink(gd,
 							apAtCall.getBaseType());
-					addFlow(source, sink, isAlias, flows);
 				}
 			}
 		
@@ -314,8 +329,7 @@ public class InfoflowResultPostProcessor {
 		for (int i = 0; i < stmt.getInvokeExpr().getArgCount(); i++) {
 			Value p = stmt.getInvokeExpr().getArg(i);
 			if (apAtCall.getPlainValue() == p) {
-				FlowSink sink = sourceSinkFactory.createParameterSink(i, apAtCall, gd);
-				addFlow(source, sink, isAlias, flows);
+				return sourceSinkFactory.createParameterSink(i, apAtCall, gd);
 			}
 		}
 
@@ -323,10 +337,12 @@ public class InfoflowResultPostProcessor {
 		if (apAtCall.getFieldCount() > 0 && stmt.getInvokeExpr() instanceof InstanceInvokeExpr) {
 			InstanceInvokeExpr iinv = (InstanceInvokeExpr) stmt.getInvokeExpr();
 			if (apAtCall.getPlainValue() == iinv.getBase()) {
-				FlowSink sink = sourceSinkFactory.createFieldSink(apAtCall);
-				addFlow(source, sink, isAlias, flows);
+				return sourceSinkFactory.createFieldSink(apAtCall);
 			}
 		}
+		
+		// Nothing matched
+		return null;
 	}
 	
 	/**
@@ -340,7 +356,7 @@ public class InfoflowResultPostProcessor {
 	 * @param sourceAP The access path of the flow source
 	 * @param isAlias True if source and sink alias, otherwise false
 	 */
-	private void processAbstractionAtReturn(MethodSummaries flows, AccessPath apAtReturn,
+	protected void processAbstractionAtReturn(MethodSummaries flows, AccessPath apAtReturn,
 			SootMethod m, FlowSource source, Stmt stmt, AccessPath sourceAP,
 			boolean isAlias) {
 		// Was this the value returned by the method?
@@ -437,7 +453,7 @@ public class InfoflowResultPostProcessor {
 	 * @param isAlias True if the source and sink alias, otherwise false
 	 * @param summaries The method summary to which to add the data flow
 	 */
-	private void addFlow(FlowSource source, FlowSink sink, boolean isAlias,
+	protected void addFlow(FlowSource source, FlowSink sink, boolean isAlias,
 			MethodSummaries summaries) {
 		// Convert the method signature into a subsignature
 		String methodSubSig = SootMethodRepresentationParser.v()
