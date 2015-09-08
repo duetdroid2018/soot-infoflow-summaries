@@ -122,7 +122,7 @@ class SummarySourceContextAndPath extends SourceContextAndPath {
 				// If the incoming value is a primitive, we reset the field
 				// list
 				if (found) {
-					if (newBase.getType() instanceof PrimType)
+					if (newBase.getType() instanceof PrimType || curAP.getBaseType() instanceof PrimType)
 						scap.curAP = new AccessPath(newBase, true);
 					else
 						scap.curAP = scap.curAP.copyWithNewValue(newBase);

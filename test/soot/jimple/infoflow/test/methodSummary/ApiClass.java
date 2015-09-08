@@ -520,5 +520,9 @@ public class ApiClass implements IApiClass {
 	public Data retrieveData() {
 		return this.dataField;
 	}
+	
+	public int getLength(char[] array) {
+		return array.length;
+	}
 
 }

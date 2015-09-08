@@ -13,20 +13,12 @@ import java.util.Set;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import soot.ArrayType;
-import soot.BooleanType;
-import soot.ByteType;
-import soot.CharType;
-import soot.DoubleType;
 import soot.FastHierarchy;
-import soot.FloatType;
 import soot.Hierarchy;
-import soot.IntType;
 import soot.Local;
-import soot.LongType;
 import soot.PrimType;
 import soot.RefType;
 import soot.Scene;
-import soot.ShortType;
 import soot.SootClass;
 import soot.SootField;
 import soot.SootMethod;
@@ -53,6 +45,7 @@ import soot.jimple.infoflow.solver.IFollowReturnsPastSeedsHandler;
 import soot.jimple.infoflow.taintWrappers.ITaintPropagationWrapper;
 import soot.jimple.infoflow.util.SootMethodRepresentationParser;
 import soot.jimple.infoflow.util.SystemClassHandler;
+import soot.jimple.infoflow.util.TypeUtils;
 import soot.util.ConcurrentHashMultiMap;
 import soot.util.MultiMap;
 
@@ -376,7 +369,7 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 		// Convert the taints to Soot objects
 		SootField[] fields = safeGetFields(t.getAccessPath());
 		Type[] types = safeGetTypes(t.getAccessPathTypes());
-		Type baseType = getTypeFromString(t.getBaseType());
+		Type baseType = TypeUtils.getTypeFromString(t.getBaseType());
 		
 		// If the taint is a return value, we taint the left side of the
 		// assignment
@@ -429,7 +422,7 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 		// Convert the taints to Soot objects
 		SootField[] fields = safeGetFields(t.getAccessPath());
 		Type[] types = safeGetTypes(t.getAccessPathTypes());
-		Type baseType = getTypeFromString(t.getBaseType());
+		Type baseType = TypeUtils.getTypeFromString(t.getBaseType());
 		
 		// A return value cannot be propagated into a method
 		if (t.isReturn())
@@ -486,9 +479,12 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 		// We only care about method invocations
 		if (!stmt.containsInvokeExpr())
 			return Collections.singleton(taintedAbs);
+		
+		if (stmt.toString().equals("specialinvoke $r3.<java.lang.StringBuilder: void <init>(java.lang.String)>($r4)"))
+			System.out.println("x");
 				
 		// Get the cached data flows
-		final SootMethod method = stmt.getInvokeExpr().getMethod();		
+		final SootMethod method = stmt.getInvokeExpr().getMethod();
 		ClassSummaries flowsInCallees = getFlowSummariesForMethod(
 				stmt, method, taintedAbs);
 		
@@ -602,6 +598,7 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 					}
 									
 					// Apply the flow summary
+					// {void <init>(java.lang.String) Source: [Return value of gap <java.lang.String: int length()>] Sink: [Gap <java.lang.AbstractStringBuilder: void <init>(int)> Parameter 0 true]}
 					AccessPathPropagator newPropagator = applyFlow(flow, curPropagator);
 					if (newPropagator == null)
 						continue;
@@ -642,7 +639,7 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 	 * false
 	 */
 	private boolean canTypeAlias(String type) {
-		Type tp = getTypeFromString(type);
+		Type tp = TypeUtils.getTypeFromString(type);
 		if (tp instanceof PrimType)
 			return false;
 		if (tp instanceof RefType)
@@ -905,8 +902,8 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 		// Make sure that the base type of the incoming taint and the one of
 		// the summary are compatible
 		boolean typesCompatible = isCastCompatible(
-				getTypeFromString(taint.getBaseType()),
-				getTypeFromString(flowSource.getBaseType()));
+				TypeUtils.getTypeFromString(taint.getBaseType()),
+				TypeUtils.getTypeFromString(flowSource.getBaseType()));
 		if (!typesCompatible)
 			return null;
 		
@@ -1122,48 +1119,10 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 		String fieldName = fieldSig.substring(fieldSig.lastIndexOf(" ") + 1);
 		fieldName = fieldName.substring(0, fieldName.length() - 1);
 		
-		return Scene.v().makeFieldRef(sc, fieldName, getTypeFromString(type), false).resolve();
+		return Scene.v().makeFieldRef(sc, fieldName,
+				TypeUtils.getTypeFromString(type), false).resolve();
 	}
 	
-	/**
-	 * Creates a Soot Type from the given string
-	 * @param type A string representing a Soot type
-	 * @return The Soot Type corresponding to the given string
-	 */
-	private Type getTypeFromString(String type) {		
-		// Reduce arrays
-		int numDimensions = 0;
-		while (type.endsWith("[]")) {
-			numDimensions++;
-			type = type.substring(0, type.length() - 2);
-		}
-		
-		// Generate the target type
-		final Type t;
-		if (type.equals("int"))
-			t = IntType.v();
-		else if (type.equals("long"))
-			t = LongType.v();
-		else if (type.equals("float"))
-			t = FloatType.v();
-		else if (type.equals("double"))
-			t = DoubleType.v();
-		else if (type.equals("boolean"))
-			t = BooleanType.v();
-		else if (type.equals("char"))
-			t = CharType.v();
-		else if (type.equals("short"))
-			t = ShortType.v();
-		else if (type.equals("byte"))
-			t = ByteType.v();
-		else
-			t = RefType.v(type);
-		
-		if (numDimensions == 0)
-			return t;
-		return ArrayType.v(t, numDimensions);
-	}
-
 	/**
 	 * Gets an array of fields with the specified signatures
 	 * 
@@ -1197,7 +1156,7 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 			return null;
 		Type[] types = new Type[fieldTypes.length];
 		for (int i = 0; i < fieldTypes.length; i++)
-			types[i] = getTypeFromString(fieldTypes[i]);
+			types[i] = TypeUtils.getTypeFromString(fieldTypes[i]);
 		return types;
 	}
 	
@@ -1245,9 +1204,9 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 		// might have a taint for "a" in o.add(a) and need to check whether
 		// "o" matches the expected type in our summary.
 		int lastCommonAPIdx = Math.min(flowSource.getAccessPathLength(), taint.getAccessPathLength());
-		Type sinkType = getTypeFromString(getAssignmentType(flowSink));
-		Type taintType = getTypeFromString(getAssignmentType(taint, lastCommonAPIdx - 1));
-		if (!isCastCompatible(taintType, sinkType)) {
+		Type sinkType = TypeUtils.getTypeFromString(getAssignmentType(flowSink));
+		Type taintType = TypeUtils.getTypeFromString(getAssignmentType(taint, lastCommonAPIdx - 1));
+		if (!(sinkType instanceof PrimType) && !isCastCompatible(taintType, sinkType)) {
 			// If the target is an array, the value might also flow into an element
 			Type sinkBaseType = sinkType;
 			boolean found = false;			
@@ -1276,10 +1235,15 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 				&& remainingFields != null && remainingFields.length > 0)
 			sourceSinkType = SourceSinkType.Field;
 		
+		// Compute the new base type
+		String newBaseType = TypeUtils.getMorePreciseType(taint.getBaseType(), flowSink.getBaseType());
+		if (newBaseType == null)
+			newBaseType = flowSink.getBaseType();
+		
 		// Taint the correct fields
 		return new Taint(sourceSinkType,
 				flowSink.getParameterIndex(),
-				flowSink.getBaseType(),
+				newBaseType,
 				appendedFields,
 				appendedFieldTypes,
 				taintSubFields || taint.taintSubFields(),

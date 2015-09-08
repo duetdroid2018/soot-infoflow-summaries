@@ -10,6 +10,8 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 
+import soot.Scene;
+import soot.SootMethod;
 import soot.jimple.infoflow.collect.ConcurrentHashSet;
 
 /**
@@ -327,11 +329,17 @@ public class MethodSummaries implements Iterable<MethodFlow> {
 				}
 			
 			// Check whether we have some flow for which we don't have a base
-			for (GapDefinition gd : gapsWithFlows)
+			for (GapDefinition gd : gapsWithFlows) {
+				// We don't need a base for a static method
+				SootMethod sm = Scene.v().grabMethod(gd.getSignature());
+				if (sm != null && sm.isStatic())
+					continue;
+				
 				if (!gapsWithBases.contains(gd))
 					throw new RuntimeException("Flow to/from a gap without a base detected "
 							+ " for method " + methodName + ". Gap target is "
 							+ gd.getSignature());
+			}
 		}
 		
 		// No gap without a method signature may exist

@@ -218,4 +218,11 @@ public class ApiClassClient {
 		sink(t);
 	}
 
+	public void getLength() {
+		ApiClass api = new ApiClass();
+		char[] array = new char[intSource()];
+		int length = api.getLength(array);
+		sink(length);
+	}
+	
 }

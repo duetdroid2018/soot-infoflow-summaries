@@ -78,7 +78,7 @@ public class InfoflowResultPostProcessor {
 		logger.info("start processing {} infoflow abstractions for method {}", 
 				collectedAbstractions.size(), method);
 		final SootMethod m = Scene.v().getMethod(method);
-				
+		
 		// Create a context-sensitive path builder. Without context-sensitivity,
 		// we get quite some false positives here.
 		SummaryPathBuilder pathBuilder = new SummaryPathBuilder(cfg,
