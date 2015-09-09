@@ -480,9 +480,6 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 		if (!stmt.containsInvokeExpr())
 			return Collections.singleton(taintedAbs);
 		
-		if (stmt.toString().equals("specialinvoke $r3.<java.lang.StringBuilder: void <init>(java.lang.String)>($r4)"))
-			System.out.println("x");
-				
 		// Get the cached data flows
 		final SootMethod method = stmt.getInvokeExpr().getMethod();
 		ClassSummaries flowsInCallees = getFlowSummariesForMethod(
@@ -598,7 +595,6 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 					}
 									
 					// Apply the flow summary
-					// {void <init>(java.lang.String) Source: [Return value of gap <java.lang.String: int length()>] Sink: [Gap <java.lang.AbstractStringBuilder: void <init>(int)> Parameter 0 true]}
 					AccessPathPropagator newPropagator = applyFlow(flow, curPropagator);
 					if (newPropagator == null)
 						continue;
@@ -1200,26 +1196,26 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 		final String[] appendedFields = append(flowSink.getAccessPath(), remainingFields);
 		final String[] appendedFieldTypes = append(flowSink.getAccessPathTypes(), remainingFieldTypes);
 		
-		// If we taint something in the base object, its type must match. We
-		// might have a taint for "a" in o.add(a) and need to check whether
-		// "o" matches the expected type in our summary.
 		int lastCommonAPIdx = Math.min(flowSource.getAccessPathLength(), taint.getAccessPathLength());
 		Type sinkType = TypeUtils.getTypeFromString(getAssignmentType(flowSink));
 		Type taintType = TypeUtils.getTypeFromString(getAssignmentType(taint, lastCommonAPIdx - 1));
+		
+		// If we taint something in the base object, its type must match. We
+		// might have a taint for "a" in o.add(a) and need to check whether
+		// "o" matches the expected type in our summary.
 		if (!(sinkType instanceof PrimType) && !isCastCompatible(taintType, sinkType)) {
 			// If the target is an array, the value might also flow into an element
-			Type sinkBaseType = sinkType;
 			boolean found = false;			
-			while (sinkBaseType instanceof ArrayType) {
-				sinkBaseType = ((ArrayType) sinkBaseType).getElementType(); 
-				if (isCastCompatible(taintType, sinkBaseType)) {
+			while (sinkType instanceof ArrayType) {
+				sinkType = ((ArrayType) sinkType).getElementType(); 
+				if (isCastCompatible(taintType, sinkType)) {
 					found = true;
 					break;
 				}
 			}
 			while (taintType instanceof ArrayType) {
 				taintType = ((ArrayType) taintType).getElementType(); 
-				if (isCastCompatible(taintType, sinkBaseType)) {
+				if (isCastCompatible(taintType, sinkType)) {
 					found = true;
 					break;
 				}
@@ -1236,14 +1232,22 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 			sourceSinkType = SourceSinkType.Field;
 		
 		// Compute the new base type
-		String newBaseType = TypeUtils.getMorePreciseType(taint.getBaseType(), flowSink.getBaseType());
+		Type newBaseType = TypeUtils.getMorePreciseType(taintType, sinkType);
 		if (newBaseType == null)
-			newBaseType = flowSink.getBaseType();
+			newBaseType = sinkType;
+		String sBaseType = "" + sinkType;
+		
+		// Set the correct type. In case x -> b.x, the new type is not the type
+		// of b, but of the field x.
+		if (flowSink.hasAccessPath()) {
+			appendedFieldTypes[flowSink.getAccessPathLength() - 1] = "" + newBaseType;
+			sBaseType = flowSink.getBaseType();
+		}
 		
 		// Taint the correct fields
 		return new Taint(sourceSinkType,
 				flowSink.getParameterIndex(),
-				newBaseType,
+				sBaseType,
 				appendedFields,
 				appendedFieldTypes,
 				taintSubFields || taint.taintSubFields(),
