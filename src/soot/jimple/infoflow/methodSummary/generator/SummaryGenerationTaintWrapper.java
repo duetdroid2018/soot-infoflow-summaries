@@ -14,6 +14,7 @@ import soot.jimple.Stmt;
 import soot.jimple.infoflow.InfoflowManager;
 import soot.jimple.infoflow.data.Abstraction;
 import soot.jimple.infoflow.data.AccessPath;
+import soot.jimple.infoflow.data.AccessPathFactory;
 import soot.jimple.infoflow.data.SourceContext;
 import soot.jimple.infoflow.methodSummary.data.sourceSink.FlowSource;
 import soot.jimple.infoflow.methodSummary.data.summary.GapDefinition;
@@ -75,17 +76,18 @@ public class SummaryGenerationTaintWrapper implements ITaintPropagationWrapper {
 		// Produce a continuation
 		Set<Abstraction> res = new HashSet<Abstraction>();
 		if (stmt.getInvokeExpr() instanceof InstanceInvokeExpr) {
-			AccessPath ap = new AccessPath(((InstanceInvokeExpr)
+			AccessPath ap = AccessPathFactory.v().createAccessPath(((InstanceInvokeExpr)
 					stmt.getInvokeExpr()).getBase(), true);
 			res.add(getContinuation(taintedPath, ap, gap, stmt));
 		}
 		for (Value paramVal : stmt.getInvokeExpr().getArgs())
 			if (AccessPath.canContainValue(paramVal)) {
-				AccessPath ap = new AccessPath(paramVal, true); 
+				AccessPath ap = AccessPathFactory.v().createAccessPath(paramVal, true); 
 				res.add(getContinuation(taintedPath, ap, gap, stmt));
 			}
 		if (stmt instanceof DefinitionStmt) {
-			AccessPath ap = new AccessPath(((DefinitionStmt) stmt).getLeftOp(), true);
+			AccessPath ap = AccessPathFactory.v().createAccessPath(
+					((DefinitionStmt) stmt).getLeftOp(), true);
 			res.add(getContinuation(taintedPath, ap, gap, stmt));
 		}
 		

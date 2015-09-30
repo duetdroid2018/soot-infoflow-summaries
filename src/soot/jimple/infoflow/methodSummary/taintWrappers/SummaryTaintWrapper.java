@@ -33,6 +33,7 @@ import soot.jimple.Stmt;
 import soot.jimple.infoflow.InfoflowManager;
 import soot.jimple.infoflow.data.Abstraction;
 import soot.jimple.infoflow.data.AccessPath;
+import soot.jimple.infoflow.data.AccessPathFactory;
 import soot.jimple.infoflow.data.AccessPath.ArrayTaintType;
 import soot.jimple.infoflow.data.SootMethodAndClass;
 import soot.jimple.infoflow.methodSummary.data.provider.IMethodSummaryProvider;
@@ -379,9 +380,9 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 				return null;
 			
 			DefinitionStmt defStmt = (DefinitionStmt) stmt;
-			return new AccessPath(defStmt.getLeftOp(),
+			return AccessPathFactory.v().createAccessPath(defStmt.getLeftOp(),
 					fields, baseType, types, t.taintSubFields(),
-					ArrayTaintType.ContentsAndLength);
+					false, true, ArrayTaintType.ContentsAndLength);
 		}
 		
 		// If the taint is a parameter value, we need to identify the
@@ -392,8 +393,9 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 			if (!AccessPath.canContainValue(paramVal))
 				return null;
 			
-			return new AccessPath(paramVal, fields, baseType, types,
-					t.taintSubFields(), ArrayTaintType.ContentsAndLength);
+			return AccessPathFactory.v().createAccessPath(paramVal, fields,
+					baseType, types, t.taintSubFields(),
+					false, true, ArrayTaintType.ContentsAndLength);
 		}
 		
 		// If the taint is on the base value, we need to taint the base local
@@ -401,9 +403,9 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 				&& stmt.containsInvokeExpr()
 				&& stmt.getInvokeExpr() instanceof InstanceInvokeExpr) {
 			InstanceInvokeExpr iiexpr = (InstanceInvokeExpr) stmt.getInvokeExpr();
-			return new AccessPath(iiexpr.getBase(),
+			return AccessPathFactory.v().createAccessPath(iiexpr.getBase(),
 					fields, baseType, types, t.taintSubFields(),
-					ArrayTaintType.ContentsAndLength);
+					false, true, ArrayTaintType.ContentsAndLength);
 		}
 		
 		throw new RuntimeException("Could not convert taint to access path: "
@@ -430,14 +432,15 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 		
 		if (t.isParameter()) {
 			Local l = sm.getActiveBody().getParameterLocal(t.getParameterIndex());
-			return new AccessPath(l, fields, baseType, types, true,
+			return AccessPathFactory.v().createAccessPath(l, fields, baseType,
+					types, true, false, true,
 					ArrayTaintType.ContentsAndLength);
 		}
 		
 		if (t.isField() || t.isGapBaseObject()) {
 			Local l = sm.getActiveBody().getThisLocal();
-			return new AccessPath(l, fields, baseType, types, true,
-					ArrayTaintType.ContentsAndLength);
+			return AccessPathFactory.v().createAccessPath(l, fields, baseType,
+					types, true, false, true, ArrayTaintType.ContentsAndLength);
 		}
 		
 		throw new RuntimeException("Failed to convert taint " + t);
@@ -500,6 +503,9 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 			}
 		}
 		wrapperHits.incrementAndGet();
+		
+		if (stmt.toString().equals("specialinvoke $r3.<java.lang.StringBuilder: void <init>(java.lang.String)>($r4)"))
+			System.out.println("x");
 		
 		Set<AccessPath> res = null;
 		for (String className : flowsInCallees.getClasses()) {
@@ -578,7 +584,13 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 			// Apply the flow summaries for other libraries
 			if (flowsInTarget != null)
 				for (MethodFlow flow : flowsInTarget) {
-					if (curPropagator.isInversePropagator()) {
+					
+					if (curPropagator.toString().equals("Gap <java.lang.AbstractStringBuilder: void <init>(int)> Parameter 0 true"))
+						System.out.println("x");
+					if (curGap != null && curGap.toString().equals("Gap 1 in <java.lang.AbstractStringBuilder: void <init>(int)>"))
+						System.out.println("x");
+					
+					if (curPropagator.isInversePropagator()) {						
 						// Reverse flows can only be applied if the flow is an aliasing
 						// relationship
 						if (!flow.isAlias())

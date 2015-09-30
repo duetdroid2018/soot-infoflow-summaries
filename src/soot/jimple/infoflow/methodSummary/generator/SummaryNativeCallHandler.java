@@ -8,7 +8,7 @@ import soot.jimple.DefinitionStmt;
 import soot.jimple.Stmt;
 import soot.jimple.infoflow.InfoflowManager;
 import soot.jimple.infoflow.data.Abstraction;
-import soot.jimple.infoflow.data.AccessPath;
+import soot.jimple.infoflow.data.AccessPathFactory;
 import soot.jimple.infoflow.nativ.AbstractNativeCallHandler;
 import soot.jimple.infoflow.nativ.DefaultNativeCallHandler;
 import soot.jimple.infoflow.nativ.INativeCallHandler;
@@ -70,7 +70,7 @@ public class SummaryNativeCallHandler extends AbstractNativeCallHandler {
 		if (call instanceof DefinitionStmt) {
 			DefinitionStmt defStmt = (DefinitionStmt) call;
 			return Collections.singleton(source.deriveNewAbstraction(
-					new AccessPath(defStmt.getLeftOp(), true), call));
+					AccessPathFactory.v().createAccessPath(defStmt.getLeftOp(), true), call));
 		}
 		
 		return Collections.emptySet();

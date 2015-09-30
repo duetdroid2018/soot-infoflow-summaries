@@ -24,6 +24,7 @@ import soot.jimple.ReturnVoidStmt;
 import soot.jimple.Stmt;
 import soot.jimple.ThisRef;
 import soot.jimple.infoflow.data.AccessPath;
+import soot.jimple.infoflow.data.AccessPathFactory;
 import soot.jimple.infoflow.methodSummary.data.factory.SourceSinkFactory;
 import soot.jimple.infoflow.source.ISourceSinkManager;
 import soot.jimple.infoflow.source.SourceInfo;
@@ -111,7 +112,7 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 				logger.debug("source: " + sCallSite + " " + currentMethod.getSignature());
 				if(debug)
 					System.out.println("source: " + sCallSite + " " + currentMethod.getSignature());
-				return new SourceInfo(new AccessPath(leftOp, true),
+				return new SourceInfo(AccessPathFactory.v().createAccessPath(leftOp, true),
 						Collections.singletonList(sourceSinkFactory.createParameterSource(
 								pref.getIndex(), pref.getType().toString())));
 			}
@@ -119,7 +120,7 @@ public class SummarySourceSinkManager implements ISourceSinkManager {
 				ThisRef tref = (ThisRef) rightOp;
 				if(debug)
 					System.out.println("source: (this)" + sCallSite + " " + currentMethod.getSignature());				
-				return new SourceInfo(new AccessPath(leftOp, true),
+				return new SourceInfo(AccessPathFactory.v().createAccessPath(leftOp, true),
 						Collections.singletonList(sourceSinkFactory.createThisSource(
 								tref.getType().toString())));
 			}

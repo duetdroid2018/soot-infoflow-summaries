@@ -24,7 +24,8 @@ import soot.jimple.ReturnStmt;
 import soot.jimple.Stmt;
 import soot.jimple.infoflow.data.Abstraction;
 import soot.jimple.infoflow.data.AccessPath;
-import soot.jimple.infoflow.data.AccessPath.BasePair;
+import soot.jimple.infoflow.data.AccessPathFactory;
+import soot.jimple.infoflow.data.AccessPathFactory.BasePair;
 import soot.jimple.infoflow.data.SourceContextAndPath;
 import soot.jimple.infoflow.solver.cfg.IInfoflowCFG;
 import soot.jimple.infoflow.util.BaseSelector;
@@ -123,7 +124,7 @@ class SummarySourceContextAndPath extends SourceContextAndPath {
 				// list
 				if (found) {
 					if (newBase.getType() instanceof PrimType || curAP.getBaseType() instanceof PrimType)
-						scap.curAP = new AccessPath(newBase, true);
+						scap.curAP = AccessPathFactory.v().createAccessPath(newBase, true);
 					else
 						scap.curAP = scap.curAP.copyWithNewValue(newBase);
 					matched = true;
@@ -199,7 +200,7 @@ class SummarySourceContextAndPath extends SourceContextAndPath {
 				}
 				
 				if (assignStmt.getRightOp() instanceof NewArrayExpr)
-					scap.curAP = new AccessPath(rop, false);
+					scap.curAP = AccessPathFactory.v().createAccessPath(rop, false);
 				else
 					scap.curAP = scap.curAP.copyWithNewValue(rop, null, false);
 				matched = true;
@@ -262,7 +263,7 @@ class SummarySourceContextAndPath extends SourceContextAndPath {
 		// If we have no field, we may have a taint-all flag
 		if (curAP.isLocal()) {
 			if (curAP.getTaintSubFields() || field == null)
-				return new AccessPath(base, field, true);
+				return AccessPathFactory.v().createAccessPath(base, new SootField[] { field }, true);
 		}
 		
 		// If we have a field, it must match
@@ -273,7 +274,7 @@ class SummarySourceContextAndPath extends SourceContextAndPath {
 			else {
 				// Get the bases for this type
 				final Collection<BasePair> bases =
-						AccessPath.getBaseForType(base.getType());
+						AccessPathFactory.v().getBaseForType(base.getType());
 				if (bases != null) {
 					for (BasePair xbase : bases) {
 						if (xbase.getFields()[0] == field) {
@@ -291,7 +292,8 @@ class SummarySourceContextAndPath extends SourceContextAndPath {
 							System.arraycopy(curAP.getFieldTypes(), 0, cutFieldTypes,
 									xbase.getFields().length, curAP.getFieldCount());
 
-							return new AccessPath(curAP.getPlainValue(),
+							return AccessPathFactory.v().createAccessPath(
+									curAP.getPlainValue(),
 									cutFields, curAP.getBaseType(), cutFieldTypes,
 									curAP.getTaintSubFields(), false, false, curAP.getArrayTaintType());
 						}
