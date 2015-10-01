@@ -34,6 +34,7 @@ public class SummaryGeneratorConfiguration extends InfoflowConfiguration {
 		setCodeEliminationMode(CodeEliminationMode.PropagateConstants);
 		setIgnoreFlowsInSystemPackages(false);
 		setStopAfterFirstFlow(false);
+		setEnableArraySizeTainting(false);
 	}
 
 	@Override
