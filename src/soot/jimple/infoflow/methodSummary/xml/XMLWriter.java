@@ -24,6 +24,7 @@ import javax.xml.stream.XMLStreamException;
 import javax.xml.stream.XMLStreamWriter;
 
 import soot.jimple.infoflow.methodSummary.data.sourceSink.AbstractFlowSinkSource;
+import soot.jimple.infoflow.methodSummary.data.summary.ClassSummaries;
 import soot.jimple.infoflow.methodSummary.data.summary.GapDefinition;
 import soot.jimple.infoflow.methodSummary.data.summary.MethodFlow;
 import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
@@ -37,6 +38,24 @@ public class XMLWriter  {
 	}
 	
 	/**
+	 * Writes the given class summaries into files, one per class
+	 * @param file The target directory in which to place the class summary
+	 * files
+	 * @param summary The class summaries to write out
+	 * @throws FileNotFoundException Thrown if the target file could not be
+	 * found or created
+	 * @throws XMLStreamException Thrown if the XML data could not be written
+	 */
+	public void write(File file, ClassSummaries summary) 
+			throws FileNotFoundException, XMLStreamException  {
+		for (String className : summary.getClasses()) {
+			String fileName = file.getAbsolutePath() + File.separatorChar
+					+ className + ".xml";
+			write(new File(fileName), summary.getClassSummaries(className));
+		}
+	}
+	
+	/**
 	 * Writes the given method summaries into the given XML file
 	 * @param file The XML file in which to write the summaries
 	 * @param summary The method summaries to be written out
@@ -44,7 +63,12 @@ public class XMLWriter  {
 	 * found or created
 	 * @throws XMLStreamException Thrown if the XML data could not be written
 	 */
-	public void write(File file, MethodSummaries summary)  throws FileNotFoundException, XMLStreamException  {
+	public void write(File file, MethodSummaries summary)
+			throws FileNotFoundException, XMLStreamException  {
+		// Do not write out empty summaries
+		if (summary.isEmpty())
+			return;
+		
 		OutputStream out = new FileOutputStream(file);
 		XMLOutputFactory factory = XMLOutputFactory.newInstance();
 		XMLStreamWriter writer = factory.createXMLStreamWriter(out);

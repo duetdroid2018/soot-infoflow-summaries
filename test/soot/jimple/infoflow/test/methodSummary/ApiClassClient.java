@@ -225,4 +225,10 @@ public class ApiClassClient {
 		sink(length);
 	}
 	
+	public void gapToGap() {
+		ApiClass api = new ApiClass();
+		String s = stringSource();
+		sink(api.gapToGap(new UserCodeClass(), s));
+	}
+	
 }

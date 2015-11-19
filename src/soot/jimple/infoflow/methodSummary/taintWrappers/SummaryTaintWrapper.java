@@ -502,10 +502,8 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 				return fallbackTaints;
 			}
 		}
-		wrapperHits.incrementAndGet();
 		
-		if (stmt.toString().equals("specialinvoke $r3.<java.lang.StringBuilder: void <init>(java.lang.String)>($r4)"))
-			System.out.println("x");
+		wrapperHits.incrementAndGet();
 		
 		Set<AccessPath> res = null;
 		for (String className : flowsInCallees.getClasses()) {
@@ -577,19 +575,17 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 					for (SootMethod implementor : getAllImplementors(callee))
 						if (implementor.getDeclaringClass().isConcrete()
 								&& !implementor.getDeclaringClass().isPhantom()
-								&& implementor.isConcrete())
-							spawnAnalysisIntoClientCode(implementor, curPropagator);
+								&& implementor.isConcrete()) {
+							Set<AccessPathPropagator> implementorPropagators =
+									spawnAnalysisIntoClientCode(implementor, curPropagator);
+							if (implementorPropagators != null)
+								workList.addAll(implementorPropagators);
+						}
 			}
 			
 			// Apply the flow summaries for other libraries
 			if (flowsInTarget != null)
 				for (MethodFlow flow : flowsInTarget) {
-					
-					if (curPropagator.toString().equals("Gap <java.lang.AbstractStringBuilder: void <init>(int)> Parameter 0 true"))
-						System.out.println("x");
-					if (curGap != null && curGap.toString().equals("Gap 1 in <java.lang.AbstractStringBuilder: void <init>(int)>"))
-						System.out.println("x");
-					
 					if (curPropagator.isInversePropagator()) {						
 						// Reverse flows can only be applied if the flow is an aliasing
 						// relationship
@@ -605,7 +601,7 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 						// Reverse the flow if necessary
 						flow = flow.reverse();
 					}
-									
+					
 					// Apply the flow summary
 					AccessPathPropagator newPropagator = applyFlow(flow, curPropagator);
 					if (newPropagator == null)
@@ -679,12 +675,6 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 		AccessPath ap = createAccessPathInMethod(propagator.getTaint(), implementor);
 		Abstraction abs = new Abstraction(ap, null, null, false, false);
 		
-		// Create a new edge at the start point of the callee
-		for (Unit sP : manager.getICFG().getStartPointsOf(implementor)) {
-			PathEdge<Unit, Abstraction> edge = new PathEdge<>(abs, sP, abs);
-			manager.getForwardSolver().processEdge(edge);
-		}
-		
 		// We need to pop the last gap element off the stack
 		AccessPathPropagator parent = safePopParent(propagator);
 		GapDefinition gap = propagator.getParent() == null ?
@@ -694,8 +684,7 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 		Set<AccessPathPropagator> outgoingTaints = null;
 		Set<Pair<Unit, Abstraction>> endSummary = manager.getForwardSolver()
 				.endSummary(implementor, abs);
-		if (endSummary != null)
-			// TODO: Test me
+		if (endSummary != null && !endSummary.isEmpty()) {
 			for (Pair<Unit, Abstraction> pair : endSummary) {
 				if (outgoingTaints == null)
 					outgoingTaints = new HashSet<>();
@@ -716,9 +705,15 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 						outgoingTaints.add(newPropagator);
 					}
 			}
-		if (outgoingTaints != null)
 			return outgoingTaints;
+		}
 		
+		// Create a new edge at the start point of the callee
+		for (Unit sP : manager.getICFG().getStartPointsOf(implementor)) {
+			PathEdge<Unit, Abstraction> edge = new PathEdge<>(abs, sP, abs);
+			manager.getForwardSolver().processEdge(edge);
+		}
+						
 		// Register the new context so that we can get the taints back
 		this.userCodeTaints.put(new Pair<>(abs, implementor), propagator);
 		return null;

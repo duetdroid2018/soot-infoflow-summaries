@@ -36,4 +36,5 @@ public interface IApiClass {
 	public String storeStringInGapClass(IGapClass gap, String in);
 	public String storeAliasInGapClass(IGapClass gap, String in);
 	public String storeAliasInGapClass2(IGapClass gap, String in);
+	public String gapToGap(IUserCodeClass gap, String in);
 }

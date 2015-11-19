@@ -150,6 +150,35 @@ public class CallbackTests extends TestHelper {
 		assertEquals(5, flow.getFlowCount());
 	}
 	
+	@Test(timeout = 100000)
+	public void gapToGap() {
+		String mSig = "<soot.jimple.infoflow.test.methodSummary.ApiClass: java.lang.String gapToGap(soot.jimple.infoflow.test.methodSummary.IUserCodeClass,java.lang.String)>";
+		MethodSummaries flow = createSummaries(mSig);
+		
+		// Parameter 0 to gap 0+1 base object
+		assertTrue(containsFlow(flow.getAllFlows(), SourceSinkType.Parameter, 0, null, "",
+				SourceSinkType.GapBaseObject, 0, null,
+				"<soot.jimple.infoflow.test.methodSummary.IUserCodeClass: java.lang.String callTheGap(java.lang.String)>"));
+		// Parameter 1 to gap 0 argument 0
+		assertTrue(containsFlow(flow.getAllFlows(), SourceSinkType.Parameter, 1, null, "", SourceSinkType.Parameter, 0, null,
+				"<soot.jimple.infoflow.test.methodSummary.IUserCodeClass: java.lang.String callTheGap(java.lang.String)>"));
+		// Gap 0+1 base back to parameter 0
+		assertTrue(containsFlow(flow.getAllFlows(), SourceSinkType.Field, -1, null,
+				"<soot.jimple.infoflow.test.methodSummary.IUserCodeClass: java.lang.String callTheGap(java.lang.String)>",
+				SourceSinkType.Parameter, 0, null, ""));
+		// Gap 0 return to gap 1 parameter 0 
+		assertTrue(containsFlow(flow.getAllFlows(), SourceSinkType.Return, -1, null,
+				"<soot.jimple.infoflow.test.methodSummary.IUserCodeClass: java.lang.String callTheGap(java.lang.String)>",
+				SourceSinkType.Parameter, 0, null,
+				"<soot.jimple.infoflow.test.methodSummary.IUserCodeClass: java.lang.String callTheGap(java.lang.String)>"));
+		// Gap 1 return to method return value
+		assertTrue(containsFlow(flow.getAllFlows(), SourceSinkType.Return, -1, null,
+				"<soot.jimple.infoflow.test.methodSummary.IUserCodeClass: java.lang.String callTheGap(java.lang.String)>",
+				SourceSinkType.Return, -1, null, null));
+		
+		assertEquals(6, flow.getFlowCount());
+	}
+	
 	@Override
 	protected SummaryGenerator getSummary() {
 		SummaryGenerator sg = new SummaryGenerator();

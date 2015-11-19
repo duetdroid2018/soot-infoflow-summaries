@@ -524,5 +524,12 @@ public class ApiClass implements IApiClass {
 	public int getLength(char[] array) {
 		return array.length;
 	}
+	
+	@Override
+	public String gapToGap(IUserCodeClass gap, String in) {
+		String str = gap.callTheGap(in);
+		String str2 = gap.callTheGap(str);
+		return str2;
+	}
 
 }
