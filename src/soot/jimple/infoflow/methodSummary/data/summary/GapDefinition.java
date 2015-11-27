@@ -57,6 +57,20 @@ public class GapDefinition {
 	}
 	
 	@Override
+	public GapDefinition clone() {
+		return new GapDefinition(id, signature);
+	}
+	
+	/**
+	 * Generates a clone of this gap with a new ID
+	 * @param newID The new gap ID
+	 * @return The new gap with the changed ID
+	 */
+	public GapDefinition renumber(int newID) {
+		return new GapDefinition(newID, signature);
+	}
+	
+	@Override
 	public int hashCode() {
 		final int prime = 31;
 		int result = 1;

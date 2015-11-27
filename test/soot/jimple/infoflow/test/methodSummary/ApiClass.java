@@ -531,5 +531,11 @@ public class ApiClass implements IApiClass {
 		String str2 = gap.callTheGap(str);
 		return str2;
 	}
+	
+	public String callToCall(IGapClass gap, String in) {
+		String data = gap.retrieveString();
+		System.out.println(data);
+		return gap.callTheGap(in);
+	}
 
 }

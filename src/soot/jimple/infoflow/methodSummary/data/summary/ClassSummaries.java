@@ -196,5 +196,13 @@ public class ClassSummaries {
 		if (this.summaries != null)
 			this.summaries.clear();
 	}
+	
+	/**
+	 * Validates all summaries for this class
+	 */
+	public void validate() {
+		for (String className : summaries.keySet())
+			summaries.get(className).validate();
+	}
 
 }

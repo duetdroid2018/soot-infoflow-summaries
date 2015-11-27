@@ -2,7 +2,6 @@ package soot.jimple.infoflow.methodSummary.postProcessor;
 
 import java.util.Collection;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.Set;
 
 import org.slf4j.Logger;
@@ -37,7 +36,7 @@ import soot.util.MultiMap;
 
 public class InfoflowResultPostProcessor {
 	private final boolean DEBUG = true;
-	private final Logger logger = LoggerFactory.getLogger(InfoflowResultPostProcessor.class);
+	private static final Logger logger = LoggerFactory.getLogger(InfoflowResultPostProcessor.class);
 
 	protected final IInfoflowCFG cfg;
 	private final MultiMap<Abstraction, Stmt> collectedAbstractions;
@@ -91,14 +90,6 @@ public class InfoflowResultPostProcessor {
 			// need to construct paths
 			if (a.getSourceContext() != null) {
 				for (Stmt stmt : collectedAbstractions.get(a)) {
-					// Make sure that we do not get a fake alias of a primitive value
-					// from a gap.
-					if (gapManager.getGapForCall(a.getSourceContext().getStmt()) != null) {
-						if (!isAliasedField(a.getAccessPath(), a.getSourceContext().getAccessPath(),
-								a.getSourceContext().getStmt()))
-							continue;
-					}
-					
 					processFlowSource(flows, m, a.getAccessPath(), stmt,
 							pathBuilder.new SummarySourceInfo(a.getAccessPath(), a.getCurrentStmt(),
 									a.getSourceContext().getUserData(),
@@ -160,7 +151,7 @@ public class InfoflowResultPostProcessor {
 		
 		// Compact the flow set to remove paths that are over-approximations of
 		// other flows
-		compactFlowSet(flows);
+		new SummaryFlowCompactor(flows).compact();
 		
 		// Check the generated summaries for validity
 		if (config.getValidateResults())
@@ -198,46 +189,7 @@ public class InfoflowResultPostProcessor {
 		
 		return true;
 	}
-
-	/**
-	 * Compacts the flow set by removing flows that are over-approximations of
-	 * others
-	 * @param flows The flow set to compact
-	 */
-	private void compactFlowSet(MethodSummaries flows) {
-		int flowsRemoved = 0;
-		boolean hasChanged = false;
-		do {
-			hasChanged = false;
-			for (Iterator<MethodFlow> flowIt = flows.iterator(); flowIt.hasNext(); ) {
-				MethodFlow flow = flowIt.next();
-				
-				// Check if there is a more precise flow
-				for (MethodFlow flow2 : flows)
-					if (flow != flow2 && flow.isCoarserThan(flow2)) {
-						flowIt.remove();
-						flowsRemoved++;
-						hasChanged = true;
-						break;
-					}
-				
-				if (hasChanged)
-					break;
-			}
-		} while (hasChanged);
-		
-		logger.info("Removed {} flows in favour of more precise ones", flowsRemoved);
-		
-		// If we only have incoming flows into a gap, but no outgoing ones, we
-		// can remove the gap and all its flows altogether
-		for (GapDefinition gd : flows.getAllGaps()) {
-			if (flows.getOutFlowsForGap(gd).isEmpty()) {
-				flows.removeAll(flows.getInFlowsForGap(gd));
-				flows.removeGap(gd);
-			}
-		}
-	}
-
+	
 	/**
 	 * Processes data from a given flow source that has arrived at a given
 	 * statement

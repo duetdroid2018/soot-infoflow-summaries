@@ -37,4 +37,5 @@ public interface IApiClass {
 	public String storeAliasInGapClass(IGapClass gap, String in);
 	public String storeAliasInGapClass2(IGapClass gap, String in);
 	public String gapToGap(IUserCodeClass gap, String in);
+	public String callToCall(IGapClass gap, String in);
 }

@@ -231,4 +231,9 @@ public class ApiClassClient {
 		sink(api.gapToGap(new UserCodeClass(), s));
 	}
 	
+	public void callToCall() {
+		ApiClass api = new ApiClass();
+		sink(api.callToCall(new GapClass(), stringSource()));
+	}
+	
 }

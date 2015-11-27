@@ -1,7 +1,13 @@
 package soot.jimple.infoflow.methodSummary.data.summary;
 
+import java.util.Map;
+
+import soot.RefType;
+import soot.Scene;
+import soot.Type;
 import soot.jimple.infoflow.methodSummary.data.sourceSink.FlowSink;
 import soot.jimple.infoflow.methodSummary.data.sourceSink.FlowSource;
+import soot.jimple.infoflow.util.SootMethodRepresentationParser;
 
 
 
@@ -93,6 +99,41 @@ public class MethodFlow {
 	 */
 	public boolean isCustom() {
 		return from.isCustom() || to.isCustom();
+	}
+	
+	/**
+	 * Replaces the gaps in this flow definition according to the given map
+	 * @param replacementMap A mapping from gap id to new gap data object
+	 * @return A copy of this flow definition in which the gaps that also occur
+	 * in the given map have been replaced with the values from the map
+	 */
+	public MethodFlow replaceGaps(Map<Integer, GapDefinition> replacementMap) {
+		if (replacementMap == null)
+			return this;
+		return new MethodFlow(methodSig, from.replaceGaps(replacementMap),
+				to.replaceGaps(replacementMap), isAlias);
+	}
+	
+	/**
+	 * Checks for errors inside this data flow summary
+	 */
+	public void validate() {
+		source().validate(methodSig);
+		sink().validate(methodSig);
+		
+		// Make sure that the types of gap base objects and incoming flows are
+		// cast-compatible
+		if (sink().getType() == SourceSinkType.GapBaseObject && sink().getGap() != null) {
+			String sinkType = SootMethodRepresentationParser.v().parseSootMethodString(
+					sink().getGap().getSignature()).getClassName();
+			
+			Type t1 = RefType.v(sink().getBaseType());
+			Type t2 = RefType.v(sinkType);
+			
+			if (!Scene.v().getFastHierarchy().canStoreType(t1, t2) // cast-up, i.e. Object to String
+					&& !Scene.v().getFastHierarchy().canStoreType(t2, t1)) // cast-down, i.e. String to Object
+				throw new RuntimeException("Target type of gap base flow is invalid");
+		}
 	}
 	
 	@Override

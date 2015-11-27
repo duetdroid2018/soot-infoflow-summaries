@@ -34,11 +34,11 @@ import soot.jimple.infoflow.handlers.ResultsAvailableHandler;
 import soot.jimple.infoflow.methodSummary.DefaultSummaryConfig;
 import soot.jimple.infoflow.methodSummary.data.factory.SourceSinkFactory;
 import soot.jimple.infoflow.methodSummary.data.summary.ClassSummaries;
-import soot.jimple.infoflow.methodSummary.data.summary.GapDefinition;
 import soot.jimple.infoflow.methodSummary.data.summary.MethodFlow;
 import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
 import soot.jimple.infoflow.methodSummary.handler.SummaryTaintPropagationHandler;
 import soot.jimple.infoflow.methodSummary.postProcessor.InfoflowResultPostProcessor;
+import soot.jimple.infoflow.methodSummary.postProcessor.SummaryFlowCompactor;
 import soot.jimple.infoflow.methodSummary.source.SummarySourceSinkManager;
 import soot.jimple.infoflow.nativ.INativeCallHandler;
 import soot.jimple.infoflow.results.InfoflowResults;
@@ -207,9 +207,6 @@ public class SummaryGenerator {
 					curSummaries.merge(newSums);
 				}
 				
-				// Clean up the gaps
-				cleanupGaps(curSummaries);
-				
 				System.out.println("Class summaries for " + entry.getKey() + " done in "
 						+ (System.nanoTime() - nanosBeforeClass) / 1E9 + " seconds for "
 						+ curSummaries.getFlowCount() + " summaries");
@@ -219,8 +216,12 @@ public class SummaryGenerator {
 			if (handler != null)
 				handler.onClassFinished(entry.getKey(), curSummaries);
 			summaries.merge(entry.getKey(), curSummaries);
+			
+			// Remove duplicate summaries on alias flows. We need to re-do this
+			// as we might have created new duplicates during the merge.
+			new SummaryFlowCompactor(curSummaries).compact();
 		}
-		
+				
 		// Calculate the dependencies
 		calculateDependencies(summaries);
 		
@@ -277,26 +278,7 @@ public class SummaryGenerator {
 		}
 		return classes;
 	}
-
-	/**
-	 * Removes all gaps with no flows in and out from the given method summary
-	 * object
-	 * @param summaries The summary object from which to remove the unused gaps
-	 */
-	private void cleanupGaps(MethodSummaries summaries) {
-		Set<GapDefinition> gaps = new HashSet<GapDefinition>(summaries.getAllGaps());
-		for (GapDefinition gd : gaps) {
-			boolean gapIsUsed = false;
-			for (MethodFlow flow : summaries.getAllFlows())
-				if (flow.source().getGap() == gd || flow.sink().getGap() == gd) {
-					gapIsUsed = true;
-					break;
-				}
-			if (!gapIsUsed)
-				summaries.removeGap(gd);
-		}
-	}
-
+	
 	/**
 	 * Calculates the external dependencies of the given summary set
 	 * @param summaries The summary set for which to calculate the

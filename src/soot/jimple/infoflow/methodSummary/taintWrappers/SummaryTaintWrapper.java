@@ -600,7 +600,7 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 						
 						// Reverse the flow if necessary
 						flow = flow.reverse();
-					}
+					}					
 					
 					// Apply the flow summary
 					AccessPathPropagator newPropagator = applyFlow(flow, curPropagator);
@@ -916,7 +916,7 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 		
 		// Maintain the stack of access path propagations
 		final AccessPathPropagator parent;
-		final GapDefinition gap;
+		final GapDefinition gap, taintGap;
 		final Stmt stmt;
 		final Abstraction d1, d2;
 		if (flowSink.getGap() != null) {	// ends in gap, push on stack
@@ -925,13 +925,7 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 			stmt = null;
 			d1 = null;
 			d2 = null;
-		}
-		else if (flowSource.getGap() != null) { // starts in gap, propagates inside method
-			parent = propagator.getParent();
-			gap = propagator.getGap();
-			stmt = propagator.getStmt();
-			d1 = propagator.getD1();
-			d2 = propagator.getD2();
+			taintGap = null;
 		}
 		else {
 			parent = safePopParent(propagator);
@@ -942,6 +936,7 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 					: propagator.getParent().getD1();
 			d2 = propagator.getParent() == null ? propagator.getD2()
 					: propagator.getParent().getD2();
+			taintGap = propagator.getGap();
 		}
 		
 		boolean addTaint = false;
@@ -986,11 +981,11 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 		Taint newTaint = null; 
 		if (flow.isCustom()) {
 			newTaint = addCustomSinkTaint(flowSource, flowSink, taint,
-					propagator.getGap(), taintSubFields);
+					taintGap, taintSubFields);
 		}
 		else
 			newTaint = addSinkTaint(flowSource, flowSink, taint,
-					propagator.getGap(), taintSubFields);
+					taintGap, taintSubFields);
 		if (newTaint == null)
 			return null;
 		
@@ -1210,9 +1205,10 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 		// If we taint something in the base object, its type must match. We
 		// might have a taint for "a" in o.add(a) and need to check whether
 		// "o" matches the expected type in our summary.
-		if (!(sinkType instanceof PrimType) && !isCastCompatible(taintType, sinkType)) {
+		if (!(sinkType instanceof PrimType) && !isCastCompatible(taintType, sinkType)
+				&& flowSink.getType() == SourceSinkType.Field) {
 			// If the target is an array, the value might also flow into an element
-			boolean found = false;			
+			boolean found = false;
 			while (sinkType instanceof ArrayType) {
 				sinkType = ((ArrayType) sinkType).getElementType(); 
 				if (isCastCompatible(taintType, sinkType)) {

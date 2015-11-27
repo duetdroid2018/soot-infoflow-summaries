@@ -98,9 +98,60 @@ public class MethodSummaries implements Iterable<MethodFlow> {
 	public void merge(MethodSummaries newFlows) {
 		if (newFlows == null)
 			return;
-		merge(newFlows.flows);
-		if (newFlows.gaps != null)
-			this.gaps.putAll(newFlows.gaps);
+		
+		// If some of the gaps have the same IDs as the old ones, we need to
+		// renumber the new ones or we'll overwrite data.
+		Map<Integer, GapDefinition> renumberedGaps = null;
+		if (newFlows.gaps != null) {
+			renumberedGaps = new HashMap<>();
+			int lastFreeGapId = 0;
+			for (Integer newGapId : newFlows.gaps.keySet()) {
+				GapDefinition newGap = newFlows.gaps.get(newGapId);
+				
+				// We might already have a gap with this id
+				GapDefinition oldGap = gaps.get(newGap.getID());
+				if (oldGap == null)
+					continue;
+				
+				// Same gap, same id
+				if (oldGap == newGap)
+					continue;
+				
+				// Find a new, free id
+				while (gaps.containsKey(lastFreeGapId))
+					lastFreeGapId++;
+				GapDefinition renumberedGap = newGap.renumber(lastFreeGapId);
+				renumberedGaps.put(newGapId, renumberedGap);
+				
+				// That id is used up as well now
+				lastFreeGapId++;
+			}
+		}
+		
+		// Merge the flows. Keep in mind to exchange the gaps where necessary
+		for (String key : newFlows.flows.keySet()) {
+			Set<MethodFlow> existingFlows = flows.get(key);
+			if (existingFlows == null) {
+				existingFlows = new HashSet<>();
+				flows.put(key, existingFlows);
+			}
+			
+			for (MethodFlow flow : newFlows.flows.get(key)) {
+				MethodFlow replacedFlow = flow.replaceGaps(renumberedGaps);
+				existingFlows.add(replacedFlow);
+			}
+		}
+		
+		// Copy over the gaps and replace those that occur in the replacement
+		// map
+		if (newFlows.gaps != null) {
+			for (Integer newGapId : newFlows.gaps.keySet()) {
+				GapDefinition replacedGap = renumberedGaps.get(newGapId);
+				if (replacedGap == null)
+					replacedGap = newFlows.gaps.get(newGapId);
+				gaps.put(replacedGap.getID(), replacedGap);
+			}
+		}
 	}
 	
 	/**
@@ -318,7 +369,7 @@ public class MethodSummaries implements Iterable<MethodFlow> {
 						else
 							gapsWithFlows.add(flow.source().getGap());
 					}
-	
+					
 					// For the sink, record all flows to gaps and all flows to bases
 					if (flow.sink().getGap() != null) {
 						if (flow.sink().getType() == SourceSinkType.GapBaseObject)
@@ -346,6 +397,14 @@ public class MethodSummaries implements Iterable<MethodFlow> {
 		for (GapDefinition gap : this.getAllGaps())
 			if (gap.getSignature() == null || gap.getSignature().isEmpty())
 				throw new RuntimeException("Gap without signature detected");
+		
+		// No two gaps may have the same id
+		for (Integer gapId : gaps.keySet()) {
+			GapDefinition gd1 = gaps.get(gapId);
+			for (GapDefinition gd2 : gaps.values())
+				if (gd1 != gd2 && gd1.getID() == gd2.getID())
+					throw new RuntimeException("Duplicate gap id");
+		}
 	}
 	
 	/**
@@ -354,8 +413,7 @@ public class MethodSummaries implements Iterable<MethodFlow> {
 	private void validateFlows() {
 		for (String methodName : getFlows().keySet())
 			for (MethodFlow flow : getFlows().get(methodName)) {
-				flow.source().validate(methodName);
-				flow.sink().validate(methodName);
+				flow.validate();
 			}
 	}
 	
@@ -387,6 +445,19 @@ public class MethodSummaries implements Iterable<MethodFlow> {
 					res.add(flow);
 			}
 		return res;
+	}
+	
+	/**
+	 * Removes the given flow summary from this set
+	 * @param toRemove The flow summary to remove
+	 */
+	public void remove(MethodFlow toRemove) {
+		Set<MethodFlow> flowsForMethod = flows.get(toRemove.methodSig());
+		if (flowsForMethod != null) {
+			flowsForMethod.remove(toRemove);
+			if (flowsForMethod.isEmpty())
+				flows.remove(toRemove.methodSig());
+		}
 	}
 	
 	/**

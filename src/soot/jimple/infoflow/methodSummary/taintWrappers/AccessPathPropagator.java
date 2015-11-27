@@ -153,8 +153,8 @@ class AccessPathPropagator {
 				+ ((taint == null) ? 0 : taint.hashCode());
 		result = prime * result
 				+ ((gap == null) ? 0 : gap.hashCode());
-		result = prime * result
-				+ ((parent == null) ? 0 : parent.hashCode());
+//		result = prime * result
+//				+ ((parent == null) ? 0 : parent.hashCode());
 		result = prime * result
 				+ ((stmt == null) ? 0 : stmt.hashCode());
 		result = prime * result
@@ -185,11 +185,11 @@ class AccessPathPropagator {
 				return false;
 		} else if (!gap.equals(other.gap))
 			return false;
-		if (parent == null) {
-			if (other.parent != null)
-				return false;
-		} else if (!parent.equals(other.parent))
-			return false;
+//		if (parent == null) {
+//			if (other.parent != null)
+//				return false;
+//		} else if (!parent.equals(other.parent))
+//			return false;
 		if (stmt == null) {
 			if (other.stmt != null)
 				return false;
