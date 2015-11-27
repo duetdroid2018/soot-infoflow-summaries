@@ -1,5 +1,6 @@
 package soot.jimple.infoflow.methodSummary.postProcessor;
 
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Set;
@@ -118,6 +119,11 @@ public class SummaryFlowCompactor {
 						if (curFlow.source().getGap() == null
 								&& curFlow.sink().getGap() != null)
 							continue;
+						if (curFlow.source().getGap() == null
+								&& curFlow.sink().getGap() == null
+								&& compare(curFlow.source().getAccessPath(),
+										compFlow.source().getAccessPath()) > 0)
+							continue;
 						
 						flowIt.remove();
 						continue outer;
@@ -125,6 +131,27 @@ public class SummaryFlowCompactor {
 				}
 			}
 		}
+	}
+	
+	/**
+	 * Compares two access paths to create some sort of ordering. This is
+	 * important to get reproducible test cases for those flows that can be
+	 * represented ambiguously.
+	 * @param accessPath The first access path
+	 * @param accessPath2 The second access path
+	 * @return An ordering (-1, 0, 1) on the given access paths
+	 */
+	private int compare(String[] accessPath, String[] accessPath2) {
+		if (accessPath == accessPath2)
+			return 0;
+		if (accessPath == null)
+			return -1;
+		if (accessPath2 == null)
+			return 1;
+		
+		if (accessPath.length > accessPath2.length)
+			return -1;
+		return Arrays.toString(accessPath).compareTo(Arrays.toString(accessPath2));
 	}
 
 }

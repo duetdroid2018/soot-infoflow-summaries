@@ -423,9 +423,8 @@ public class ApiTests extends ApiTestHelper {
 		Set<MethodFlow> res = createSummaries(mSig).getAllFlows();
 		
 		assertTrue(containsFlow(res, Field, new String[] {NON_PRIMITIVE_VAR1},
-				Field, new String[] {NON_PRIMITIVE_VAR2}));
-		assertTrue(containsFlow(res, Field, new String[] {NON_PRIMITIVE_VAR1},
 				Field,new String[] {NON_PRIMITIVE_VAR2}));
+		assertEquals(1, res.size());
 	}
 	
 	@Test(timeout = 100000)
