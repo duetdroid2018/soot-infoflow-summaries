@@ -67,7 +67,7 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 	private boolean reportMissingSummaries = false;
 	private ITaintPropagationWrapper fallbackWrapper = null;
 	
-	private IMethodSummaryProvider flows;
+	protected IMethodSummaryProvider flows;
 	
 	private Hierarchy hierarchy;
 	private FastHierarchy fastHierarchy;
@@ -483,14 +483,46 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 		if (!stmt.containsInvokeExpr())
 			return Collections.singleton(taintedAbs);
 		
-		// Get the cached data flows
-		final SootMethod method = stmt.getInvokeExpr().getMethod();
-		ClassSummaries flowsInCallees = getFlowSummariesForMethod(
-				stmt, method, taintedAbs);
+		Set<Abstraction> resAbs = null;
+		Collection<SootMethod> callees = manager.getICFG().getCalleesOfCallAt(stmt);
+		if (callees.isEmpty()) {
+			// Compute the wrapper taints for the current method
+			Set<AccessPath> res = computeTaintsForMethod(stmt, d1, taintedAbs,
+					stmt.getInvokeExpr().getMethod());
+			
+			// Create abstractions from the access paths
+			if (res != null && !res.isEmpty()) {
+				if (resAbs == null)
+					resAbs = new HashSet<>();
+				for (AccessPath ap : res)
+					resAbs.add(taintedAbs.deriveNewAbstraction(ap, stmt));
+			}
+		}
+		else {
+			for (SootMethod method : callees) {
+				// We won't have a summary for a native method
+				if (method.isNative() || method.isStaticInitializer())
+					continue;
+				
+				// Compute the wrapper taints for the current method
+				Set<AccessPath> res = computeTaintsForMethod(stmt, d1, taintedAbs,
+						method);
+				
+				// Create abstractions from the access paths
+				if (res != null && !res.isEmpty()) {
+					if (resAbs == null)
+						resAbs = new HashSet<>();
+					for (AccessPath ap : res)
+						resAbs.add(taintedAbs.deriveNewAbstraction(ap, stmt));
+				}
+			}
+		}
 		
 		// If we have no data flows, we can abort early
-		if (flowsInCallees.isEmpty()) {
+		if (resAbs == null || resAbs.isEmpty()) {
 			wrapperMisses.incrementAndGet();
+			SootMethod method = stmt.getInvokeExpr().getMethod();
+			
 			if (reportMissingSummaries 
 					&& SystemClassHandler.isClassInSystemPackage(method.getDeclaringClass().getName()))
 				System.out.println("Missing summary for " + method.getSignature());
@@ -503,7 +535,29 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 			}
 		}
 		
+		// We always retain the incoming abstraction
+		resAbs.add(taintedAbs);
+		return resAbs;
+	}
+	
+	/**
+	 * Computes library taints for the given method and incoming abstraction
+	 * @param stmt The statement to which to apply the library summary
+	 * @param d1 The context of the incoming taint
+	 * @param taintedAbs The incoming taint
+	 * @param method The method for which to get library model taints
+	 * @return The artificial taints coming from the libary model if any,
+	 * otherwise null
+	 */
+	private Set<AccessPath> computeTaintsForMethod(Stmt stmt, Abstraction d1,
+			Abstraction taintedAbs, final SootMethod method) {		
 		wrapperHits.incrementAndGet();
+		
+		// Get the cached data flows
+		ClassSummaries flowsInCallees = getFlowSummariesForMethod(
+				stmt, method, taintedAbs);
+		if (flowsInCallees.isEmpty())
+			return null;
 		
 		Set<AccessPath> res = null;
 		for (String className : flowsInCallees.getClasses()) {
@@ -527,17 +581,7 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 				res.addAll(resCallee);
 			}
 		}
-		
-		// We always retain the incoming taint
-		if (res == null || res.isEmpty())
-			return Collections.singleton(taintedAbs);
-		
-		// Create abstractions from the access paths
-		Set<Abstraction> resAbs = new HashSet<>(res.size() + 1);
-		resAbs.add(taintedAbs);
-		for (AccessPath ap : res)
-			resAbs.add(taintedAbs.deriveNewAbstraction(ap, stmt));
-		return resAbs;
+		return res;
 	}
 	
 	/**
@@ -596,6 +640,11 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 						if (!canTypeAlias(flow.source().getLastFieldType()))
 							continue;
 						if (!canTypeAlias(flow.sink().getLastFieldType()))
+							continue;
+						
+						// There cannot be any flows to the return values of gaps
+						if (flow.source().getGap() != null
+								&& flow.source().getType() == SourceSinkType.Return)
 							continue;
 						
 						// Reverse the flow if necessary
@@ -989,6 +1038,10 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 		if (newTaint == null)
 			return null;
 		
+		if (gap != null && gap.toString().equals("Gap 0 in <java.util.Arrays: char[] copyOf(char[],int)>")
+				&& newTaint.toString().equals("Return true"))
+			System.out.println("x");
+		
 		AccessPathPropagator newPropagator = new AccessPathPropagator(newTaint,
 				gap, parent, stmt, d1, d2);
 		return newPropagator;
@@ -1368,14 +1421,20 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 
 	@Override
 	public boolean isExclusive(Stmt stmt, Abstraction taintedPath) {
-		// If we support the method, we are exclusive for it
-		return supportsCallee(stmt) || (fallbackWrapper != null
-				&& fallbackWrapper.isExclusive(stmt, taintedPath)) ;
+		// If the fallback wrapper supports the method and is exclusive for it,
+		// we are as well
+		if (fallbackWrapper != null
+				&& fallbackWrapper.isExclusive(stmt, taintedPath))
+			return true;
+		
+		return supportsCallee(stmt);
 	}
 	
 	@Override
 	public boolean supportsCallee(SootMethod method) {
-		// Check whether we directly support that class
+		// Check whether we directly support that class. We assume that if we
+		// have some summary for that class, we have all summaries for that
+		// class.
 		if (flows.supportsClass(method.getDeclaringClass().getName()))
 			return true;
 		
@@ -1386,9 +1445,22 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 	public boolean supportsCallee(Stmt callSite) {
 		if (!callSite.containsInvokeExpr())
 			return false;
-
-		SootMethod method = callSite.getInvokeExpr().getMethod();
-		return supportsCallee(method);
+		
+		if (manager == null) {
+			// If we support the method, we are exclusive for it
+			SootMethod method = callSite.getInvokeExpr().getMethod();
+			if (supportsCallee(method))
+				return true;
+		}
+		else {
+			// Check if we are exclusive for any potential callee
+			for (SootMethod callee : manager.getICFG().getCalleesOfCallAt(callSite))
+				if (!callee.isStaticInitializer())
+					if (supportsCallee(callee))
+						return true;
+		}
+		
+		return false;
 	}
 	
 	/**
