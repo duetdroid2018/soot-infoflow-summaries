@@ -1038,10 +1038,6 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 		if (newTaint == null)
 			return null;
 		
-		if (gap != null && gap.toString().equals("Gap 0 in <java.util.Arrays: char[] copyOf(char[],int)>")
-				&& newTaint.toString().equals("Return true"))
-			System.out.println("x");
-		
 		AccessPathPropagator newPropagator = new AccessPathPropagator(newTaint,
 				gap, parent, stmt, d1, d2);
 		return newPropagator;
