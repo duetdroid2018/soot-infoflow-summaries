@@ -158,7 +158,7 @@ public class SummaryGenerationTaintWrapper implements ITaintPropagationWrapper {
 	
 	@Override
 	public boolean isExclusive(Stmt stmt, Abstraction taintedPath) {
-		return false;
+		return gapManager.needsGapConstruction(stmt, taintedPath, icfg);
 	}
 
 	@Override
