@@ -104,7 +104,7 @@ public class JDKTests extends TestHelper {
 		Assert.assertNotNull(flow);
 	}
 	
-	@Test(timeout = 300000)
+	@Test(timeout = 600000)
 	public void gapTest6() {
 		SummaryGenerator generator = new SummaryGeneratorFactory().initSummaryGenerator();
 		ClassSummaries summaries = generator.createMethodSummaries(libPath,
@@ -113,7 +113,7 @@ public class JDKTests extends TestHelper {
 		Assert.assertNotNull(flow);
 	}
 	
-	@Test(timeout = 100000)
+	@Test(timeout = 600000)
 	public void gapTest7() {
 		String mSig = "<java.util.concurrent.ConcurrentSkipListMap: java.lang.Object remove(java.lang.Object)>";
 		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
