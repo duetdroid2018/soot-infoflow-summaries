@@ -90,7 +90,7 @@ public class ClassSummaries {
 	 * @param newSums The flows to merge into this data store
 	 */
 	public void merge(String className, MethodSummaries newSums) {
-		if (newSums == null || newSums.isEmpty())
+		if (newSums == null)
 			return;
 		
 		MethodSummaries methodSummaries = summaries.get(className);

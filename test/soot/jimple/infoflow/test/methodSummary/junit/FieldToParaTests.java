@@ -105,10 +105,12 @@ public class FieldToParaTests extends TestHelper {
 
 	@Test(timeout = 100000)
 	public void fieldToParaRec1() {
+		for (int i = 0; i < 10; i++) {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.FieldToPara: void dataParameterRec(soot.jimple.infoflow.test.methodSummary.Data,int)>";
 		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 		assertTrue(containsFlow(flow, Field, new String[] { OBJ_FIELD }, Parameter, 0, new String[] { DATACLASS_OBJECT_FIELD }));
 		assertEquals(1, flow.size());
+		}
 	}
 
 	@Test(timeout = 100000)
@@ -165,9 +167,7 @@ public class FieldToParaTests extends TestHelper {
 		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 		assertTrue(containsFlow(flow, Field, new String[] { INT_FIELD },
 				Parameter, 0, new String[] { ALIST_DATA, INTEGER_VALUE_FIELD }));
-		assertTrue(containsFlow(flow, Parameter, 0, new String[] { ALIST_SIZE },
-				Parameter, 0, new String[] { ALIST_DATA }));
-		assertEquals(2, flow.size());
+		assertEquals(1, flow.size());
 	}
 	
 	@Test(timeout = 100000)
@@ -176,9 +176,7 @@ public class FieldToParaTests extends TestHelper {
 		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 		assertTrue(containsFlow(flow, Field, new String[] { OBJ_FIELD },
 				Parameter, 0, new String[] { ALIST_DATA }));
-		assertTrue(containsFlow(flow, Parameter, 0, new String[] { ALIST_SIZE },
-				Parameter, 0, new String[] { ALIST_DATA }));
-		assertEquals(2, flow.size());
+		assertEquals(1, flow.size());
 	}
 	
 	@Test(timeout = 100000)
@@ -187,9 +185,7 @@ public class FieldToParaTests extends TestHelper {
 		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 		assertTrue(containsFlow(flow, Field, new String[] {LIST_FIELD, ALIST_DATA },
 				Parameter, 0, new String[] { ALIST_DATA }));
-		assertTrue(containsFlow(flow, Parameter, 0, new String[] { ALIST_SIZE },
-				Parameter, 0, new String[] { ALIST_DATA }));
-		assertEquals(2, flow.size());
+		assertEquals(1, flow.size());
 	}
 	
 	@Test(timeout = 100000)
@@ -198,9 +194,7 @@ public class FieldToParaTests extends TestHelper {
 		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 		assertTrue(containsFlow(flow, Field, new String[] { OBJ_ARRAY },
 				Parameter, 0, new String[] { ALIST_DATA }));
-		assertTrue(containsFlow(flow, Parameter, 0, new String[] { ALIST_SIZE },
-				Parameter, 0, new String[] { ALIST_DATA }));
-		assertEquals(2, flow.size());
+		assertEquals(1, flow.size());
 	}
 	
 	@Test(timeout = 100000)
@@ -209,9 +203,7 @@ public class FieldToParaTests extends TestHelper {
 		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 		assertTrue(containsFlow(flow, Field, new String[] { INT_ARRAY }, Parameter, 0,
 				new String[] { ALIST_DATA, "<java.lang.Integer: int value>" }));
-		assertTrue(containsFlow(flow, Parameter, 0, new String[] { ALIST_SIZE },
-				Parameter, 0, new String[] { ALIST_DATA }));
-		assertEquals(2, flow.size());
+		assertEquals(1, flow.size());
 	}
 	
 	@Test(timeout = 100000)
@@ -220,9 +212,7 @@ public class FieldToParaTests extends TestHelper {
 		Set<MethodFlow> flow = createSummaries(mSig).getAllFlows();
 		assertTrue(containsFlow(flow, Field, new String[] { DATA_FIELD, DATACLASS_OBJECT_FIELD },
 				Parameter, 0, new String[] { ALIST_DATA }));
-		assertTrue(containsFlow(flow, Parameter, 0, new String[] { ALIST_SIZE },
-				Parameter, 0, new String[] { ALIST_DATA }));
-		assertEquals(2, flow.size());
+		assertEquals(1, flow.size());
 	}
 	
 	@Override

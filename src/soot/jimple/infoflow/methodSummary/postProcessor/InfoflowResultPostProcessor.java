@@ -9,11 +9,9 @@ import org.slf4j.LoggerFactory;
 
 import soot.ArrayType;
 import soot.Local;
-import soot.RefType;
 import soot.Scene;
 import soot.SootMethod;
 import soot.Value;
-import soot.jimple.DefinitionStmt;
 import soot.jimple.InstanceInvokeExpr;
 import soot.jimple.ReturnStmt;
 import soot.jimple.Stmt;
@@ -30,6 +28,7 @@ import soot.jimple.infoflow.methodSummary.generator.GapManager;
 import soot.jimple.infoflow.methodSummary.generator.SummaryGeneratorConfiguration;
 import soot.jimple.infoflow.methodSummary.postProcessor.SummaryPathBuilder.SummaryResultInfo;
 import soot.jimple.infoflow.methodSummary.postProcessor.SummaryPathBuilder.SummarySourceInfo;
+import soot.jimple.infoflow.methodSummary.util.AliasUtils;
 import soot.jimple.infoflow.solver.cfg.IInfoflowCFG;
 import soot.jimple.infoflow.util.SootMethodRepresentationParser;
 import soot.util.MultiMap;
@@ -93,10 +92,14 @@ public class InfoflowResultPostProcessor {
 					processFlowSource(flows, m, a.getAccessPath(), stmt,
 							pathBuilder.new SummarySourceInfo(a.getAccessPath(), a.getCurrentStmt(),
 									a.getSourceContext().getUserData(),
-									a.getAccessPath(), true));
+									a.getAccessPath(),
+									isAliasedField(a.getAccessPath(),
+											a.getSourceContext().getAccessPath(),
+											a.getSourceContext().getStmt()),
+									false));
 				}
 			}
-			else {				
+			else {
 				// In case we have the same abstraction in multiple places and we
 				// extend it with external sink information regardless of the
 				// original propagation, we need to clean up first
@@ -133,7 +136,8 @@ public class InfoflowResultPostProcessor {
 						// method parameter, the access paths are equal, but that's
 						// ok in the case of aliasing.
 						boolean isAliasedField = gapManager.getGapForCall(sourceStmt) != null
-								&& isAliasedField(sinkAP, sourceAP, sourceStmt);
+								&& isAliasedField(sinkAP, sourceAP, sourceStmt)
+								&& si.getSourceInfo().getIsAlias();
 						if (!sinkAP.equals(sourceAP) || isAliasedField) {
 							// Process the flow from this source
 							processFlowSource(flows, m, sinkAP, stmt, si.getSourceInfo());
@@ -173,18 +177,8 @@ public class InfoflowResultPostProcessor {
 	 */
 	private boolean isAliasedField(AccessPath apAtSink,
 			AccessPath apAtSource, Stmt sourceStmt) {
-		// Only reference types can have aliases
-		if (!(apAtSink.getLastFieldType() instanceof RefType))
-			return false;
-		
-		// Return values are always passed on, regardless of aliasing
-		if (sourceStmt instanceof DefinitionStmt)
-			if (((DefinitionStmt) sourceStmt).getLeftOp() == apAtSource.getPlainValue())
-				return true;
-		
-		// Strings are immutable
-		RefType rt = (RefType) apAtSink.getLastFieldType();
-		if (rt == RefType.v("java.lang.String"))
+		// Strings and primitives do not alias
+		if (!AliasUtils.canAccessPathHaveAliases(apAtSink))
 			return false;
 		
 		return true;
@@ -215,6 +209,7 @@ public class InfoflowResultPostProcessor {
 			// Get the source access path
 			AccessPath sourceAP = sourceInfo.getSourceAP();
 			boolean isAlias = sourceInfo.getIsAlias();
+			boolean isInCallee = sourceInfo.getIsInCallee();
 			
 			// Create the flow source data object
 			flowSource = sourceSinkFactory.createSource(flowSource.getType(),
@@ -223,7 +218,8 @@ public class InfoflowResultPostProcessor {
 			// Depending on the statement at which the flow ended, we need to create
 			// a different type of summary
 			if (cfg.isExitStmt(stmt))
-				processAbstractionAtReturn(flows, ap, m, flowSource, stmt, sourceAP, isAlias);
+				processAbstractionAtReturn(flows, ap, m, flowSource, stmt,
+						sourceAP, isAlias, isInCallee);
 			else if (cfg.isCallStmt(stmt))
 				processAbstractionAtCall(flows, ap, flowSource, stmt, sourceAP, isAlias);
 			else
@@ -307,10 +303,13 @@ public class InfoflowResultPostProcessor {
 	 * @param stmt The statement at which the flow left the method
 	 * @param sourceAP The access path of the flow source
 	 * @param isAlias True if source and sink alias, otherwise false
+	 * @param isInCallee True if the abstraction was recorded in a callee, false
+	 * if it was recorded in the original method without any recursive calls or
+	 * the like
 	 */
 	protected void processAbstractionAtReturn(MethodSummaries flows, AccessPath apAtReturn,
 			SootMethod m, FlowSource source, Stmt stmt, AccessPath sourceAP,
-			boolean isAlias) {
+			boolean isAlias, boolean isInCallee) {
 		// Was this the value returned by the method?
 		if (stmt instanceof ReturnStmt) {
 			ReturnStmt retStmt = (ReturnStmt) stmt;
@@ -321,16 +320,18 @@ public class InfoflowResultPostProcessor {
 		}
 		
 		// The sink may be a parameter
-		if (!apAtReturn.isLocal()
-				|| apAtReturn.getTaintSubFields()
-				|| apAtReturn.getBaseType() instanceof ArrayType)
-			for (int i = 0; i < m.getParameterCount(); i++) {
-				Local p = m.getActiveBody().getParameterLocal(i);
-				if (apAtReturn.getPlainValue() == p) {
-					FlowSink sink = sourceSinkFactory.createParameterSink(i, apAtReturn);
-					addFlow(source, sink, isAlias, flows);
+		if (!isInCallee) {
+			if (!apAtReturn.isLocal()
+					|| apAtReturn.getTaintSubFields()
+					|| apAtReturn.getBaseType() instanceof ArrayType)
+				for (int i = 0; i < m.getParameterCount(); i++) {
+					Local p = m.getActiveBody().getParameterLocal(i);
+					if (apAtReturn.getPlainValue() == p) {
+						FlowSink sink = sourceSinkFactory.createParameterSink(i, apAtReturn);
+						addFlow(source, sink, isAlias, flows);
+					}
 				}
-			}
+		}
 		
 		// The sink may be a local field
 		if (!m.isStatic() && apAtReturn.getPlainValue() ==
@@ -411,20 +412,24 @@ public class InfoflowResultPostProcessor {
 		String methodSubSig = SootMethodRepresentationParser.v()
 				.parseSootMethodString(method).getSubSignature();
 		
+		if (source.toString().equals("source: Field [<soot.jimple.infoflow.test.methodSummary.ContextSensitivity: java.lang.String x>]"))
+			System.out.println("x");
+		
 		// Ignore identity flows
 		if (isIdentityFlow(source, sink))
 			return;
 		
 		MethodFlow mFlow = new MethodFlow(methodSubSig, source, sink, isAlias);
 		if (summaries.addFlow(mFlow))
-			debugMSG(source, sink);
+			debugMSG(source, sink, isAlias);
 	}
 	
-	private void debugMSG(FlowSource source, FlowSink sink) {
+	private void debugMSG(FlowSource source, FlowSink sink, boolean isAlias) {
 		if (DEBUG) {
 			System.out.println("\nmethod: " + method);
 			System.out.println("source: " + source.toString());
 			System.out.println("sink  : " + sink.toString());
+			System.out.println("alias : " + isAlias);
 
 			System.out.println("------------------------------------");
 		}

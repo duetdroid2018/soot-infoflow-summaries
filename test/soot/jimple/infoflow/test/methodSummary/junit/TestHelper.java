@@ -33,6 +33,7 @@ public abstract class TestHelper {
 	protected final static String DATACLASS_INT_FIELD2 = "<" + DATACLASS_SIG + ": int value2>";
 	protected final static String DATACLASS_OBJECT_FIELD = "<" + DATACLASS_SIG + ": " + OBJECT_TYPE + " objectField>";
 	protected final static String DATACLASS_STRING_FIELD = "<" + DATACLASS_SIG + ": " + STRING_TYPE + " stringField>";
+	protected final static String DATACLASS_STRING_FIELD2 = "<" + DATACLASS_SIG + ": " + STRING_TYPE + " stringField2>";
 	
 	protected static final String APICLASS_SIG = "soot.jimple.infoflow.test.methodSummary.ApiClass";
 	protected final static String APICLASS_DATA_FIELD = "<" + APICLASS_SIG + ": soot.jimple.infoflow.test.methodSummary.Data dataField>";

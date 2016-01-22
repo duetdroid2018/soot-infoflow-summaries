@@ -13,6 +13,7 @@ import soot.jimple.infoflow.data.AbstractionAtSink;
 import soot.jimple.infoflow.data.AccessPath;
 import soot.jimple.infoflow.data.SourceContextAndPath;
 import soot.jimple.infoflow.data.pathBuilders.ContextSensitivePathBuilder;
+import soot.jimple.infoflow.methodSummary.util.AliasUtils;
 import soot.jimple.infoflow.results.InfoflowResults;
 import soot.jimple.infoflow.results.ResultSinkInfo;
 import soot.jimple.infoflow.results.ResultSourceInfo;
@@ -39,12 +40,14 @@ class SummaryPathBuilder extends ContextSensitivePathBuilder {
 		
 		private final AccessPath sourceAP;
 		private final boolean isAlias;
+		private final boolean isInCallee;
 		
 		public SummarySourceInfo(AccessPath source, Stmt context, Object userData,
-				AccessPath sourceAP, boolean isAlias) {
+				AccessPath sourceAP, boolean isAlias, boolean isInCallee) {
 			super(source, context, userData, null, null);
 			this.sourceAP = sourceAP;
 			this.isAlias = isAlias;
+			this.isInCallee = isInCallee;
 		}
 		
 		@Override
@@ -55,6 +58,7 @@ class SummaryPathBuilder extends ContextSensitivePathBuilder {
 			result = prime * result + (isAlias ? 1231 : 1237);
 			result = prime * result
 					+ ((sourceAP == null) ? 0 : sourceAP.hashCode());
+			result = prime * result + (isInCallee ? 1231 : 1237);
 			return result;
 		}
 		
@@ -76,6 +80,8 @@ class SummaryPathBuilder extends ContextSensitivePathBuilder {
 					return false;
 			} else if (!sourceAP.equals(other.sourceAP))
 				return false;
+			if (isInCallee != other.isInCallee)
+				return false;
 			return true;
 		}
 		
@@ -85,6 +91,10 @@ class SummaryPathBuilder extends ContextSensitivePathBuilder {
 		
 		public boolean getIsAlias() {
 			return this.isAlias;
+		}
+		
+		public boolean getIsInCallee() {
+			return this.isInCallee;
 		}
 
 		private SummaryPathBuilder getOuterType() {
@@ -194,7 +204,8 @@ class SummaryPathBuilder extends ContextSensitivePathBuilder {
 				abs.getSourceContext().getStmt(),
 				abs.getSourceContext().getUserData(),
 				sscap.getCurrentAccessPath(),
-				sscap.getIsAlias());
+				sscap.getIsAlias(),
+				!scap.isCallStackEmpty() || sscap.getDepth() != 0);
 		ResultSinkInfo rsi = new ResultSinkInfo(
 				scap.getAccessPath(),
 				scap.getStmt());
@@ -231,8 +242,11 @@ class SummaryPathBuilder extends ContextSensitivePathBuilder {
 	@Override
 	protected void buildPathForAbstraction(final AbstractionAtSink abs) {
 		SourceContextAndPath scap = new SummarySourceContextAndPath(this.icfg,
-				abs.getAbstraction().getAccessPath(), abs.getSinkStmt(), true,
-				abs.getAbstraction().getAccessPath(), new ArrayList<SootMethod>());
+				abs.getAbstraction().getAccessPath(),
+				abs.getSinkStmt(),
+				AliasUtils.canAccessPathHaveAliases(abs.getAbstraction().getAccessPath()),
+				abs.getAbstraction().getAccessPath(),
+				new ArrayList<SootMethod>());
 		scap = scap.extendPath(abs.getAbstraction());
 		
 		if (scap != null) {

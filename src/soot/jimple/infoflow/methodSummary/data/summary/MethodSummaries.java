@@ -1,7 +1,6 @@
 package soot.jimple.infoflow.methodSummary.data.summary;
 
 import java.util.Collection;
-import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -162,8 +161,6 @@ public class MethodSummaries implements Iterable<MethodFlow> {
 	 */
 	public Set<MethodFlow> getFlowsForMethod(String methodSig) {
 		Set<MethodFlow> methFlows = flows.get(methodSig);
-		if (methFlows == null)
-			return Collections.emptySet();
 		return methFlows;
 	}
 	

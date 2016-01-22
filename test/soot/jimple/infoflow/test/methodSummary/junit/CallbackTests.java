@@ -21,7 +21,7 @@ public class CallbackTests extends TestHelper {
 	static final String className = "soot.jimple.infoflow.test.methodSummary.Callbacks";
 	
 	private static final String FIELD_CALLBACK = "<soot.jimple.infoflow.test.methodSummary.Callbacks: soot.jimple.infoflow.test.methodSummary.Callbacks$MyCallbacks cbs>";
-		
+	
 	@Test(timeout = 100000)
 	public void paraToCallbackToReturn() {
 		String mSig = "<soot.jimple.infoflow.test.methodSummary.Callbacks: java.lang.String paraToCallbackToReturn(java.lang.String,soot.jimple.infoflow.test.methodSummary.Callbacks$MyCallbacks)>";

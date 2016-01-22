@@ -1,5 +1,7 @@
 package soot.jimple.infoflow.methodSummary.postProcessor;
 
+import heros.solver.Pair;
+
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -27,6 +29,7 @@ import soot.jimple.infoflow.data.AccessPath;
 import soot.jimple.infoflow.data.AccessPathFactory;
 import soot.jimple.infoflow.data.AccessPathFactory.BasePair;
 import soot.jimple.infoflow.data.SourceContextAndPath;
+import soot.jimple.infoflow.methodSummary.util.AliasUtils;
 import soot.jimple.infoflow.solver.cfg.IInfoflowCFG;
 import soot.jimple.infoflow.util.BaseSelector;
 
@@ -41,6 +44,7 @@ class SummarySourceContextAndPath extends SourceContextAndPath {
 	private final IInfoflowCFG cfg;
 	private boolean isAlias;
 	private AccessPath curAP;
+	private int depth;
 	private final List<SootMethod> callees;
 	
 	public SummarySourceContextAndPath(IInfoflowCFG cfg,
@@ -55,12 +59,13 @@ class SummarySourceContextAndPath extends SourceContextAndPath {
 	
 	public SummarySourceContextAndPath(IInfoflowCFG cfg,
 			AccessPath value, Stmt stmt, AccessPath curAP, boolean isAlias,
-			List<SootMethod> callees, Object userData) {
+			int depth, List<SootMethod> callees, Object userData) {
 		super(value, stmt, userData);
 		this.cfg = cfg;
 		this.isAlias = isAlias;
 		this.curAP = curAP;
-		this.callees = callees;
+		this.callees = new ArrayList<SootMethod>(callees);
+		this.depth = depth;
 	}
 	
 	@Override
@@ -80,6 +85,8 @@ class SummarySourceContextAndPath extends SourceContextAndPath {
 				&& abs.getCorrespondingCallSite() != abs.getCurrentStmt()) {
 			if (scap.callStack == null)
 				scap.callStack = new ArrayList<Stmt>();
+			else if (!scap.callStack.isEmpty() && scap.callStack.get(0) == abs.getCorrespondingCallSite())
+				return null;
 			scap.callStack.add(0, abs.getCorrespondingCallSite());
 		}
 		
@@ -98,6 +105,18 @@ class SummarySourceContextAndPath extends SourceContextAndPath {
 		// In case of a call-to-return edge, we have no information about
 		// what happened in the callee, so we take the incoming access path
 		if (stmt.containsInvokeExpr()) {
+			// Pop the top item off the call stack. This gives us the item
+			// and the new SCAP without the item we popped off.
+			if (abs.getCorrespondingCallSite() != abs.getCurrentStmt()) {
+				Pair<SourceContextAndPath, Stmt> pathAndItem = scap.popTopCallStackItem();
+				if (pathAndItem != null) {
+					Stmt topCallStackItem = pathAndItem.getO2();
+					// Make sure that we don't follow an unrealizable path
+					if (topCallStackItem != abs.getCurrentStmt())
+						return null;
+				}
+			}
+			
 			if (callSite == stmt) {
 				// only change base local
 				Value newBase = abs.getPredecessor() != null
@@ -128,6 +147,8 @@ class SummarySourceContextAndPath extends SourceContextAndPath {
 					else
 						scap.curAP = scap.curAP.copyWithNewValue(newBase);
 					matched = true;
+					
+					scap.depth--;
 				}
 			}
 		}
@@ -149,6 +170,7 @@ class SummarySourceContextAndPath extends SourceContextAndPath {
 				AccessPath newAP = mapAccessPathBackIntoCaller(scap.curAP, stmt, callee);
 				if (newAP != null) {
 					scap.curAP = newAP;
+					scap.depth--;
 					matched = true;
 					break;
 				}
@@ -170,6 +192,7 @@ class SummarySourceContextAndPath extends SourceContextAndPath {
 					!abs.isAbstractionActive());
 			if (newAP != null) {
 				scap.curAP = newAP;
+				scap.depth++;
 				matched = true;
 			}
 			else
@@ -251,6 +274,9 @@ class SummarySourceContextAndPath extends SourceContextAndPath {
 				}
 			}
 		}
+		
+		// Strings and primitives do not alias
+		scap.isAlias &= AliasUtils.canAccessPathHaveAliases(scap.curAP);
 		
 		return matched ? scap : null;
 	}
@@ -457,8 +483,8 @@ class SummarySourceContextAndPath extends SourceContextAndPath {
 	@Override
 	public synchronized SummarySourceContextAndPath clone() {
 		final SummarySourceContextAndPath scap = new SummarySourceContextAndPath(
-				cfg, getAccessPath(), getStmt(), curAP, true, new ArrayList<>(callees),
-				getUserData());
+				cfg, getAccessPath(), getStmt(), curAP, isAlias, depth,
+				new ArrayList<>(callees), getUserData());
 		if (callStack != null)
 			scap.callStack = new ArrayList<Stmt>(callStack);
 		if (path != null)
@@ -474,6 +500,10 @@ class SummarySourceContextAndPath extends SourceContextAndPath {
 		result = prime * result + ((cfg == null) ? 0 : cfg.hashCode());
 		result = prime * result + ((curAP == null) ? 0 : curAP.hashCode());
 		result = prime * result + (isAlias ? 1231 : 1237);
+		
+		// We deliberately ignore the depth to avoid infinite progression into
+		// recursive method calls
+		
 		return result;
 	}
 	
@@ -503,6 +533,10 @@ class SummarySourceContextAndPath extends SourceContextAndPath {
 			return false;
 		if (isAlias != other.isAlias)
 			return false;
+		
+		// We deliberately ignore the depth to avoid infinite progression into
+		// recursive method calls
+		
 		return true;
 	}
 	
@@ -512,6 +546,10 @@ class SummarySourceContextAndPath extends SourceContextAndPath {
 	
 	public boolean getIsAlias() {
 		return this.isAlias;
+	}
+	
+	public int getDepth() {
+		return this.depth;
 	}
 		
 }

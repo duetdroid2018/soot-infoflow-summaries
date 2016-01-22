@@ -483,6 +483,9 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 		if (!stmt.containsInvokeExpr())
 			return Collections.singleton(taintedAbs);
 		
+		if (stmt.toString().equals("specialinvoke $r3.<java.lang.StringBuilder: void <init>(java.lang.String)>($r4)"))
+			System.out.println("x");
+		
 		Set<Abstraction> resAbs = null;
 		Collection<SootMethod> callees = manager.getICFG().getCalleesOfCallAt(stmt);
 		if (callees.isEmpty()) {

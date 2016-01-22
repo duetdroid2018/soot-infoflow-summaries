@@ -20,6 +20,7 @@ import soot.jimple.infoflow.methodSummary.data.sourceSink.FlowSource;
 import soot.jimple.infoflow.methodSummary.data.summary.GapDefinition;
 import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
 import soot.jimple.infoflow.methodSummary.data.summary.SourceSinkType;
+import soot.jimple.infoflow.methodSummary.util.AliasUtils;
 import soot.jimple.infoflow.solver.cfg.IInfoflowCFG;
 import soot.jimple.infoflow.taintWrappers.ITaintPropagationWrapper;
 import soot.jimple.toolkits.callgraph.Edge;
@@ -82,8 +83,9 @@ public class SummaryGenerationTaintWrapper implements ITaintPropagationWrapper {
 		}
 		for (Value paramVal : stmt.getInvokeExpr().getArgs())
 			if (AccessPath.canContainValue(paramVal)) {
-				AccessPath ap = AccessPathFactory.v().createAccessPath(paramVal, true); 
-				res.add(getContinuation(taintedPath, ap, gap, stmt));
+				AccessPath ap = AccessPathFactory.v().createAccessPath(paramVal, true);
+				if (AliasUtils.canAccessPathHaveAliases(ap))
+					res.add(getContinuation(taintedPath, ap, gap, stmt));
 			}
 		if (stmt instanceof DefinitionStmt) {
 			AccessPath ap = AccessPathFactory.v().createAccessPath(
