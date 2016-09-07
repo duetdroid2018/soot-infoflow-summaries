@@ -82,12 +82,12 @@ public class InfoflowResultPostProcessor {
 		
 		// Create a context-sensitive path builder. Without context-sensitivity,
 		// we get quite some false positives here.
-		SummaryPathBuilder pathBuilder = new SummaryPathBuilder(cfg,
-				new CountingThreadPoolExecutor(
-						Runtime.getRuntime().availableProcessors(),
-						Integer.MAX_VALUE,
-						30, TimeUnit.SECONDS,
-						new LinkedBlockingQueue<Runnable>()));
+		CountingThreadPoolExecutor executor = new CountingThreadPoolExecutor(
+				Runtime.getRuntime().availableProcessors(),
+				Integer.MAX_VALUE,
+				30, TimeUnit.SECONDS,
+				new LinkedBlockingQueue<Runnable>());
+		SummaryPathBuilder pathBuilder = new SummaryPathBuilder(cfg, executor);
 		
 		int analyzedPaths = 0;
 		int abstractionCount = 0;
@@ -111,6 +111,14 @@ public class InfoflowResultPostProcessor {
 				pathBuilder.clear();
 				pathBuilder.computeTaintPaths(Collections.singleton(
 						new AbstractionAtSink(a, a.getCurrentStmt())));
+				
+				// Wait for the executor to complete all of its tasks
+				try {
+					executor.awaitCompletion();
+				} catch (InterruptedException e) {
+					logger.error("Could not wait for executor termination", e);
+				}
+				
 				logger.info("Obtained {} source-to-sink connections.",
 						pathBuilder.getResultInfos().size());
 				
