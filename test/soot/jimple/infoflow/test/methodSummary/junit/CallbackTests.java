@@ -10,7 +10,7 @@ import java.util.List;
 import org.junit.Test;
 
 import soot.jimple.infoflow.InfoflowConfiguration;
-import soot.jimple.infoflow.config.IInfoflowConfig;
+import soot.jimple.infoflow.methodSummary.DefaultSummaryConfig;
 import soot.jimple.infoflow.methodSummary.data.summary.MethodSummaries;
 import soot.jimple.infoflow.methodSummary.data.summary.SourceSinkType;
 import soot.jimple.infoflow.methodSummary.generator.SummaryGenerator;
@@ -210,10 +210,11 @@ public class CallbackTests extends TestHelper {
 		sg.setSubstitutedWith(sub);
 		InfoflowConfiguration.setAccessPathLength(5);
 		InfoflowConfiguration.setUseRecursiveAccessPaths(true);		
-		sg.setSootConfig(new IInfoflowConfig() {
+		sg.setSootConfig(new DefaultSummaryConfig() {
 			
 			@Override
 			public void setSootOptions(Options options) {
+				super.setSootOptions(options);
 				Options.v().set_exclude(Collections.singletonList("soot.jimple.infoflow.test.methodSummary.GapClass"));
 			}
 			

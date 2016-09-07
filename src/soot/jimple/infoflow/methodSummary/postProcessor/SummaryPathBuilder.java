@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.IdentityHashMap;
 import java.util.Set;
 
+import heros.solver.CountingThreadPoolExecutor;
 import soot.SootMethod;
 import soot.jimple.Stmt;
 import soot.jimple.infoflow.collect.ConcurrentHashSet;
@@ -182,10 +183,12 @@ class SummaryPathBuilder extends ContextSensitivePathBuilder {
 	/**
 	 * Creates a new instance of the SummaryPathBuilder class 
 	 * @param icfg The interprocedural control-flow graph to use
-	 * @param maxThreadNum The maximum number of threads to use
+	 * @param executor The executor in which to run the path reconstruction
+	 * tasks
 	 */
-	public SummaryPathBuilder(IInfoflowCFG icfg, int maxThreadNum) {
-		super(icfg, maxThreadNum, true);
+	public SummaryPathBuilder(IInfoflowCFG icfg,
+			CountingThreadPoolExecutor executor) {
+		super(icfg, executor, true);
 	}
 	
 	@Override
@@ -220,9 +223,8 @@ class SummaryPathBuilder extends ContextSensitivePathBuilder {
 	public void clear() {
 		super.getResults().clear();
 		resultInfos.clear();
-		for (Abstraction abs : visitedAbstractions)
-			abs.clearPathCache();
 		visitedAbstractions.clear();
+		pathCache.clear();
 	}
 	
 	/**
@@ -250,7 +252,7 @@ class SummaryPathBuilder extends ContextSensitivePathBuilder {
 		scap = scap.extendPath(abs.getAbstraction());
 		
 		if (scap != null) {
-			if (abs.getAbstraction().addPathElement(scap))			
+			if (pathCache.put(abs.getAbstraction(), scap))
 				if (!checkForSource(abs.getAbstraction(), scap))
 					spawnSourceFindingTask(abs.getAbstraction());
 		}

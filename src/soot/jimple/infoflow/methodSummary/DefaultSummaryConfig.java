@@ -34,12 +34,12 @@ public class DefaultSummaryConfig implements IInfoflowConfig{
 //			includeList.add("com.jakobkontor.");
 //			includeList.add("libcore.icu.");
 //			includeList.add("securibench.");
-			Options.v().set_no_bodies_for_excluded(true);
-			Options.v().set_allow_phantom_refs(true);
+			options.set_no_bodies_for_excluded(true);
+			options.set_allow_phantom_refs(true);
 			options.set_include(includeList);
 			options.set_output_format(Options.output_format_none);
-			Options.v().setPhaseOption("jb", "use-original-names:true");
-			
+			options.setPhaseOption("jb", "use-original-names:true");
+			options.set_ignore_classpath_errors(true);
 		}
 
 	}

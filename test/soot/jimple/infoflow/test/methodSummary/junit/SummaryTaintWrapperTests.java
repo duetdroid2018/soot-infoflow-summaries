@@ -249,6 +249,7 @@ public class SummaryTaintWrapperTests {
 				
 				Options.v().set_no_bodies_for_excluded(true);
 				Options.v().set_allow_phantom_refs(true);
+				Options.v().set_ignore_classpath_errors(true);
 			}
 			
 		};

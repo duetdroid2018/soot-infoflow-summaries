@@ -3,10 +3,13 @@ package soot.jimple.infoflow.methodSummary.postProcessor;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.TimeUnit;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import heros.solver.CountingThreadPoolExecutor;
 import soot.ArrayType;
 import soot.Local;
 import soot.Scene;
@@ -80,7 +83,11 @@ public class InfoflowResultPostProcessor {
 		// Create a context-sensitive path builder. Without context-sensitivity,
 		// we get quite some false positives here.
 		SummaryPathBuilder pathBuilder = new SummaryPathBuilder(cfg,
-				Runtime.getRuntime().availableProcessors());
+				new CountingThreadPoolExecutor(
+						Runtime.getRuntime().availableProcessors(),
+						Integer.MAX_VALUE,
+						30, TimeUnit.SECONDS,
+						new LinkedBlockingQueue<Runnable>()));
 		
 		int analyzedPaths = 0;
 		int abstractionCount = 0;
@@ -100,11 +107,6 @@ public class InfoflowResultPostProcessor {
 				}
 			}
 			else {
-				// In case we have the same abstraction in multiple places and we
-				// extend it with external sink information regardless of the
-				// original propagation, we need to clean up first
-				a.clearPathCache();
-				
 				// Get the source info and process the flow
 				pathBuilder.clear();
 				pathBuilder.computeTaintPaths(Collections.singleton(
@@ -150,8 +152,6 @@ public class InfoflowResultPostProcessor {
 				pathBuilder.clear();
 			}
 		}
-		
-		pathBuilder.shutdown();
 		
 		// Compact the flow set to remove paths that are over-approximations of
 		// other flows
