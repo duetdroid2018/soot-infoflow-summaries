@@ -224,7 +224,7 @@ public class SummaryTaintWrapper implements ITaintPropagationWrapper {
 		SootClass sc = Scene.v().getSootClassUnsafe(className);
 		if (sc == null) {
 			sc = new SootClass(className);
-			sc.setPhantom(true);
+			sc.setPhantomClass();
 			Scene.v().addClass(sc);
 		}
 		else if (sc.resolvingLevel() < SootClass.HIERARCHY)
